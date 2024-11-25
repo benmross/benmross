@@ -1,4 +1,4 @@
-BEN ROSS Email: <ben.m.ross08@gmail.com> Phone: 240-756-8220
+BEN ROSS Email: <ben.m.ross08@gmail.com>
 
 EDUCATION: Junior, Science, Math, Computer Science Magnet Program at Poolesville High School
 
