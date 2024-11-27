@@ -421,3 +421,5 @@ jekyll_compose:
       links:
         - title: Project Link
           url: https://example.com
+
+google_analytics: "G-FNYEEKGB1J"
