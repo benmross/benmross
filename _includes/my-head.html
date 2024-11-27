@@ -41,6 +41,6 @@
     document.querySelectorAll('.gumroad-button').forEach(el => io2.observe(el));
   });
 </script>
-{% if site.google_analytics and jekyll.environment == 'production' %}
+{% if jekyll.environment == 'production' %}
 {% include analytics.html %}
 {% endif %}
