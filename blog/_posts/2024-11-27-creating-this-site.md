@@ -1,0 +1,27 @@
+---
+layout: post
+title: How I Wiped My Entire Hard Drive Creating This Site
+sitemap: false
+hide_last_modified: true
+---
+
+I've wanted to start a technical blog for a while now, but I've never really known what I'd write about. I do plenty of hobby projects, but I've never documented them well enough to be able to write about them in a manner that would make any sense. However, the idea kept coming back to me, so I decided I'd start one and hope things to write about came naturally. I figured talking about the creation of this site would be a fitting first post, and as the title mentions, it didn't go as smoothly as I had hoped.
+
+This site is hosted on Github Pages and created with Jekyll using the Hydejack template. I purchased the domain with Namecheap for only six dollars (for the first year) and linking that domain to Github was far easier than I expected. Everything went relatively smoothly up to this point, and to anyone considering starting a website, I highly recommend following the steps I just described. 
+
+The trouble started when I wanted to host the site locally to test commits before pushing them. Running `bundle exec jekyll serve` kept giving me an error that I had added an extra `-R` flag. After some research online, I realized what the problem was: the name of my User folder on Windows was "Ben Ross", space included, and it wasn't escaped correctly in whatever command bundler was running in the background. This was a problem I had run into many, many times before, but I had usually been able to fix it by finding whatever file was running the problematic command and escaping the space in my username correctly. But this time, I couldn't find the problematic file, and I decided to try to change my Windows username. **THIS IS HIGHLY DISCOURAGED, AND I LEARNED WHY FIRSTHAND.** 
+
+I followed, or attempted to follow, a very well-written and detailed tutorial [here](https://www.tenforums.com/tutorials/89060-change-name-user-profile-folder-windows-10-a.html). First I enabled and logged into the local administrator account, which went fine. I then had to edit the registry value that pointed to where my User folder was, which also went fine. The trouble came when I tried to rename my User folder to match what I had edited the registry value to. A process was running in the folder, and it kept restarting when I ended it with Task Manager. If I had thought for a little bit, I would have remembered that this was because the process was associated with a Windows service, which I could have easily stopped. Instead, I had the bright idea of logging into my account and uninstalling the program. This was actually a horrible idea, which I realized directly after typing in my password. By editing the registry without renaming my corresponding User folder, I had convinced Windows that I didn't have a folder and one needed to be generated, as I realized when the "Preparing Windows" dialogue popped up. If I had let this continue, my data probably would have been fine - a new folder would have been created, leaving my old one untouched - but I figured two wrongs may make a right and I force shut down my computer. 
+
+At this point, the registry was completely corrupted. I logged in to the administrator account and was pretty sure I had finally renamed my User folder successfully, but upon logging in to my account I was greeted with a "Welcome to Windows" screen, and a panicked search of the "Users" folder revealed that all my data had been wiped. I immediately ran Recuva's recovery wizard, as I figured the files couldn't be too badly overwritten, but the data it found proved to be corrupted enough after some testing that I knew resetting my computer would probably be the best option. I've had this computer for almost three years now, so a lot of what was lost was just app cache and random libraries that had been piling up, but there were some sentimental recordings too, which I'm pretty sad to have lost.
+
+I've now installed and read through the entire manual of Aomei Backupper, as I absolutely do not want to lose all my data again. But it could have been a lot worse - I'm grateful that my second SSD, with all of my photos (I'll probably post those on here soon), stayed untouched, and I had backed up some data to my external hard drive about 6 months ago, so that's still safe. 
+
+![Full-width image](/assets/img/blog/aomei.png)
+
+My current configuration in Aomei Backupper. The UI isn't my favorite (it nags me to buy the pro version every time I click close), but it seems pretty reliable so far.
+{:.figcaption}
+
+I'm still a far cry away from the 3-2-1 rule of data protection (3 copies, 2 different types of media, 1 off-site), but hopefully, these backups are enough to ensure that this won't happen again. It's honestly been kind of nice getting to set up my computer again - I've been a lot more thoughtful with what and where I install because I want to keep my directories relatively clean for as long as possible. 
+
+I hope to use this site to talk in-depth about a lot of the hobby projects I've done. I'm still getting the hang of writing in markdown, so hopefully, future posts will be more visually interesting than just blocks of text. My next post will probably be about one of the projects I have listed on my resume - likely either my fine-tuned LLM or my home server. Thanks for reading, and happy Thanksgiving!

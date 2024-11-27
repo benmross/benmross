@@ -8,7 +8,7 @@ author1:
   # Used at the bottom of each page and at the top of the `about` layout
   # Markdown enabled, can use multiple paragraphs (enabled by `|`)
   about:             |
-    This site is the official home of my technical blog and resume.
+    I'm a highly passionate and curious computer science student, with specific interests in neural networks and advanced data structures. I'm currently a Junior in the Science, Math, Computer Science magnet program at Poolesville High School.
 
   # This photo will be used in the about section
   picture:
