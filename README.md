@@ -1,13 +1,13 @@
 <h1 align="center">Hi 👋, I'm Ben Ross</h1>
 <h3 align="center">A high school student with interests in artificial intelligence and cyber forensics</h3>
 
-- 📝 I regularly write articles on [benmross.com](benmross.com)
+- 📝 I regularly write articles on [benmross.com](https://benmross.com)
 
 - 💬 Ask me about **large language model fine tuning!**
 
 - 📫 You can reach me at **ben.m.ross08@gmail.com**
 
-- 📄 You can find my resume at [benmross.com/resume](benmross.com/resume)
+- 📄 You can find my resume at [benmross.com/resume](https://benmross.com/resume)
 
 ### Blog posts
 <!-- BLOG-POST-LIST:START -->
