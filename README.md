@@ -7,6 +7,7 @@
 
 ### Blogs posts
 <!-- BLOG-POST-LIST:START -->
+- [How I Wiped My Entire Hard Drive Creating This Site](https://benmross.com/blog/2024-11-27-creating-this-site/)
 <!-- BLOG-POST-LIST:END -->
 
 <h3 align="left">Connect with me:</h3>
