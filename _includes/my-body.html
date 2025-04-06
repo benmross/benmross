@@ -102,6 +102,9 @@ Example code for using Matamo as alternative analytics solution.
     const galleryElement = document.getElementById('lightgallery');
     // Check if the element exists and hasn't already been initialized
     if (galleryElement && !galleryElement.hasAttribute('lg-uid')) {
+      // Temporarily removed options to debug SyntaxError
+      lightGallery(galleryElement);
+      /* 
       lightGallery(galleryElement, {
         plugins: [lgThumbnail],
         licenseKey: 'YOUR_LICENSE_KEY', // Optional, if you have a commercial license
@@ -110,6 +113,7 @@ Example code for using Matamo as alternative analytics solution.
         selector: '.photo-gallery-item' // Target the links we created
         // Add other configuration options here if needed
       });
+      */
     }
   }
 
