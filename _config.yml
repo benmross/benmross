@@ -57,13 +57,6 @@ menu:
 
 # Add links to the footer.
 # Typically you'll want to link to your cookie- or privacy policy (if appliable), etc..
-legal:
-  - title:             LICENSE
-    url:               /LICENSE/
-  - title:             NOTICE
-    url:               /NOTICE/
-  - title:             CHANGELOG
-    url:               /CHANGELOG/
 
 # This text will appear in a `<small>` tag in the footer of every page.
 copyright:             © 2024. All rights reserved.
@@ -124,14 +117,7 @@ theme_color:           rgb(25,55,71)
 defaults:
   # You can use this to provide a default accent color and background for
   # all pages under a given path:
-  - scope:
-      path:            hyde/
-    values:
-      accent_color:    rgb(38,139,210)
-      theme_color:     rgb(32,32,32)
-      accent_image:
-        background:    rgb(32,32,32)
-        overlay:       false
+  # --- REMOVED hyde/ scope ---
 
   # Don't include documents in assets in the sitemap
   - scope:
@@ -315,7 +301,6 @@ exclude:
 include:
   - _routes.json
   - .well-known
-  - LICENSE.md
 
 
 # Plugins
