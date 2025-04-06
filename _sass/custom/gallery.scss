@@ -1,0 +1,24 @@
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Adjust minmax for desired size */
+  gap: 1rem; /* Spacing between images */
+  margin-top: 2rem;
+}
+
+.photo-gallery-item {
+  /* Optional: Add styles for borders, backgrounds, etc. */
+  text-align: center; /* Center the caption */
+}
+
+.photo-gallery-item img {
+  max-width: 100%;
+  height: auto;
+  display: block; /* Remove extra space below image */
+  /* Optional: Add border-radius, box-shadow, etc. */
+}
+
+.photo-caption {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  color: var(--text-muted-color); /* Use theme's muted color */
+} 

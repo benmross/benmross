@@ -91,3 +91,24 @@ Example code for using Matamo as alternative analytics solution.
 </script>
 {% endif %}
 {% endcomment %}
+
+<!-- Lightgallery JS -->
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/lightgallery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightgallery@2.7.2/plugins/thumbnail/lg-thumbnail.min.js"></script>
+
+<!-- Initialization Script -->
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const galleryElement = document.getElementById('lightgallery');
+    if (galleryElement) {
+      lightGallery(galleryElement, {
+        plugins: [lgThumbnail],
+        licenseKey: 'YOUR_LICENSE_KEY', // Optional, if you have a commercial license
+        speed: 500,
+        thumbnail: true,
+        selector: '.photo-gallery-item' // Target the links we created
+        // Add other configuration options here if needed
+      });
+    }
+  });
+</script>
