@@ -17,7 +17,7 @@ At this point, the registry was completely corrupted. I logged in to the adminis
 
 I've now installed and read through the entire manual of Aomei Backupper, as I absolutely do not want to lose all my data again. But it could have been a lot worse - I'm grateful that my second SSD, with all of my photos (I'll probably post those on here soon), stayed untouched, and I had backed up some data to my external hard drive about 6 months ago, so that's still safe. 
 
-![Full-width image](/assets/img/blog/aomei.png)
+![Full-width image](/assets/img/aomei.png)
 
 My current configuration in Aomei Backupper. The UI isn't my favorite (it nags me to buy the pro version every time I click close), but it seems pretty reliable so far.
 {:.figcaption}
