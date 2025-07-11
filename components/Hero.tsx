@@ -4,12 +4,6 @@ import { motion } from 'framer-motion';
 import { ChevronDownIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 const Hero = () => {
-  const scrollToProjects = () => {
-    const element = document.querySelector('#projects');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
 
   return (
     <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -73,10 +67,10 @@ const Hero = () => {
           transition={{ duration: 1.2, delay: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className="mb-8"
         >
-          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-white mb-6 leading-tight">
-            <span className="block">Ben Ross</span>
-            <span className="block text-2xl sm:text-3xl lg:text-4xl font-normal text-white/80 mt-2">
-              Developer & Photographer
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black text-white mb-6 leading-tight font-display">
+            <span className="block uppercase tracking-wider">BEN ROSS</span>
+            <span className="block text-2xl sm:text-3xl lg:text-4xl font-bold text-white/80 mt-2 uppercase tracking-wide">
+              DEVELOPER & PHOTOGRAPHER
             </span>
           </h1>
         </motion.div>
@@ -86,7 +80,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.6, ease: [0.4, 0, 0.2, 1] }}
-          className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
+          className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed font-semibold"
         >
           High school student passionate about building innovative web applications 
           and creating compelling digital experiences. Explore my latest projects below.
@@ -107,9 +101,9 @@ const Hero = () => {
               const element = document.querySelector('#projects');
               if (element) element.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-semibold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 min-w-[200px] smooth-hover"
+            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 min-w-[200px] smooth-hover uppercase tracking-wide"
           >
-            View My Work
+            VIEW MY WORK
           </motion.button>
           
           <motion.button
@@ -120,35 +114,12 @@ const Hero = () => {
               const element = document.querySelector('#contact');
               if (element) element.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="btn-hover bg-white/20 backdrop-blur-md px-8 py-4 rounded-full text-white font-semibold text-lg transition-all duration-300 hover:bg-white/30 border border-white/30 min-w-[200px] smooth-hover"
+            className="btn-hover bg-white/20 backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/30 border border-white/30 min-w-[200px] smooth-hover uppercase tracking-wide"
           >
-            Get In Touch
+            GET IN TOUCH
           </motion.button>
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, delay: 1.2 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <motion.button
-            onClick={scrollToProjects}
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="flex flex-col items-center space-y-2 text-white/70 hover:text-white transition-colors group smooth-hover"
-          >
-            <span className="text-sm font-medium">View my work</span>
-            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center group-hover:border-white/50 transition-colors">
-              <motion.div
-                animate={{ y: [0, 16, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="w-1 h-3 bg-white/50 rounded-full mt-2"
-              />
-            </div>
-          </motion.button>
-        </motion.div>
       </div>
 
       {/* Gradient overlay */}

@@ -122,10 +122,10 @@ const Projects = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Recent Projects
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-6 font-display uppercase tracking-wider">
+            RECENT PROJECTS
           </h2>
-          <p className="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto font-semibold">
             A showcase of my latest work in web development and photography, 
             demonstrating creativity, technical skill, and attention to detail.
           </p>
@@ -137,10 +137,10 @@ const Projects = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-2xl font-bold text-white mb-8 flex items-center"
+            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-wide"
           >
             <span className="w-2 h-8 bg-primary-400 rounded-full mr-4"></span>
-            Featured Projects
+            FEATURED PROJECTS
           </motion.h3>
           
           <div className="grid lg:grid-cols-2 gap-8">
@@ -257,10 +257,10 @@ const Projects = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-2xl font-bold text-white mb-8 flex items-center"
+            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-wide"
           >
             <span className="w-2 h-8 bg-accent-400 rounded-full mr-4"></span>
-            Other Projects
+            OTHER PROJECTS
           </motion.h3>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -348,9 +348,9 @@ const Projects = () => {
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-semibold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30"
+            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 uppercase tracking-wide"
           >
-            View All Projects
+            VIEW ALL PROJECTS
           </motion.button>
         </motion.div>
       </div>

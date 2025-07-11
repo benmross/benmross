@@ -42,7 +42,8 @@ module.exports = {
       },
       fontFamily: {
         'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['Clash Display', 'system-ui', 'sans-serif'],
+        'display': ['JetBrains Mono', 'monospace'],
+        'mono': ['JetBrains Mono', 'monospace'],
       },
       animation: {
         'fade-in': 'fadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
