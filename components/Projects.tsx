@@ -28,7 +28,7 @@ const Projects = () => {
       date: '2025',
       featured: true,
       links: {
-        demo: 'https://media.benmross.com/share/LkjDAeeAfao1eKdeNNsS8TDWlcqrW8GgkmsWbtrXWN5dLiw8memTd8HEk76q5zdQw_I'
+        demo: 'https://media.benmross.com/share/Z1P93X4zHV9oAdCtzlUh2RBxUpanbaTnwNpbOMnz1Le2t8OOXXAr68re5yKGNz4R9D8'
       }
     },
     {
