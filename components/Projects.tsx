@@ -20,6 +20,19 @@ const Projects = () => {
   const projects = [
     {
       id: 1,
+      title: 'XR Symposium - Johns Hopkins University',
+      description: 'Presented at the annual XR symposium on using ParaView and virtual reality to enhance students\' understanding of model exoplanets when designing, programming, and controlling rovers. Demonstrated innovative educational applications of XR technology.',
+      category: 'Speaking',
+      tech: ['ParaView', 'Virtual Reality', 'XR', 'Education'],
+      image: '/images/BenSpeaking.jpg',
+      date: '2025',
+      featured: true,
+      links: {
+        demo: 'https://media.benmross.com/share/LkjDAeeAfao1eKdeNNsS8TDWlcqrW8GgkmsWbtrXWN5dLiw8memTd8HEk76q5zdQw_I'
+      }
+    },
+    {
+      id: 2,
       title: 'E-Commerce Platform',
       description: 'A full-stack e-commerce solution with React, Node.js, and Stripe integration. Features include user authentication, product catalog, shopping cart, and order management.',
       category: 'Web Development',
@@ -33,7 +46,7 @@ const Projects = () => {
       }
     },
     {
-      id: 2,
+      id: 3,
       title: 'Photography Portfolio',
       description: 'A stunning photography portfolio website with lightbox gallery, smooth animations, and responsive design optimized for showcasing visual work.',
       category: 'Photography',
@@ -47,7 +60,7 @@ const Projects = () => {
       }
     },
     {
-      id: 3,
+      id: 4,
       title: 'Task Management App',
       description: 'A collaborative task management application with real-time updates, drag-and-drop functionality, and team collaboration features.',
       category: 'Web Development',
@@ -61,7 +74,7 @@ const Projects = () => {
       }
     },
     {
-      id: 4,
+      id: 5,
       title: 'AI Image Generator',
       description: 'An AI-powered image generation tool using OpenAI\'s DALL-E API with a modern React interface and image optimization features.',
       category: 'Web Development',
@@ -75,7 +88,7 @@ const Projects = () => {
       }
     },
     {
-      id: 5,
+      id: 6,
       title: 'Nature Photography Series',
       description: 'A collection of nature photography capturing the beauty of landscapes, wildlife, and natural phenomena throughout different seasons.',
       category: 'Photography',
@@ -88,7 +101,7 @@ const Projects = () => {
       }
     },
     {
-      id: 6,
+      id: 7,
       title: 'Weather Dashboard',
       description: 'A comprehensive weather dashboard with interactive maps, forecasts, and personalized weather alerts using multiple weather APIs.',
       category: 'Web Development',
@@ -156,13 +169,21 @@ const Projects = () => {
                   {/* Project image */}
                   <div className="relative overflow-hidden">
                     <div className="aspect-video bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
-                      <div className="text-white/50">
-                        <Icon 
-                          name={project.category === 'Photography' ? 'camera' : 'laptop'} 
-                          size={64} 
-                          className="opacity-50"
+                      {project.image && project.image !== '/api/placeholder/600/400' ? (
+                        <img 
+                          src={project.image} 
+                          alt={project.title}
+                          className="w-full h-full object-cover"
                         />
-                      </div>
+                      ) : (
+                        <div className="text-white/50">
+                          <Icon 
+                            name={project.category === 'Photography' ? 'camera' : project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
+                            size={64} 
+                            className="opacity-50"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
                     
@@ -224,14 +245,17 @@ const Projects = () => {
                     
                     <div className="flex space-x-4">
                       {project.links.demo && (
-                        <motion.button
+                        <motion.a
+                          href={project.links.demo}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="btn-hover flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 px-4 py-2 rounded-lg text-white font-medium transition-colors"
                         >
                           <EyeIcon className="w-4 h-4" />
-                          <span>Live Demo</span>
-                        </motion.button>
+                          <span>{project.category === 'Speaking' ? 'Watch Recording' : 'Live Demo'}</span>
+                        </motion.a>
                       )}
                       {project.links.code && (
                         <motion.button
@@ -277,7 +301,7 @@ const Projects = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
                         <Icon 
-                          name={project.category === 'Photography' ? 'camera' : 'laptop'} 
+                          name={project.category === 'Photography' ? 'camera' : project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
                           size={20} 
                           className="brightness-0 invert"
                         />
@@ -312,14 +336,17 @@ const Projects = () => {
                   
                   <div className="flex space-x-2">
                     {project.links.demo && (
-                      <motion.button
+                      <motion.a
+                        href={project.links.demo}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex items-center space-x-1 text-primary-400 hover:text-primary-300 transition-colors text-sm"
                       >
                         <EyeIcon className="w-4 h-4" />
-                        <span>View</span>
-                      </motion.button>
+                        <span>{project.category === 'Speaking' ? 'Watch' : 'View'}</span>
+                      </motion.a>
                     )}
                     {project.links.code && (
                       <motion.button

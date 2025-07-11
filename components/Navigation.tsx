@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import Icon from './Icon';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +24,33 @@ const Navigation = () => {
     { name: 'Projects', href: '#projects' },
     { name: 'Blog', href: '#blog' },
     { name: 'Contact', href: '#contact' },
+  ];
+
+  const socialLinks = [
+    { 
+      name: 'Email', 
+      url: 'mailto:ben.m.ross08@gmail.com',
+      icon: EnvelopeIcon,
+      iconType: 'heroicon' as const
+    },
+    { 
+      name: 'GitHub', 
+      url: 'https://github.com/benmross', 
+      icon: 'github' as const,
+      iconType: 'custom' as const
+    },
+    { 
+      name: 'Instagram', 
+      url: 'https://instagram.com/_shotbyross', 
+      icon: 'instagram' as const,
+      iconType: 'custom' as const
+    },
+    { 
+      name: 'LinkedIn', 
+      url: 'https://www.linkedin.com/in/ben-m-ross/', 
+      icon: 'linkedin' as const,
+      iconType: 'custom' as const
+    },
   ];
 
   const handleNavClick = (href: string) => {
@@ -66,8 +94,9 @@ const Navigation = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+          <div className="hidden md:flex items-center space-x-8">
+            {/* Nav Links */}
+            <div className="flex items-baseline space-x-8">
               {navItems.map((item, index) => (
                 <motion.a
                   key={item.name}
@@ -83,6 +112,31 @@ const Navigation = () => {
                 >
                   {item.name}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-400 transition-all duration-300 group-hover:w-full"></span>
+                </motion.a>
+              ))}
+            </div>
+
+            {/* Social Links */}
+            <div className="flex items-center space-x-3 ml-6 pl-6 border-l border-white/20">
+              {socialLinks.map((social, index) => (
+                <motion.a
+                  key={social.name}
+                  href={social.url}
+                  target={social.name !== 'Email' ? '_blank' : undefined}
+                  rel={social.name !== 'Email' ? 'noopener noreferrer' : undefined}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-8 h-8 flex items-center justify-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 group"
+                  title={social.name}
+                >
+                  {social.iconType === 'heroicon' ? (
+                    <social.icon className="w-5 h-5" />
+                  ) : (
+                    <Icon name={social.icon} size={20} className="brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" />
+                  )}
                 </motion.a>
               ))}
             </div>
@@ -115,6 +169,7 @@ const Navigation = () => {
             className="md:hidden glass backdrop-blur-md border-t border-white/20"
           >
             <div className="px-2 pt-2 pb-3 space-y-1">
+              {/* Mobile Nav Links */}
               {navItems.map((item, index) => (
                 <motion.a
                   key={item.name}
@@ -131,6 +186,33 @@ const Navigation = () => {
                   {item.name}
                 </motion.a>
               ))}
+
+              {/* Mobile Social Links */}
+              <div className="border-t border-white/20 pt-3 mt-4">
+                <div className="flex items-center justify-center space-x-6">
+                  {socialLinks.map((social, index) => (
+                    <motion.a
+                      key={social.name}
+                      href={social.url}
+                      target={social.name !== 'Email' ? '_blank' : undefined}
+                      rel={social.name !== 'Email' ? 'noopener noreferrer' : undefined}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="w-10 h-10 flex items-center justify-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 group"
+                      title={social.name}
+                    >
+                      {social.iconType === 'heroicon' ? (
+                        <social.icon className="w-6 h-6" />
+                      ) : (
+                        <Icon name={social.icon} size={24} className="brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" />
+                      )}
+                    </motion.a>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

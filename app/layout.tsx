@@ -81,53 +81,6 @@ export default function RootLayout({
         <main className="relative">
           {children}
         </main>
-        
-        {/* Footer */}
-        <footer className="relative z-10 py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="glass backdrop-blur-md rounded-2xl p-8 border border-white/20">
-              <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                <div className="text-center md:text-left">
-                  <h3 className="text-2xl font-bold text-white mb-2">Ben Ross</h3>
-                  <p className="text-white/70">Developer & Photographer</p>
-                </div>
-                
-                <div className="flex space-x-6">
-                  <a 
-                    href="https://github.com/benross" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    GitHub
-                  </a>
-                  <a 
-                    href="https://instagram.com/benross" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    Instagram
-                  </a>
-                  <a 
-                    href="https://linkedin.com/in/benross" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    LinkedIn
-                  </a>
-                </div>
-              </div>
-              
-              <div className="mt-8 pt-8 border-t border-white/20 text-center">
-                <p className="text-white/60 text-sm">
-                  © {new Date().getFullYear()} Ben Ross. All rights reserved. Built with Next.js and Tailwind CSS.
-                </p>
-              </div>
-            </div>
-          </div>
-        </footer>
       </body>
     </html>
   )

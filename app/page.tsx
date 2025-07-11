@@ -63,6 +63,13 @@ export default function Home() {
         <Projects />
         <Blog />
         <Contact />
+        
+        {/* Copyright Footer */}
+        <div className="py-8 px-4 text-center border-t border-white/10">
+          <p className="text-white/60 text-sm">
+            © {new Date().getFullYear()} Ben Ross. All rights reserved.
+          </p>
+        </div>
       </div>
 
       {/* Floating Action Button - Back to Top */}

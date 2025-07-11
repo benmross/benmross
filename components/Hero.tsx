@@ -6,7 +6,7 @@ import { ChevronDownIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 const Hero = () => {
 
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <section id="home" className="h-[85vh] flex items-center justify-center relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
