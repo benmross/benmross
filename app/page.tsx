@@ -2,9 +2,8 @@
 
 import { useEffect } from 'react';
 import Hero from '@/components/Hero';
-import About from '@/components/About';
-import Services from '@/components/Services';
 import Projects from '@/components/Projects';
+import Blog from '@/components/Blog';
 import Contact from '@/components/Contact';
 
 export default function Home() {
@@ -61,9 +60,8 @@ export default function Home() {
       {/* Main Content */}
       <div className="relative z-10">
         <Hero />
-        <About />
-        <Services />
         <Projects />
+        <Blog />
         <Contact />
       </div>
 

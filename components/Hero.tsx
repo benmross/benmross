@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { ChevronDownIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 const Hero = () => {
-  const scrollToAbout = () => {
-    const element = document.querySelector('#about');
+  const scrollToProjects = () => {
+    const element = document.querySelector('#projects');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -88,8 +88,8 @@ const Hero = () => {
           transition={{ duration: 1.2, delay: 0.6, ease: [0.4, 0, 0.2, 1] }}
           className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
         >
-          16-year-old high school student crafting digital experiences through code 
-          and capturing moments through photography. Building the future, one pixel at a time.
+          High school student passionate about building innovative web applications 
+          and creating compelling digital experiences. Explore my latest projects below.
         </motion.p>
 
         {/* Call to action buttons */}
@@ -134,12 +134,12 @@ const Hero = () => {
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         >
           <motion.button
-            onClick={scrollToAbout}
+            onClick={scrollToProjects}
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="flex flex-col items-center space-y-2 text-white/70 hover:text-white transition-colors group smooth-hover"
           >
-            <span className="text-sm font-medium">Scroll to explore</span>
+            <span className="text-sm font-medium">View my work</span>
             <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center group-hover:border-white/50 transition-colors">
               <motion.div
                 animate={{ y: [0, 16, 0] }}
