@@ -33,86 +33,80 @@ const Projects = () => {
     },
     {
       id: 2,
-      title: 'E-Commerce Platform',
-      description: 'A full-stack e-commerce solution with React, Node.js, and Stripe integration. Features include user authentication, product catalog, shopping cart, and order management.',
-      category: 'Web Development',
-      tech: ['React', 'Node.js', 'MongoDB', 'Stripe'],
+      title: 'Large Language Model Fine-Tuning',
+      description: 'Using a dataset of every text I\'ve ever sent or received, developing a targeted method of fine-tuning Meta\'s open-source large language model, Llama 3.1, to respond to texts in a manner indistinguishable from myself. Leveraging Google\'s Cloud Compute services for each training iteration.',
+      category: 'AI/ML',
+      tech: ['Llama 3.1', 'Google Cloud', 'Python', 'Machine Learning'],
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: true,
-      links: {
-        demo: 'https://demo.example.com',
-        code: 'https://github.com/benross/project'
-      }
+      links: {}
     },
     {
       id: 3,
-      title: 'Photography Portfolio',
-      description: 'A stunning photography portfolio website with lightbox gallery, smooth animations, and responsive design optimized for showcasing visual work.',
-      category: 'Photography',
-      tech: ['Next.js', 'TypeScript', 'Tailwind CSS'],
+      title: 'Student Mental Health Mobile App',
+      description: 'As core programmer on a small team of student developers, iteratively designing a mobile application to assist with student mental health throughout our school district. Working with representatives from our school system to form an official partnership.',
+      category: 'Mobile Development',
+      tech: ['React Native', 'Mobile Development', 'Healthcare'],
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: true,
-      links: {
-        demo: 'https://photography.example.com',
-        code: 'https://github.com/benross/photography'
-      }
+      links: {}
     },
     {
       id: 4,
-      title: 'Task Management App',
-      description: 'A collaborative task management application with real-time updates, drag-and-drop functionality, and team collaboration features.',
-      category: 'Web Development',
-      tech: ['React', 'Firebase', 'Material-UI'],
+      title: 'Home Media Server',
+      description: 'Using a collection of Docker containers, created and configured a home media server on a Raspberry Pi 3B+ with the capability to stream media throughout my home. Learned the benefits of containerization and hardware acceleration methods for low-spec devices.',
+      category: 'DevOps',
+      tech: ['Docker', 'Raspberry Pi', 'Linux', 'Media Streaming'],
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {
-        demo: 'https://taskapp.example.com',
-        code: 'https://github.com/benross/taskapp'
-      }
+      links: {}
     },
     {
       id: 5,
-      title: 'AI Image Generator',
-      description: 'An AI-powered image generation tool using OpenAI\'s DALL-E API with a modern React interface and image optimization features.',
-      category: 'Web Development',
-      tech: ['React', 'OpenAI API', 'Tailwind CSS'],
+      title: 'Autonomous Blimp Project',
+      description: 'Designed (using CAD) and 3D printed gondola for an autonomous blimp. Developed software to facilitate autonomous movement utilizing a Raspberry Pi computer and motors. Utilized socket software structure for wireless communication and OpenCV for waypoint detection.',
+      category: 'Robotics',
+      tech: ['Raspberry Pi', 'OpenCV', 'CAD', '3D Printing', 'Python'],
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {
-        demo: 'https://aiimage.example.com',
-        code: 'https://github.com/benross/ai-image'
-      }
+      links: {}
     },
     {
       id: 6,
-      title: 'Nature Photography Series',
-      description: 'A collection of nature photography capturing the beauty of landscapes, wildlife, and natural phenomena throughout different seasons.',
-      category: 'Photography',
-      tech: ['Photography', 'Lightroom', 'Photoshop'],
+      title: 'Robotic Rover for Exoplanet Simulation',
+      description: 'As Lead Programmer, designed and built a robotic rover capable of traversing variable terrain on a simulated exoplanet, collecting and analyzing environmental data to detect dunes. Developed navigation, sample collection, and camera control systems.',
+      category: 'Robotics',
+      tech: ['Python', 'Computer Vision', 'Robotics', 'CAD'],
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {
-        demo: 'https://nature.example.com'
-      }
+      links: {}
     },
     {
       id: 7,
-      title: 'Weather Dashboard',
-      description: 'A comprehensive weather dashboard with interactive maps, forecasts, and personalized weather alerts using multiple weather APIs.',
+      title: 'Room Reservation Application',
+      description: 'Solicited and documented requirements, designed, programmed, tested, and delivered a room reservation application for a school administrator. Developed backend and frontend using HTML, CSS, Tailwind, and MongoDB. Applied agile methodology with scrum-type meetings.',
       category: 'Web Development',
-      tech: ['Vue.js', 'Weather API', 'Chart.js'],
+      tech: ['HTML', 'CSS', 'Tailwind', 'MongoDB', 'Full-Stack'],
       image: '/api/placeholder/600/400',
-      date: '2023',
+      date: '2024',
       featured: false,
-      links: {
-        demo: 'https://weather.example.com',
-        code: 'https://github.com/benross/weather'
-      }
+      links: {}
+    },
+    {
+      id: 8,
+      title: 'Network Security & Vulnerability Analysis',
+      description: 'Conducted network and vulnerability scanning experiments in controlled mock network environments to prepare for Computer Networking class. Gained proficiency in Nmap for different subnets and Wireshark capture file analysis.',
+      category: 'Cybersecurity',
+      tech: ['Nmap', 'Wireshark', 'Network Security', 'Linux'],
+      image: '/api/placeholder/600/400',
+      date: '2024',
+      featured: false,
+      links: {}
     },
   ];
 
