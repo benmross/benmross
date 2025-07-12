@@ -8,15 +8,6 @@ const Hero = () => {
     <section id="home" className="h-[85vh] flex items-center justify-center relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
-        {/* Professional headshot background */}
-        <div className="absolute top-1/2 right-8 lg:right-16 transform -translate-y-1/2 w-64 h-64 lg:w-80 lg:h-80 opacity-20 hover:opacity-30 transition-opacity duration-700">
-          <img 
-            src="/images/image.png" 
-            alt="Ben Ross" 
-            className="w-full h-full object-cover rounded-full border-4 border-white/20 shadow-2xl"
-          />
-        </div>
-        
         {/* Animated gradient elements */}
         <div className="absolute top-20 left-20 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
