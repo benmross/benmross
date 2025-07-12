@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import Image from 'next/image';
 import { 
   ArrowTopRightOnSquareIcon,
   CodeBracketIcon,
@@ -28,7 +29,8 @@ const Projects = () => {
       date: '2025',
       featured: true,
       links: {
-        demo: 'https://media.benmross.com/share/Z1P93X4zHV9oAdCtzlUh2RBxUpanbaTnwNpbOMnz1Le2t8OOXXAr68re5yKGNz4R9D8'
+        demo: 'https://media.benmross.com/share/Z1P93X4zHV9oAdCtzlUh2RBxUpanbaTnwNpbOMnz1Le2t8OOXXAr68re5yKGNz4R9D8',
+        code: undefined
       }
     },
     {
@@ -40,7 +42,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: true,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
     {
       id: 3,
@@ -51,7 +56,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: true,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
     {
       id: 4,
@@ -62,7 +70,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
     {
       id: 5,
@@ -73,7 +84,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
     {
       id: 6,
@@ -84,7 +98,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
     {
       id: 7,
@@ -95,7 +112,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
     {
       id: 8,
@@ -106,7 +126,10 @@ const Projects = () => {
       image: '/api/placeholder/600/400',
       date: '2024',
       featured: false,
-      links: {}
+      links: {
+        demo: undefined,
+        code: undefined
+      }
     },
   ];
 
@@ -160,10 +183,11 @@ const Projects = () => {
                   <div className="relative overflow-hidden">
                     <div className="aspect-video bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
                       {project.image && project.image !== '/api/placeholder/600/400' ? (
-                        <img 
+                        <Image 
                           src={project.image} 
                           alt={project.title}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                       ) : (
                         <div className="text-white/50">
