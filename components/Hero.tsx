@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronDownIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 const Hero = () => {
 
@@ -9,6 +8,16 @@ const Hero = () => {
     <section id="home" className="h-[85vh] flex items-center justify-center relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
+        {/* Professional headshot background */}
+        <div className="absolute top-1/2 right-8 lg:right-16 transform -translate-y-1/2 w-64 h-64 lg:w-80 lg:h-80 opacity-20 hover:opacity-30 transition-opacity duration-700">
+          <img 
+            src="/images/image.png" 
+            alt="Ben Ross" 
+            className="w-full h-full object-cover rounded-full border-4 border-white/20 shadow-2xl"
+          />
+        </div>
+        
+        {/* Animated gradient elements */}
         <div className="absolute top-20 left-20 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-primary-500/10 to-accent-500/10 rounded-full blur-3xl animate-float"></div>
@@ -67,9 +76,9 @@ const Hero = () => {
           transition={{ duration: 1.2, delay: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className="mb-8"
         >
-          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black text-white mb-6 leading-tight font-display">
-            <span className="block uppercase tracking-wider">BEN ROSS</span>
-            <span className="block text-2xl sm:text-3xl lg:text-4xl font-bold text-white/80 mt-2 uppercase tracking-wide">
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black text-white mb-4 leading-tight font-display">
+            <span className="block uppercase tracking-tight">BEN ROSS</span>
+            <span className="block text-2xl sm:text-3xl lg:text-4xl font-bold text-white/80 mt-1 uppercase tracking-tight">
               DEVELOPER & PHOTOGRAPHER
             </span>
           </h1>
@@ -80,7 +89,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.6, ease: [0.4, 0, 0.2, 1] }}
-          className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed font-semibold"
+          className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed font-semibold"
         >
           High school student passionate about building innovative web applications 
           and creating compelling digital experiences. Explore my latest projects below.
@@ -91,7 +100,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.9, ease: [0.4, 0, 0.2, 1] }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
         >
           <motion.button
             whileHover={{ scale: 1.08, y: -4 }}
@@ -101,7 +110,7 @@ const Hero = () => {
               const element = document.querySelector('#projects');
               if (element) element.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 min-w-[200px] smooth-hover uppercase tracking-wide"
+            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 min-w-[200px] smooth-hover uppercase tracking-tight"
           >
             VIEW MY WORK
           </motion.button>
@@ -114,7 +123,7 @@ const Hero = () => {
               const element = document.querySelector('#contact');
               if (element) element.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="btn-hover bg-white/20 backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/30 border border-white/30 min-w-[200px] smooth-hover uppercase tracking-wide"
+            className="btn-hover bg-white/20 backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/30 border border-white/30 min-w-[200px] smooth-hover uppercase tracking-tight"
           >
             GET IN TOUCH
           </motion.button>

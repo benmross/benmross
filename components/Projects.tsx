@@ -133,9 +133,9 @@ const Projects = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-6 font-display uppercase tracking-wider">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 font-display uppercase tracking-tight">
             RECENT PROJECTS
           </h2>
         </motion.div>
@@ -146,7 +146,7 @@ const Projects = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-wide"
+            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-tight"
           >
             <span className="w-2 h-8 bg-primary-400 rounded-full mr-4"></span>
             FEATURED PROJECTS
@@ -277,7 +277,7 @@ const Projects = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-wide"
+            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-tight"
           >
             <span className="w-2 h-8 bg-accent-400 rounded-full mr-4"></span>
             OTHER PROJECTS
@@ -371,7 +371,7 @@ const Projects = () => {
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 uppercase tracking-wide"
+            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 uppercase tracking-tight"
           >
             VIEW ALL PROJECTS
           </motion.button>

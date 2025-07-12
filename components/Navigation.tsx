@@ -87,7 +87,7 @@ const Navigation = () => {
                 e.preventDefault();
                 handleNavClick('#home');
               }}
-              className="text-2xl font-black text-white hover:text-primary-300 transition-colors font-display uppercase tracking-wider"
+              className="text-2xl font-black text-white hover:text-primary-300 transition-colors font-display uppercase tracking-tight"
             >
               BR
             </a>
@@ -108,7 +108,7 @@ const Navigation = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 * index }}
-                  className="text-white hover:text-primary-300 px-3 py-2 rounded-md text-sm font-bold transition-all duration-300 hover:bg-white/10 relative group uppercase tracking-wide"
+                  className="text-white hover:text-primary-300 px-3 py-2 rounded-md text-sm font-bold transition-all duration-300 hover:bg-white/10 relative group uppercase tracking-tight"
                 >
                   {item.name}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-400 transition-all duration-300 group-hover:w-full"></span>
@@ -181,7 +181,7 @@ const Navigation = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 * index }}
-                  className="text-white hover:text-primary-300 hover:bg-white/10 block px-3 py-2 rounded-md text-base font-bold transition-all duration-300 uppercase tracking-wide"
+                  className="text-white hover:text-primary-300 hover:bg-white/10 block px-3 py-2 rounded-md text-base font-bold transition-all duration-300 uppercase tracking-tight"
                 >
                   {item.name}
                 </motion.a>

@@ -63,9 +63,9 @@ const Contact = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-6 font-display uppercase tracking-wider">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 font-display uppercase tracking-tight">
             GET IN TOUCH
           </h2>
           <p className="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto font-semibold">
@@ -105,7 +105,7 @@ const Contact = () => {
                     )}
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-lg uppercase tracking-wide">{contact.name}</h4>
+                    <h4 className="text-white font-bold text-lg uppercase tracking-tight">{contact.name}</h4>
                     <p className="text-white/70 font-medium text-sm">{contact.preview}</p>
                   </div>
                 </motion.a>
