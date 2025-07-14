@@ -310,7 +310,7 @@ const Projects = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
                         <Icon 
-                          name={project.category === 'Photography' ? 'camera' : project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
+                          name={project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
                           size={20} 
                           className="brightness-0 invert"
                         />

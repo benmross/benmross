@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { 
   CodeBracketIcon, 
-  CameraIcon, 
   DevicePhoneMobileIcon,
   PaintBrushIcon,
   GlobeAltIcon,
@@ -33,14 +32,6 @@ const Services = () => {
       features: ['Cross-Platform', 'Touch Optimized', 'Fast Loading', 'Offline Support'],
       color: 'from-green-400 to-emerald-500',
       gradient: 'from-green-500/20 to-emerald-500/20'
-    },
-    {
-      icon: CameraIcon,
-      title: 'Photography',
-      description: 'Capturing compelling visuals for events, portraits, and commercial projects with creative storytelling.',
-      features: ['Event Photography', 'Portrait Sessions', 'Commercial Work', 'Photo Editing'],
-      color: 'from-purple-400 to-pink-500',
-      gradient: 'from-purple-500/20 to-pink-500/20'
     },
     {
       icon: PaintBrushIcon,
@@ -89,7 +80,7 @@ const Services = () => {
           </h2>
           <p className="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto">
             Combining technical expertise with creative vision to deliver 
-            exceptional digital experiences and visual storytelling.
+            exceptional digital experiences and innovative solutions.
           </p>
         </motion.div>
 
@@ -163,7 +154,7 @@ const Services = () => {
             </h3>
             <p className="text-white/80 mb-6">
               Let&apos;s work together to create something amazing. Whether you need a website, 
-              mobile app, or photography services, I&apos;m here to help.
+              mobile app, or custom solution, I&apos;m here to help.
             </p>
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}

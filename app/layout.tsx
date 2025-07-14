@@ -6,9 +6,9 @@ import Navigation from '@/components/Navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Ben Ross - Developer & Photographer',
-  description: '16-year-old high school student crafting digital experiences through code and capturing moments through photography. Building the future, one pixel at a time.',
-  keywords: ['Ben Ross', 'Developer', 'Photographer', 'Web Development', 'Photography', 'High School Student', 'Programmer'],
+  title: 'Ben Ross - Developer',
+  description: '16-year-old high school student crafting digital experiences through code. Building the future, one pixel at a time.',
+  keywords: ['Ben Ross', 'Developer', 'Web Development', 'High School Student', 'Programmer'],
   authors: [{ name: 'Ben Ross' }],
   creator: 'Ben Ross',
   publisher: 'Ben Ross',
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Ben Ross - Developer & Photographer',
-    description: '16-year-old high school student crafting digital experiences through code and capturing moments through photography.',
+    title: 'Ben Ross - Developer',
+    description: '16-year-old high school student crafting digital experiences through code.',
     url: 'https://benross.dev',
     siteName: 'Ben Ross Portfolio',
     locale: 'en_US',
@@ -33,14 +33,14 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Ben Ross - Developer & Photographer',
+        alt: 'Ben Ross - Developer',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ben Ross - Developer & Photographer',
-    description: '16-year-old high school student crafting digital experiences through code and capturing moments through photography.',
+    title: 'Ben Ross - Developer',
+    description: '16-year-old high school student crafting digital experiences through code.',
     images: ['/og-image.jpg'],
     creator: '@benross',
   },

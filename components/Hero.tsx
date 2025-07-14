@@ -70,7 +70,7 @@ const Hero = () => {
           <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black text-white mb-4 leading-tight font-display">
             <span className="block uppercase tracking-tight">BEN ROSS</span>
             <span className="block text-2xl sm:text-3xl lg:text-4xl font-bold text-white/80 mt-1 uppercase tracking-tight">
-              DEVELOPER & PHOTOGRAPHER
+              DEVELOPER
             </span>
           </h1>
         </motion.div>
