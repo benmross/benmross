@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 const Hero = () => {
 
   return (
-    <section id="home" className="h-[85vh] flex items-center justify-center relative overflow-hidden">
+    <section id="home" className="min-h-[70vh] flex items-start justify-center pt-20 pb-8 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {/* Animated gradient elements */}
