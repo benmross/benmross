@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Hero from '@/components/Hero';
 import Projects from '@/components/Projects';
-import Blog from '@/components/Blog';
+// import Blog from '@/components/Blog';
 import Contact from '@/components/Contact';
 
 export default function Home() {
@@ -61,7 +61,7 @@ export default function Home() {
       <div className="relative z-10">
         <Hero />
         <Projects />
-        <Blog />
+        {/* <Blog /> */}
         <Contact />
         
         {/* Copyright Footer */}

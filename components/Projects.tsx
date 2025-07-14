@@ -379,21 +379,6 @@ const Projects = () => {
           </div>
         </div>
 
-        {/* View more button */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-center mt-12"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="btn-hover glass backdrop-blur-md px-8 py-4 rounded-full text-white font-bold text-lg transition-all duration-300 hover:bg-white/20 border border-white/30 uppercase tracking-tight"
-          >
-            VIEW ALL PROJECTS
-          </motion.button>
-        </motion.div>
       </div>
     </section>
   );
