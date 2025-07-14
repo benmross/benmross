@@ -20,10 +20,10 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { name: 'Home', href: '#home' },
-    { name: 'Projects', href: '#projects' },
+    { name: 'Home', href: '/#home' },
+    { name: 'Projects', href: '/#projects' },
     { name: 'CV', href: '/cv' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Contact', href: '/#contact' },
   ];
 
   const socialLinks = [
@@ -55,11 +55,14 @@ const Navigation = () => {
 
   const handleNavClick = (href: string) => {
     setIsOpen(false);
-    if (href.startsWith('/')) {
-      // External route
+    if (href.startsWith('/') && href.includes('#')) {
+      // Route with anchor (e.g., /#home, /#projects)
+      window.location.href = href;
+    } else if (href.startsWith('/')) {
+      // External route without anchor
       window.location.href = href;
     } else {
-      // Internal anchor link
+      // Internal anchor link (fallback for any remaining # links)
       const element = document.querySelector(href);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
@@ -88,10 +91,10 @@ const Navigation = () => {
             className="flex-shrink-0"
           >
             <a
-              href="#home"
+              href="/#home"
               onClick={(e) => {
                 e.preventDefault();
-                handleNavClick('#home');
+                handleNavClick('/#home');
               }}
               className="text-2xl font-black text-white hover:text-primary-300 transition-colors font-display uppercase tracking-tight"
             >
