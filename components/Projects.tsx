@@ -169,60 +169,54 @@ const Projects = () => {
             FEATURED PROJECTS
           </motion.h3>
           
-          <div className="grid lg:grid-cols-2 gap-8">
-            {featuredProjects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 50 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
-                className="group"
-              >
-                <div className="glass backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:bg-white/10 transition-all duration-500">
-                  {/* Project image */}
-                  <div className="relative overflow-hidden">
-                    <div className="aspect-video bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
-                      {project.image && project.image !== '/api/placeholder/600/400' ? (
-                        <Image 
-                          src={project.image} 
-                          alt={project.title}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="text-white/50">
-                          <Icon 
-                            name={project.category === 'Photography' ? 'camera' : project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
-                            size={64} 
-                            className="opacity-50"
+          <div className="grid lg:grid-cols-3 gap-8">
+            {featuredProjects.map((project, index) => {
+              const hasImage = project.image && project.image !== '/api/placeholder/600/400';
+              
+              return (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+                  className={`group ${hasImage ? 'lg:col-span-2' : 'lg:col-span-1'}`}
+                >
+                  <div className="glass backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:bg-white/10 transition-all duration-500 h-full">
+                    {hasImage && (
+                      <div className="relative overflow-hidden">
+                        <div className="aspect-video bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
+                          <Image 
+                            src={project.image} 
+                            alt={project.title}
+                            fill
+                            className="object-cover"
                           />
                         </div>
-                      )}
-                    </div>
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
-                    
-                    {/* Overlay buttons */}
-                    <div className="absolute inset-0 flex items-center justify-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {project.links.demo && (
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
-                        >
-                          <EyeIcon className="w-6 h-6 text-white" />
-                        </motion.button>
-                      )}
-                      {project.links.code && (
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
-                        >
-                          <CodeBracketIcon className="w-6 h-6 text-white" />
-                        </motion.button>
-                      )}
-                    </div>
-                  </div>
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300"></div>
+                        
+                        {/* Overlay buttons */}
+                        <div className="absolute inset-0 flex items-center justify-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          {project.links.demo && (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
+                            >
+                              <EyeIcon className="w-6 h-6 text-white" />
+                            </motion.button>
+                          )}
+                          {project.links.code && (
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
+                            >
+                              <CodeBracketIcon className="w-6 h-6 text-white" />
+                            </motion.button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                   {/* Project content */}
                   <div className="p-8">
@@ -285,7 +279,8 @@ const Projects = () => {
                   </div>
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
