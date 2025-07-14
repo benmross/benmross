@@ -97,10 +97,16 @@ const About = () => {
                 always seeking to learn new technologies and improve my craft. I believe 
                 that the intersection of technology and creativity is where innovation truly happens.
               </p>
-              <p className="text-white/90 leading-relaxed">
+              <p className="text-white/90 leading-relaxed mb-4">
                 My goal is to use my skills to create meaningful digital experiences that 
                 make a positive impact, whether through code or through the stories I tell 
                 with my camera.
+              </p>
+              <p className="text-white/80 text-sm">
+                For a detailed overview of my academic and project experience, view my{' '}
+                <a href="/cv" className="text-primary-400 hover:text-primary-300 transition-colors font-semibold">
+                  curriculum vitae
+                </a>.
               </p>
             </div>
 

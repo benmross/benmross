@@ -23,6 +23,7 @@ const Navigation = () => {
     { name: 'Home', href: '#home' },
     { name: 'Projects', href: '#projects' },
     { name: 'Blog', href: '#blog' },
+    { name: 'CV', href: '/cv' },
     { name: 'Contact', href: '#contact' },
   ];
 
@@ -55,9 +56,15 @@ const Navigation = () => {
 
   const handleNavClick = (href: string) => {
     setIsOpen(false);
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (href.startsWith('/')) {
+      // External route
+      window.location.href = href;
+    } else {
+      // Internal anchor link
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
