@@ -90,7 +90,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.9, ease: [0.4, 0, 0.2, 1] }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6"
         >
           <motion.button
             whileHover={{ scale: 1.08, y: -4 }}
