@@ -8,7 +8,8 @@ import {
   CodeBracketIcon,
   EyeIcon,
   CalendarIcon,
-  TagIcon
+  TagIcon,
+  PresentationChartBarIcon
 } from '@heroicons/react/24/outline';
 import Icon from './Icon';
 
@@ -29,7 +30,8 @@ const Projects = () => {
       featured: true,
       links: {
         demo: 'https://media.benmross.com/share/Z1P93X4zHV9oAdCtzlUh2RBxUpanbaTnwNpbOMnz1Le2t8OOXXAr68re5yKGNz4R9D8',
-        code: undefined
+        code: undefined,
+        slides: 'https://docs.google.com/presentation/d/1N25vzvhnOOQZlcvmgbCfBu-j2xqSLYWWOfVPiOLNTjU/present#slide=id.p'
       }
     },
     {
@@ -202,22 +204,40 @@ const Projects = () => {
                         {/* Overlay buttons */}
                         <div className="absolute inset-0 flex items-center justify-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           {project.links.demo && (
-                            <motion.button
+                            <motion.a
+                              href={project.links.demo}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
                             >
                               <EyeIcon className="w-6 h-6 text-white" />
-                            </motion.button>
+                            </motion.a>
+                          )}
+                          {project.links.slides && (
+                            <motion.a
+                              href={project.links.slides}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
+                            >
+                              <PresentationChartBarIcon className="w-6 h-6 text-white" />
+                            </motion.a>
                           )}
                           {project.links.code && (
-                            <motion.button
+                            <motion.a
+                              href={project.links.code}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
                             >
                               <CodeBracketIcon className="w-6 h-6 text-white" />
-                            </motion.button>
+                            </motion.a>
                           )}
                         </div>
                       </div>
@@ -270,15 +290,31 @@ const Projects = () => {
                           <span>{project.category === 'Speaking' ? 'Watch Recording' : 'Live Demo'}</span>
                         </motion.a>
                       )}
+                      {project.links.slides && (
+                        <motion.a
+                          href={project.links.slides}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="btn-hover flex items-center space-x-2 bg-accent-500 hover:bg-accent-600 px-4 py-2 rounded-lg text-white font-medium transition-colors"
+                        >
+                          <PresentationChartBarIcon className="w-4 h-4" />
+                          <span>View Slides</span>
+                        </motion.a>
+                      )}
                       {project.links.code && (
-                        <motion.button
+                        <motion.a
+                          href={project.links.code}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="btn-hover flex items-center space-x-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-white font-medium transition-colors border border-white/20"
                         >
                           <CodeBracketIcon className="w-4 h-4" />
                           <span>Code</span>
-                        </motion.button>
+                        </motion.a>
                       )}
                     </div>
                   </div>
@@ -362,15 +398,31 @@ const Projects = () => {
                         <span>{project.category === 'Speaking' ? 'Watch' : 'View'}</span>
                       </motion.a>
                     )}
+                    {project.links.slides && (
+                      <motion.a
+                        href={project.links.slides}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center space-x-1 text-accent-400 hover:text-accent-300 transition-colors text-sm"
+                      >
+                        <PresentationChartBarIcon className="w-4 h-4" />
+                        <span>Slides</span>
+                      </motion.a>
+                    )}
                     {project.links.code && (
-                      <motion.button
+                      <motion.a
+                        href={project.links.code}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="flex items-center space-x-1 text-white/70 hover:text-white transition-colors text-sm"
                       >
                         <CodeBracketIcon className="w-4 h-4" />
                         <span>Code</span>
-                      </motion.button>
+                      </motion.a>
                     )}
                   </div>
                 </div>
