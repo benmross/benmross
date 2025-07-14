@@ -92,7 +92,7 @@ const Projects = () => {
     {
       id: 6,
       title: 'Robotic Rover for Exoplanet Simulation',
-      description: 'As Lead Programmer, designed and built a robotic rover capable of traversing variable terrain on a simulated exoplanet, collecting and analyzing environmental data to detect dunes. Developed navigation, sample collection, and sensor control systems.',
+      description: 'As Lead Programmer, designed and built a robotic rover capable of traversing variable terrain on a simulated exoplanet, collecting and analyzing environmental data to detect dunes. Developed navigation, sample collection, and camera control systems.',
       category: 'Robotics',
       tech: ['Python', 'Computer Vision', 'Robotics', 'CAD'],
       image: '/api/placeholder/600/400',
@@ -310,7 +310,7 @@ const Projects = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
                         <Icon 
-                          name={project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
+                          name={project.category === 'Photography' ? 'camera' : project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
                           size={20} 
                           className="brightness-0 invert"
                         />

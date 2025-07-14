@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { 
   CodeBracketIcon, 
+  CameraIcon, 
   AcademicCapIcon, 
   RocketLaunchIcon,
   HeartIcon,
@@ -22,7 +23,7 @@ const About = () => {
     { name: 'React', level: 88, color: 'from-cyan-400 to-blue-500' },
     { name: 'Next.js', level: 82, color: 'from-gray-600 to-gray-800' },
     { name: 'Python', level: 75, color: 'from-green-400 to-blue-500' },
-    { name: 'DevOps', level: 75, color: 'from-purple-400 to-pink-500' },
+    { name: 'Photography', level: 92, color: 'from-purple-400 to-pink-500' },
   ];
 
   const interests = [
@@ -30,6 +31,11 @@ const About = () => {
       icon: CodeBracketIcon,
       title: 'Web Development',
       description: 'Building responsive, modern web applications with cutting-edge technologies.'
+    },
+    {
+      icon: CameraIcon,
+      title: 'Photography',
+      description: 'Capturing moments and telling stories through the lens of my camera.'
     },
     {
       icon: AcademicCapIcon,
@@ -63,7 +69,7 @@ const About = () => {
             About Me
           </h2>
           <p className="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto">
-            A passionate 16-year-old developer and engineer combining technical skills 
+            A passionate 16-year-old developer and photographer combining technical skills 
             with creative vision to build meaningful digital experiences.
           </p>
         </motion.div>
@@ -83,8 +89,8 @@ const About = () => {
               </div>
               <p className="text-white/90 leading-relaxed mb-4">
                 At 16, I&apos;m already deeply passionate about technology and creative expression. 
-                I started coding at 13 and have been building innovative projects ever since, finding that 
-                technology allows me to create and share my vision with the world.
+                I started coding at 13 and discovered photography shortly after, finding that 
+                both mediums allow me to create and share my vision with the world.
               </p>
               <p className="text-white/90 leading-relaxed mb-4">
                 As a high school student, I balance my studies with personal projects, 
@@ -93,7 +99,8 @@ const About = () => {
               </p>
               <p className="text-white/90 leading-relaxed mb-4">
                 My goal is to use my skills to create meaningful digital experiences that 
-                make a positive impact through innovative technology solutions and software development.
+                make a positive impact, whether through code or through the stories I tell 
+                with my camera.
               </p>
               <p className="text-white/80 text-sm">
                 For a detailed overview of my academic and project experience, view my{' '}
@@ -177,8 +184,8 @@ const About = () => {
                 transition={{ duration: 0.6, delay: 0.9 }}
                 className="glass backdrop-blur-md rounded-xl p-6 border border-white/20 text-center"
               >
-                <div className="text-3xl font-bold text-white mb-2">10+</div>
-                <div className="text-white/70 text-sm">Projects Built</div>
+                <div className="text-3xl font-bold text-white mb-2">500+</div>
+                <div className="text-white/70 text-sm">Photos Taken</div>
               </motion.div>
             </div>
           </motion.div>

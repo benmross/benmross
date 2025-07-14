@@ -6,9 +6,9 @@ import Navigation from '@/components/Navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Ben Ross - Developer & Engineer',
-  description: '16-year-old high school student crafting digital experiences through code and innovative technology solutions. Building the future, one pixel at a time.',
-  keywords: ['Ben Ross', 'Developer', 'Engineer', 'Web Development', 'Software Engineering', 'High School Student', 'Programmer'],
+  title: 'Ben Ross - Developer & Photographer',
+  description: '16-year-old high school student crafting digital experiences through code and capturing moments through photography. Building the future, one pixel at a time.',
+  keywords: ['Ben Ross', 'Developer', 'Photographer', 'Web Development', 'Photography', 'High School Student', 'Programmer'],
   authors: [{ name: 'Ben Ross' }],
   creator: 'Ben Ross',
   publisher: 'Ben Ross',
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Ben Ross - Developer & Engineer',
-    description: '16-year-old high school student crafting digital experiences through code and innovative technology solutions.',
+    title: 'Ben Ross - Developer & Photographer',
+    description: '16-year-old high school student crafting digital experiences through code and capturing moments through photography.',
     url: 'https://benross.dev',
     siteName: 'Ben Ross Portfolio',
     locale: 'en_US',
@@ -33,14 +33,14 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Ben Ross - Developer & Engineer',
+        alt: 'Ben Ross - Developer & Photographer',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Ben Ross - Developer & Engineer',
-    description: '16-year-old high school student crafting digital experiences through code and innovative technology solutions.',
+    title: 'Ben Ross - Developer & Photographer',
+    description: '16-year-old high school student crafting digital experiences through code and capturing moments through photography.',
     images: ['/og-image.jpg'],
     creator: '@benross',
   },

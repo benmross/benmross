@@ -20,10 +20,10 @@ const Navigation = () => {
   }, []);
 
   const navItems = [
-    { name: 'Home', href: '/' },
-    { name: 'Projects', href: '/#projects' },
+    { name: 'Home', href: '#home' },
+    { name: 'Projects', href: '#projects' },
     { name: 'CV', href: '/cv' },
-    { name: 'Contact', href: '/#contact' },
+    { name: 'Contact', href: '#contact' },
   ];
 
   const socialLinks = [
@@ -55,24 +55,15 @@ const Navigation = () => {
 
   const handleNavClick = (href: string) => {
     setIsOpen(false);
-    if (href === '/') {
-      // Home page
-      window.location.href = '/';
-    } else if (href.startsWith('/#')) {
-      // Anchor link to home page
-      if (window.location.pathname === '/') {
-        // Already on home page, just scroll
-        const element = document.querySelector(href.substring(1));
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      } else {
-        // Navigate to home page with anchor
-        window.location.href = href;
-      }
-    } else {
-      // Other routes
+    if (href.startsWith('/')) {
+      // External route
       window.location.href = href;
+    } else {
+      // Internal anchor link
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -97,10 +88,10 @@ const Navigation = () => {
             className="flex-shrink-0"
           >
             <a
-              href="/"
+              href="#home"
               onClick={(e) => {
                 e.preventDefault();
-                handleNavClick('/');
+                handleNavClick('#home');
               }}
               className="text-2xl font-black text-white hover:text-primary-300 transition-colors font-display uppercase tracking-tight"
             >
