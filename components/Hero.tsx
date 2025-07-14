@@ -82,8 +82,7 @@ const Hero = () => {
           transition={{ duration: 1.2, delay: 0.6, ease: [0.4, 0, 0.2, 1] }}
           className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed font-semibold"
         >
-          High school student passionate about building innovative web applications 
-          and creating compelling digital experiences. Explore my latest projects below.
+          High school student with a strong love for computer science, with a special focus on artificial intelligence and self-hosting. Explore my work below.
         </motion.p>
 
         {/* Call to action buttons */}
