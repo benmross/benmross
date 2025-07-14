@@ -62,11 +62,11 @@ const Projects = () => {
     },
     {
       title: 'Student Mental Health Mobile App',
-      description: 'As core programmer on a small team of student developers, iteratively designing a mobile application to assist with student mental health throughout our school district. Working with representatives from our school system to form an official partnership.',
+      description: 'As core programmer on a small team of student developers, iteratively designing a mobile app using React Native to assist with student mental health in high schools throughout the country. A digital pilot with our first school system is planned for August.',
       category: 'Mobile Development',
       tech: ['React Native', 'Mobile Development', 'Healthcare'],
       image: '/api/placeholder/600/400',
-      date: '2024',
+      date: '2025',
       featured: true,
       links: {
         demo: undefined,

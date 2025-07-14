@@ -63,9 +63,9 @@ const CVPage = () => {
     {
       title: 'Student Mental Health Mobile App',
       organization: 'School District Partnership',
-      date: '2024',
+      date: '2025',
       type: 'Mobile Development',
-      description: 'As core programmer on a small team of student developers, iteratively designing a mobile app to assist with student mental health throughout our school district. Contact has been established with administrators and initial launch at 4 high schools planned for the coming months.',
+      description: 'As core programmer on a small team of student developers, iteratively designing a mobile app using React Native to assist with student mental health in high schools throughout the country. A digital pilot with our first school system is planned for August.',
       technologies: ['React Native', 'Mobile Development', 'Healthcare']
     },
     {
