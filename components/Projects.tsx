@@ -35,6 +35,20 @@ const Projects = () => {
     },
     {
       id: 2,
+      title: 'Pop for a Cause Website Designer',
+      description: 'Using Typescript with TailWind CSS, constructing a professional and performant website for the Montgomery County based Pop for a Cause nonprofit organization. The site features an admin panel that interacts with a MongoDB backend, as well as donation functionality using Stripe. The site is in beta at pop.benmross.com.',
+      category: 'Web Development',
+      tech: ['TypeScript', 'TailwindCSS', 'MongoDB', 'Stripe', 'Next.js'],
+      image: '/images/popWebsiteScreenshot.png',
+      date: '2024',
+      featured: true,
+      links: {
+        demo: 'https://pop.benmross.com',
+        code: undefined
+      }
+    },
+    {
+      id: 3,
       title: 'Large Language Model Fine-Tuning',
       description: 'Using a dataset of every text I\'ve ever sent or received, developing a targeted method of fine-tuning Meta\'s open-source large language model, Llama 3.1, to respond to texts in a manner indistinguishable from myself. Leveraging Google\'s Cloud Compute services for each training iteration.',
       category: 'AI/ML',
@@ -48,7 +62,7 @@ const Projects = () => {
       }
     },
     {
-      id: 3,
+      id: 4,
       title: 'Student Mental Health Mobile App',
       description: 'As core programmer on a small team of student developers, iteratively designing a mobile application to assist with student mental health throughout our school district. Working with representatives from our school system to form an official partnership.',
       category: 'Mobile Development',
@@ -62,7 +76,7 @@ const Projects = () => {
       }
     },
     {
-      id: 4,
+      id: 5,
       title: 'Home Media Server',
       description: 'Using a collection of Docker containers, created and configured a home media server on a Raspberry Pi 3B+ with the capability to stream media throughout my home. Learned the benefits of containerization and hardware acceleration methods for low-spec devices.',
       category: 'DevOps',
@@ -76,7 +90,7 @@ const Projects = () => {
       }
     },
     {
-      id: 5,
+      id: 6,
       title: 'Autonomous Blimp Project',
       description: 'Designed (using CAD) and 3D printed gondola for an autonomous blimp. Developed software to facilitate autonomous movement utilizing a Raspberry Pi computer and motors. Utilized socket software structure for wireless communication and OpenCV for waypoint detection.',
       category: 'Robotics',
@@ -90,7 +104,7 @@ const Projects = () => {
       }
     },
     {
-      id: 6,
+      id: 7,
       title: 'Robotic Rover for Exoplanet Simulation',
       description: 'As Lead Programmer, designed and built a robotic rover capable of traversing variable terrain on a simulated exoplanet, collecting and analyzing environmental data to detect dunes. Developed navigation, sample collection, and camera control systems.',
       category: 'Robotics',
@@ -104,7 +118,7 @@ const Projects = () => {
       }
     },
     {
-      id: 7,
+      id: 8,
       title: 'Room Reservation Application',
       description: 'Solicited and documented requirements, designed, programmed, tested, and delivered a room reservation application for a school administrator. Developed backend and frontend using HTML, CSS, Tailwind, and MongoDB. Applied agile methodology with scrum-type meetings.',
       category: 'Web Development',
@@ -118,7 +132,7 @@ const Projects = () => {
       }
     },
     {
-      id: 8,
+      id: 9,
       title: 'Network Security & Vulnerability Analysis',
       description: 'Conducted network and vulnerability scanning experiments in controlled mock network environments to prepare for Computer Networking class. Gained proficiency in Nmap for different subnets and Wireshark capture file analysis.',
       category: 'Cybersecurity',
