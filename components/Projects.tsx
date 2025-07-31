@@ -29,7 +29,7 @@ const Projects = () => {
       date: '2025',
       featured: true,
       links: {
-        demo: 'https://media.benmross.com/share/Z1P93X4zHV9oAdCtzlUh2RBxUpanbaTnwNpbOMnz1Le2t8OOXXAr68re5yKGNz4R9D8',
+        demo: 'https://media.benmross.com/share/0zugGiJXVhonOmY79ze6ojXlyHnUB8gTpHvn39IgfbRechbaQRRKHQPfOK0Ii06KU5c',
         code: undefined,
         slides: 'https://docs.google.com/presentation/d/1N25vzvhnOOQZlcvmgbCfBu-j2xqSLYWWOfVPiOLNTjU/present#slide=id.p'
       }
