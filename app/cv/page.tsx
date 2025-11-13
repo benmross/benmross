@@ -108,52 +108,55 @@ const CVPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-accent-500/10 rounded-full blur-3xl"></div>
-      </div>
-
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20" ref={ref}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          transition={{ type: "spring", stiffness: 80, damping: 15 }}
+          className="text-center mb-20"
         >
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 font-display uppercase tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-6 font-display uppercase tracking-tight">
             CURRICULUM VITAE
           </h1>
+          <motion.div
+            className="w-24 h-2 bg-gradient-to-r from-primary-400 to-accent-500 rounded-full mx-auto mb-8 shadow-neuro-sm"
+            initial={{ scaleX: 0 }}
+            animate={inView ? { scaleX: 1 } : {}}
+            transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.3 }}
+          />
           <div className="text-xl text-white/80 mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Ben Ross</h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-white/60">
+            <h2 className="text-2xl font-bold text-white mb-3">Ben Ross</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-white/60 font-medium">
               <span className="flex items-center gap-2">
-                <EnvelopeIcon className="w-4 h-4" />
+                <EnvelopeIcon className="w-5 h-5" />
                 ben.m.ross08@gmail.com
               </span>
               <span className="flex items-center gap-2">
-                <MapPinIcon className="w-4 h-4" />
+                <MapPinIcon className="w-5 h-5" />
                 Poolesville, MD
               </span>
             </div>
           </div>
-          
+
           {/* Download Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-center mt-8"
+            transition={{ type: "spring", stiffness: 90, damping: 15, delay: 0.4 }}
+            className="text-center mt-10"
           >
-            <a
+            <motion.a
               href="/documents/Ben_Ross_Resume.docx"
               download="Ben_Ross_Resume.docx"
-              className="inline-flex items-center gap-2 glass backdrop-blur-md px-6 py-3 rounded-full text-white font-semibold transition-all duration-300 hover:bg-white/20 border border-white/30 hover:border-primary-500/50 hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="neuro-button inline-flex items-center gap-3 px-8 py-4 text-white font-bold text-lg rounded-2xl"
             >
-              <ArrowDownTrayIcon className="w-5 h-5" />
+              <ArrowDownTrayIcon className="w-6 h-6" />
               Download Resume
-            </a>
+            </motion.a>
           </motion.div>
         </motion.div>
 
@@ -161,27 +164,27 @@ const CVPage = () => {
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.2 }}
           className="mb-16"
         >
-          <div className="flex items-center mb-8">
-            <AcademicCapIcon className="w-8 h-8 text-primary-400 mr-4" />
-            <h2 className="text-3xl font-bold text-white font-display uppercase tracking-tight">Education</h2>
+          <div className="flex items-center mb-10">
+            <AcademicCapIcon className="w-10 h-10 text-primary-400 mr-4" />
+            <h2 className="text-3xl sm:text-4xl font-black text-white font-display uppercase tracking-tight">Education</h2>
           </div>
-          
-          <div className="glass backdrop-blur-md p-8 rounded-xl border border-white/20">
-            <div className="mb-4">
-              <h3 className="text-xl font-bold text-white mb-2">{education.degree}</h3>
-              <p className="text-white/80 mb-4">{education.program}</p>
+
+          <div className="neuro-card p-10 rounded-3xl">
+            <div className="mb-6">
+              <h3 className="text-2xl font-black text-white mb-3">{education.degree}</h3>
+              <p className="text-white/80 text-lg font-semibold mb-4">{education.program}</p>
             </div>
-            
+
             <div>
-              <h4 className="text-lg font-semibold text-white mb-3">Relevant Courses:</h4>
-              <div className="flex flex-wrap gap-2">
+              <h4 className="text-lg font-bold text-white mb-4">Relevant Courses:</h4>
+              <div className="flex flex-wrap gap-3">
                 {education.courses.map((course, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-primary-500/20 text-white rounded-full text-sm border border-primary-500/30"
+                    className="px-4 py-2 shadow-neuro-sm rounded-xl text-white font-semibold text-sm"
                   >
                     {course}
                   </span>
@@ -195,34 +198,35 @@ const CVPage = () => {
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.4 }}
           className="mb-16"
         >
-          <div className="flex items-center mb-8">
-            <BriefcaseIcon className="w-8 h-8 text-primary-400 mr-4" />
-            <h2 className="text-3xl font-bold text-white font-display uppercase tracking-tight">Experience</h2>
+          <div className="flex items-center mb-10">
+            <BriefcaseIcon className="w-10 h-10 text-primary-400 mr-4" />
+            <h2 className="text-3xl sm:text-4xl font-black text-white font-display uppercase tracking-tight">Experience</h2>
           </div>
-          
+
           <div className="space-y-6">
             {experiences.map((exp, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -50 }}
                 animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.1 * index }}
-                className="glass backdrop-blur-md p-6 rounded-xl border border-white/20 hover:border-primary-500/30 transition-all duration-300"
+                transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 * index }}
+                whileHover={{ x: 5 }}
+                className="neuro-card p-8 rounded-3xl"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">{exp.title}</h3>
-                    <p className="text-accent-400 text-sm font-medium">{exp.type}</p>
+                    <h3 className="text-xl font-black text-white mb-2">{exp.title}</h3>
+                    <p className="text-accent-400 text-sm font-bold uppercase tracking-tight">{exp.type}</p>
                   </div>
-                  <div className="flex items-center text-white/60 text-sm mt-2 sm:mt-0">
-                    <CalendarIcon className="w-4 h-4 mr-1" />
+                  <div className="flex items-center text-white/60 text-sm font-semibold mt-2 sm:mt-0">
+                    <CalendarIcon className="w-5 h-5 mr-1" />
                     {exp.date}
                   </div>
                 </div>
-                
+
                 <p className="text-white/80 leading-relaxed">{exp.description}</p>
               </motion.div>
             ))}
@@ -233,34 +237,34 @@ const CVPage = () => {
         <motion.section
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.6 }}
           className="mb-16"
         >
-          <div className="flex items-center mb-8">
-            <WrenchScrewdriverIcon className="w-8 h-8 text-primary-400 mr-4" />
-            <h2 className="text-3xl font-bold text-white font-display uppercase tracking-tight">Skills</h2>
+          <div className="flex items-center mb-10">
+            <WrenchScrewdriverIcon className="w-10 h-10 text-primary-400 mr-4" />
+            <h2 className="text-3xl sm:text-4xl font-black text-white font-display uppercase tracking-tight">Skills</h2>
           </div>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="glass backdrop-blur-md p-6 rounded-xl border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-4">Proficient In:</h3>
-              <div className="space-y-2">
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="neuro-card p-8 rounded-3xl">
+              <h3 className="text-2xl font-black text-white mb-6">Proficient In:</h3>
+              <div className="space-y-3">
                 {skills.proficient.map((skill, index) => (
                   <div key={index} className="flex items-center">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full mr-3"></div>
-                    <span className="text-white/80">{skill}</span>
+                    <div className="w-3 h-3 bg-gradient-to-br from-primary-400 to-accent-500 rounded-full mr-4 shadow-neuro-sm"></div>
+                    <span className="text-white/80 font-medium">{skill}</span>
                   </div>
                 ))}
               </div>
             </div>
-            
-            <div className="glass backdrop-blur-md p-6 rounded-xl border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-4">Currently Learning:</h3>
-              <div className="space-y-2">
+
+            <div className="neuro-card p-8 rounded-3xl">
+              <h3 className="text-2xl font-black text-white mb-6">Currently Learning:</h3>
+              <div className="space-y-3">
                 {skills.learning.map((skill, index) => (
                   <div key={index} className="flex items-center">
-                    <div className="w-2 h-2 bg-accent-400 rounded-full mr-3"></div>
-                    <span className="text-white/80">{skill}</span>
+                    <div className="w-3 h-3 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full mr-4 shadow-neuro-sm"></div>
+                    <span className="text-white/80 font-medium">{skill}</span>
                   </div>
                 ))}
               </div>
@@ -272,14 +276,14 @@ const CVPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
+          transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.8 }}
           className="text-center"
         >
-          <div className="glass backdrop-blur-md p-6 rounded-xl border border-white/20">
-            <p className="text-white/60 text-sm">
-              This CV represents my academic and project experience as a senior at Poolesville High School. 
+          <div className="neuro-card p-8 rounded-3xl">
+            <p className="text-white/60 text-sm leading-relaxed">
+              This CV represents my academic and project experience as a senior at Poolesville High School.
               For the most current version, please visit{' '}
-              <a href="/" className="text-primary-400 hover:text-primary-300 transition-colors">
+              <a href="/" className="text-primary-400 hover:text-primary-300 transition-colors font-bold">
                 benmross.com
               </a>
             </p>

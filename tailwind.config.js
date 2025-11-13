@@ -8,6 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Original dark color palette
         primary: {
           50: '#0f172a',
           100: '#1e293b',
@@ -39,101 +40,140 @@ module.exports = {
           middle: '#4338ca',
           end: '#7c3aed',
         },
+        // Dark neumorphic background
+        neuro: {
+          bg: '#1e293b',
+          light: '#334155',
+          dark: '#0f172a',
+          text: '#cbd5e1',
+          textDark: '#f8fafc',
+        },
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['JetBrains Mono', 'monospace'],
+        'sans': ['Plus Jakarta Sans', 'Nunito', 'system-ui', 'sans-serif'],
+        'display': ['Quicksand', 'Poppins', 'sans-serif'],
         'mono': ['JetBrains Mono', 'monospace'],
       },
       animation: {
-        'fade-in': 'fadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        'fade-in-up': 'fadeInUp 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        'fade-in-down': 'fadeInDown 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        'slide-in-left': 'slideInLeft 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        'slide-in-right': 'slideInRight 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        'scale-in': 'scaleIn 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        'bounce-slow': 'bounce 3s ease-in-out infinite',
-        'pulse-slow': 'pulse 4s ease-in-out infinite',
-        'gradient-x': 'gradientX 20s ease infinite',
-        'gradient-y': 'gradientY 20s ease infinite',
-        'gradient-xy': 'gradientXY 20s ease infinite',
-        'float': 'float 6s ease-in-out infinite',
-        'glow': 'glow 3s ease-in-out infinite alternate',
-        'smooth-bounce': 'smoothBounce 4s ease-in-out infinite',
-        'gentle-float': 'gentleFloat 8s ease-in-out infinite',
-        'slow-spin': 'spin 20s linear infinite',
+        // Bouncy entrance animations
+        'bounce-in': 'bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'bounce-in-up': 'bounceInUp 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'bounce-in-down': 'bounceInDown 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'bounce-in-left': 'bounceInLeft 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'bounce-in-right': 'bounceInRight 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'elastic-in': 'elasticIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'spring-up': 'springUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'spring-scale': 'springScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        // Continuous bouncy animations
+        'bounce-gentle': 'bounceGentle 2s ease-in-out infinite',
+        'float-bounce': 'floatBounce 3s ease-in-out infinite',
+        'wiggle': 'wiggle 1s ease-in-out infinite',
+        'jello': 'jello 2s ease-in-out infinite',
+        'rubber-band': 'rubberBand 1.5s ease-in-out infinite',
+        // Subtle animations
+        'fade-in': 'fadeIn 0.6s ease-out',
+        'scale-in': 'scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
       },
       keyframes: {
+        // Bouncy entrance animations
+        bounceIn: {
+          '0%': { opacity: '0', transform: 'scale(0.3)' },
+          '50%': { opacity: '1', transform: 'scale(1.05)' },
+          '70%': { transform: 'scale(0.9)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        bounceInUp: {
+          '0%': { opacity: '0', transform: 'translateY(50px)' },
+          '60%': { opacity: '1', transform: 'translateY(-10px)' },
+          '80%': { transform: 'translateY(5px)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        bounceInDown: {
+          '0%': { opacity: '0', transform: 'translateY(-50px)' },
+          '60%': { opacity: '1', transform: 'translateY(10px)' },
+          '80%': { transform: 'translateY(-5px)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        bounceInLeft: {
+          '0%': { opacity: '0', transform: 'translateX(-50px)' },
+          '60%': { opacity: '1', transform: 'translateX(10px)' },
+          '80%': { transform: 'translateX(-5px)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        bounceInRight: {
+          '0%': { opacity: '0', transform: 'translateX(50px)' },
+          '60%': { opacity: '1', transform: 'translateX(-10px)' },
+          '80%': { transform: 'translateX(5px)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        elasticIn: {
+          '0%': { opacity: '0', transform: 'scale(0)' },
+          '55%': { opacity: '1', transform: 'scale(1.15)' },
+          '65%': { transform: 'scale(0.95)' },
+          '75%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        springUp: {
+          '0%': { transform: 'translateY(0)' },
+          '20%': { transform: 'translateY(-20px)' },
+          '40%': { transform: 'translateY(-10px)' },
+          '60%': { transform: 'translateY(-15px)' },
+          '80%': { transform: 'translateY(-5px)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        springScale: {
+          '0%': { transform: 'scale(1)' },
+          '20%': { transform: 'scale(1.2)' },
+          '40%': { transform: 'scale(1.1)' },
+          '60%': { transform: 'scale(1.15)' },
+          '80%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1.1)' },
+        },
+        // Continuous bouncy animations
+        bounceGentle: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        floatBounce: {
+          '0%, 100%': { transform: 'translateY(0) scale(1)' },
+          '25%': { transform: 'translateY(-15px) scale(1.02)' },
+          '50%': { transform: 'translateY(-8px) scale(0.98)' },
+          '75%': { transform: 'translateY(-12px) scale(1.01)' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(-3deg)' },
+          '75%': { transform: 'rotate(3deg)' },
+        },
+        jello: {
+          '0%, 100%': { transform: 'skewX(0deg) skewY(0deg)' },
+          '30%': { transform: 'skewX(12.5deg) skewY(12.5deg)' },
+          '40%': { transform: 'skewX(-6deg) skewY(-6deg)' },
+          '50%': { transform: 'skewX(3deg) skewY(3deg)' },
+          '65%': { transform: 'skewX(-1.5deg) skewY(-1.5deg)' },
+          '75%': { transform: 'skewX(0.5deg) skewY(0.5deg)' },
+        },
+        rubberBand: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '30%': { transform: 'scaleX(1.25) scaleY(0.75)' },
+          '40%': { transform: 'scaleX(0.75) scaleY(1.25)' },
+          '50%': { transform: 'scaleX(1.15) scaleY(0.85)' },
+          '65%': { transform: 'scaleX(0.95) scaleY(1.05)' },
+          '75%': { transform: 'scaleX(1.05) scaleY(0.95)' },
+        },
+        // Subtle animations
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(30px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        fadeInDown: {
-          '0%': { opacity: '0', transform: 'translateY(-30px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideInLeft: {
-          '0%': { opacity: '0', transform: 'translateX(-30px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' },
-        },
-        slideInRight: {
-          '0%': { opacity: '0', transform: 'translateX(30px)' },
-          '100%': { opacity: '1', transform: 'translateX(0)' },
-        },
         scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.9)' },
+          '0%': { opacity: '0', transform: 'scale(0.8)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
-        gradientX: {
-          '0%, 100%': {
-            'background-size': '200% 200%',
-            'background-position': 'left center'
-          },
-          '50%': {
-            'background-size': '200% 200%',
-            'background-position': 'right center'
-          },
-        },
-        gradientY: {
-          '0%, 100%': {
-            'background-size': '200% 200%',
-            'background-position': 'center top'
-          },
-          '50%': {
-            'background-size': '200% 200%',
-            'background-position': 'center bottom'
-          },
-        },
-        gradientXY: {
-          '0%, 100%': {
-            'background-size': '400% 400%',
-            'background-position': 'left center'
-          },
-          '50%': {
-            'background-size': '400% 400%',
-            'background-position': 'right center'
-          },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-20px)' },
-        },
-        glow: {
-          '0%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.5)' },
-          '100%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.8)' },
-        },
-        smoothBounce: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-15px)' },
-        },
-        gentleFloat: {
-          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-          '33%': { transform: 'translateY(-8px) rotate(1deg)' },
-          '66%': { transform: 'translateY(-4px) rotate(-1deg)' },
+        pulseSoft: {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.8', transform: 'scale(0.98)' },
         },
       },
       backdropBlur: {
@@ -144,13 +184,19 @@ module.exports = {
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'gradient-mesh': 'linear-gradient(135deg, #1e293b 0%, #4338ca 50%, #7c3aed 100%)',
         'gradient-mesh-2': 'linear-gradient(135deg, #0f172a 0%, #312e81 50%, #4338ca 100%)',
-        'gradient-mesh-3': 'linear-gradient(135deg, #334155 0%, #6366f1 50%, #8b5cf6 100%)',
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-        'glass-inset': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.1)',
-        'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
-        'glow-lg': '0 0 40px rgba(59, 130, 246, 0.3)',
+        // Dark neumorphic shadows (dual light/dark shadows)
+        'neuro': '8px 8px 16px #0f172a, -8px -8px 16px #334155',
+        'neuro-sm': '4px 4px 8px #0f172a, -4px -4px 8px #334155',
+        'neuro-lg': '12px 12px 24px #0f172a, -12px -12px 24px #334155',
+        'neuro-xl': '16px 16px 32px #0f172a, -16px -16px 32px #334155',
+        // Inset neumorphic (for pressed state)
+        'neuro-inset': 'inset 6px 6px 12px #0f172a, inset -6px -6px 12px #334155',
+        'neuro-inset-sm': 'inset 3px 3px 6px #0f172a, inset -3px -3px 6px #334155',
+        // Soft floating shadow for cards
+        'soft': '0 4px 16px rgba(0, 0, 0, 0.3)',
+        'soft-lg': '0 8px 24px rgba(0, 0, 0, 0.4)',
       },
       blur: {
         'xs': '2px',

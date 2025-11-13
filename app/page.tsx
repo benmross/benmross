@@ -63,48 +63,48 @@ export default function Home() {
         <Projects />
         {/* <Blog /> */}
         <Contact />
-        
+
         {/* Copyright Footer */}
         <div className="py-8 px-4 text-center border-t border-white/10">
-          <p className="text-white/60 text-sm">
+          <p className="text-white/60 text-sm font-medium">
             © {new Date().getFullYear()} Ben Ross. All rights reserved.
           </p>
         </div>
       </div>
 
-      {/* Floating Action Button - Back to Top */}
+      {/* Floating Action Button - Back to Top (Neumorphic) */}
       <button
         onClick={() => {
           const element = document.querySelector('#home');
           if (element) element.scrollIntoView({ behavior: 'smooth' });
         }}
-        className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-glow transition-all duration-300 hover:scale-110 opacity-0 animate-fade-in"
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 neuro-button flex items-center justify-center text-white opacity-0 animate-bounce-in"
         style={{ animationDelay: '2s', animationFillMode: 'forwards' }}
         aria-label="Back to top"
       >
-        <svg 
-          className="w-6 h-6" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24" 
+        <svg
+          className="w-7 h-7"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M5 10l7-7m0 0l7 7m-7-7v18" 
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2.5}
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
           />
         </svg>
       </button>
 
       {/* Scroll Progress Indicator */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-white/10 z-50">
-        <div 
-          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-150 ease-out"
+      <div className="fixed top-0 left-0 right-0 h-1.5 bg-white/10 z-50">
+        <div
+          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-150 ease-out rounded-r-full"
           style={{
-            width: typeof window !== 'undefined' ? 
-              `${(window.pageYOffset / (document.documentElement.scrollHeight - window.innerHeight)) * 100}%` : 
+            width: typeof window !== 'undefined' ?
+              `${(window.pageYOffset / (document.documentElement.scrollHeight - window.innerHeight)) * 100}%` :
               '0%'
           }}
         />

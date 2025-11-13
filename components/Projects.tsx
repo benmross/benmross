@@ -144,35 +144,35 @@ const Projects = () => {
   const otherProjects = projects.filter(project => !project.featured);
 
   return (
-    <section id="projects" className="pt-16 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-accent-500/10 rounded-full blur-3xl"></div>
-      </div>
-
+    <section id="projects" className="pt-20 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10" ref={ref}>
         {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          transition={{ type: "spring", stiffness: 80, damping: 15 }}
+          className="text-center mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 font-display uppercase tracking-tight">
+          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-4 font-display uppercase tracking-tight">
             RECENT PROJECTS
           </h2>
+          <motion.div
+            className="w-24 h-2 bg-gradient-to-r from-primary-400 to-accent-500 rounded-full mx-auto shadow-neuro-sm"
+            initial={{ scaleX: 0 }}
+            animate={inView ? { scaleX: 1 } : {}}
+            transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.3 }}
+          />
         </motion.div>
 
         {/* Featured Projects */}
-        <div className="mb-16">
+        <div className="mb-20">
           <motion.h3
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-tight"
+            transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.3 }}
+            className="text-2xl sm:text-3xl font-black text-white mb-10 flex items-center font-display uppercase tracking-tight"
           >
-            <span className="w-2 h-8 bg-primary-400 rounded-full mr-4"></span>
+            <span className="w-3 h-10 bg-gradient-to-b from-primary-400 to-accent-500 rounded-full mr-4 shadow-neuro-sm"></span>
             FEATURED PROJECTS
           </motion.h3>
           
@@ -185,15 +185,16 @@ const Projects = () => {
                   key={project.title}
                   initial={{ opacity: 0, y: 50 }}
                   animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+                  transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.4 + index * 0.1 }}
+                  whileHover={{ y: -8 }}
                   className="group"
                 >
-                  <div className="glass backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:bg-white/10 transition-all duration-500 h-full">
+                  <div className="neuro-card rounded-3xl overflow-hidden h-full">
                     {hasImage && (
                       <div className="relative overflow-hidden">
                         <div className="aspect-video bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
-                          <Image 
-                            src={project.image} 
+                          <Image
+                            src={project.image}
                             alt={project.title}
                             fill
                             className="object-cover"
@@ -208,9 +209,9 @@ const Projects = () => {
                               href={project.links.demo}
                               target="_blank"
                               rel="noopener noreferrer"
-                              whileHover={{ scale: 1.1 }}
+                              whileHover={{ scale: 1.15 }}
                               whileTap={{ scale: 0.9 }}
-                              className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
+                              className="neuro-button p-4 rounded-full"
                             >
                               <EyeIcon className="w-6 h-6 text-white" />
                             </motion.a>
@@ -220,9 +221,9 @@ const Projects = () => {
                               href={project.links.slides}
                               target="_blank"
                               rel="noopener noreferrer"
-                              whileHover={{ scale: 1.1 }}
+                              whileHover={{ scale: 1.15 }}
                               whileTap={{ scale: 0.9 }}
-                              className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
+                              className="neuro-button p-4 rounded-full"
                             >
                               <PresentationChartBarIcon className="w-6 h-6 text-white" />
                             </motion.a>
@@ -232,9 +233,9 @@ const Projects = () => {
                               href={project.links.code}
                               target="_blank"
                               rel="noopener noreferrer"
-                              whileHover={{ scale: 1.1 }}
+                              whileHover={{ scale: 1.15 }}
                               whileTap={{ scale: 0.9 }}
-                              className="glass backdrop-blur-md p-3 rounded-full border border-white/30 hover:bg-white/20 transition-all duration-300"
+                              className="neuro-button p-4 rounded-full"
                             >
                               <CodeBracketIcon className="w-6 h-6 text-white" />
                             </motion.a>
@@ -260,23 +261,23 @@ const Projects = () => {
                         </div>
                       </div>
                     </div>
-                    
-                    <p className="text-white/80 mb-4 leading-relaxed">
+
+                    <p className="text-white/80 mb-6 leading-relaxed">
                       {project.description}
                     </p>
-                    
+
                     <div className="flex flex-wrap gap-2 mb-6">
                       {project.tech.map((tech, techIndex) => (
                         <span
                           key={techIndex}
-                          className="px-3 py-1 bg-white/10 rounded-full text-white/80 text-sm border border-white/20"
+                          className="px-4 py-2 shadow-neuro-sm rounded-xl text-white text-sm font-semibold"
                         >
                           {tech}
                         </span>
                       ))}
                     </div>
-                    
-                    <div className="flex space-x-4">
+
+                    <div className="flex flex-wrap gap-3">
                       {project.links.demo && (
                         <motion.a
                           href={project.links.demo}
@@ -284,9 +285,10 @@ const Projects = () => {
                           rel="noopener noreferrer"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className="btn-hover flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 px-4 py-2 rounded-lg text-white font-medium transition-colors"
+                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                          className="neuro-button flex items-center space-x-2 px-5 py-3 text-white font-bold"
                         >
-                          <EyeIcon className="w-4 h-4" />
+                          <EyeIcon className="w-5 h-5" />
                           <span>{project.category === 'Speaking' ? 'Watch Recording' : 'Live Demo'}</span>
                         </motion.a>
                       )}
@@ -297,9 +299,10 @@ const Projects = () => {
                           rel="noopener noreferrer"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className="btn-hover flex items-center space-x-2 bg-accent-500 hover:bg-accent-600 px-4 py-2 rounded-lg text-white font-medium transition-colors"
+                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                          className="neuro-button flex items-center space-x-2 px-5 py-3 text-white font-bold"
                         >
-                          <PresentationChartBarIcon className="w-4 h-4" />
+                          <PresentationChartBarIcon className="w-5 h-5" />
                           <span>View Slides</span>
                         </motion.a>
                       )}
@@ -310,9 +313,10 @@ const Projects = () => {
                           rel="noopener noreferrer"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className="btn-hover flex items-center space-x-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-white font-medium transition-colors border border-white/20"
+                          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                          className="neuro-button flex items-center space-x-2 px-5 py-3 text-white font-bold"
                         >
-                          <CodeBracketIcon className="w-4 h-4" />
+                          <CodeBracketIcon className="w-5 h-5" />
                           <span>Code</span>
                         </motion.a>
                       )}
@@ -330,61 +334,63 @@ const Projects = () => {
           <motion.h3
             initial={{ opacity: 0, x: -50 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-2xl font-black text-white mb-8 flex items-center font-display uppercase tracking-tight"
+            transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.5 }}
+            className="text-2xl sm:text-3xl font-black text-white mb-10 flex items-center font-display uppercase tracking-tight"
           >
-            <span className="w-2 h-8 bg-accent-400 rounded-full mr-4"></span>
+            <span className="w-3 h-10 bg-gradient-to-b from-accent-400 to-accent-600 rounded-full mr-4 shadow-neuro-sm"></span>
             OTHER PROJECTS
           </motion.h3>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {otherProjects.map((project, index) => (
               <motion.div
                 key={project.title}
                 initial={{ opacity: 0, y: 50 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+                transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.6 + index * 0.1 }}
+                whileHover={{ y: -5 }}
                 className="group"
               >
-                <div className="glass backdrop-blur-md rounded-xl p-6 border border-white/20 hover:bg-white/10 transition-all duration-300 h-full">
+                <div className="neuro-card rounded-2xl p-6 h-full">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
-                        <Icon 
-                          name={project.category === 'Speaking' ? 'briefcase' : 'laptop'} 
-                          size={20} 
-                          className="brightness-0 invert"
+                      <div className="w-12 h-12 bg-gradient-to-br from-accent-400 to-accent-600 rounded-2xl flex items-center justify-center shadow-neuro-sm">
+                        <Icon
+                          name={project.category === 'Speaking' ? 'briefcase' : 'laptop'}
+                          size={22}
+                          className="opacity-80"
                         />
                       </div>
                       <div>
                         <h4 className="text-lg font-bold text-white">{project.title}</h4>
-                        <p className="text-white/60 text-sm">{project.category}</p>
+                        <p className="text-white/60 text-sm font-medium">{project.category}</p>
                       </div>
                     </div>
-                    <span className="text-white/50 text-sm">{project.date}</span>
+                    <span className="text-white/50 text-sm font-medium">{project.date}</span>
                   </div>
-                  
+
                   <p className="text-white/80 mb-4 text-sm leading-relaxed">
                     {project.description}
                   </p>
-                  
+
                   <div className="flex flex-wrap gap-2 mb-4">
                     {project.tech.slice(0, 3).map((tech, techIndex) => (
                       <span
                         key={techIndex}
-                        className="px-2 py-1 bg-white/10 rounded text-white/70 text-xs border border-white/20"
+                        className="px-3 py-1 shadow-neuro-sm rounded-lg text-white text-xs font-semibold"
                       >
                         {tech}
                       </span>
                     ))}
                     {project.tech.length > 3 && (
-                      <span className="px-2 py-1 bg-white/10 rounded text-white/70 text-xs border border-white/20">
+                      <span className="px-3 py-1 shadow-neuro-sm rounded-lg text-white text-xs font-semibold">
                         +{project.tech.length - 3}
                       </span>
                     )}
                   </div>
-                  
-                  <div className="flex space-x-2">
+
+
+                  <div className="flex flex-wrap gap-2">
                     {project.links.demo && (
                       <motion.a
                         href={project.links.demo}
@@ -392,7 +398,8 @@ const Projects = () => {
                         rel="noopener noreferrer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center space-x-1 text-primary-400 hover:text-primary-300 transition-colors text-sm"
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        className="flex items-center space-x-1 text-primary-400 hover:text-primary-300 transition-colors text-sm font-bold"
                       >
                         <EyeIcon className="w-4 h-4" />
                         <span>{project.category === 'Speaking' ? 'Watch' : 'View'}</span>
@@ -405,7 +412,8 @@ const Projects = () => {
                         rel="noopener noreferrer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center space-x-1 text-accent-400 hover:text-accent-300 transition-colors text-sm"
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        className="flex items-center space-x-1 text-accent-400 hover:text-accent-300 transition-colors text-sm font-bold"
                       >
                         <PresentationChartBarIcon className="w-4 h-4" />
                         <span>Slides</span>
@@ -418,7 +426,8 @@ const Projects = () => {
                         rel="noopener noreferrer"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex items-center space-x-1 text-white/70 hover:text-white transition-colors text-sm"
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        className="flex items-center space-x-1 text-white/70 hover:text-white transition-colors text-sm font-bold"
                       >
                         <CodeBracketIcon className="w-4 h-4" />
                         <span>Code</span>
