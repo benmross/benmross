@@ -48,7 +48,7 @@ const projects = [
     tags: ['PARAVIEW', 'VIRTUAL REALITY', 'EDUCATION'],
     tone: 'blue',
     visual: 'planet',
-    image: '/images/BenSpeaking.jpg',
+    image: '/images/BenSpeakingGraded.png',
     links: [
       ['WATCH TALK', 'https://media.benmross.com/share/0zugGiJXVhonOmY79ze6ojXlyHnUB8gTpHvn39IgfbRechbaQRRKHQPfOK0Ii06KU5c'],
       ['VIEW SLIDES', 'https://docs.google.com/presentation/d/1N25vzvhnOOQZlcvmgbCfBu-j2xqSLYWWOfVPiOLNTjU/present#slide=id.p'],
