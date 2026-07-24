@@ -6,6 +6,18 @@ import { useEffect, useRef, useState } from 'react'
 const projects = [
   {
     number: '01',
+    title: 'Your phone is\nthe controller.',
+    label: 'NETWORKING / GAMING',
+    year: '2026',
+    description:
+      'PartyPad turns up to four phone browsers into controllers for Dolphin—no app or per-player setup. It bridges touch, motion, and IR input over local networks or secure online sessions, with experimental RetroArch support.',
+    tags: ['PYTHON', 'WEBRTC', 'CLOUDFLARE', 'WEBSOCKETS'],
+    tone: 'sage',
+    visual: 'partypad',
+    links: [['VIEW ON GITHUB', 'https://github.com/benmross/partypad']],
+  },
+  {
+    number: '02',
     title: 'Teaching machines\nto sound human.',
     label: 'AI / RESEARCH',
     year: '2024',
@@ -16,7 +28,7 @@ const projects = [
     visual: 'model',
   },
   {
-    number: '02',
+    number: '03',
     title: 'A blimp that\nfinds its own way.',
     label: 'ROBOTICS / VISION',
     year: '2024',
@@ -27,7 +39,7 @@ const projects = [
     visual: 'blimp',
   },
   {
-    number: '03',
+    number: '04',
     title: 'Exoplanets,\nmade tangible.',
     label: 'XR / SPEAKING',
     year: '2025',
@@ -43,7 +55,7 @@ const projects = [
     ],
   },
   {
-    number: '04',
+    number: '05',
     title: 'A storefront for\na sweeter cause.',
     label: 'PRODUCT / WEB',
     year: '2024',
@@ -84,7 +96,17 @@ function ProjectVisual({ project }: { project: (typeof projects)[number] }) {
   return (
     <div className={`project-visual generated ${project.tone}`} aria-hidden="true">
       <span className="visual-index">{project.number}</span>
-      {project.visual === 'model' ? (
+      {project.visual === 'partypad' ? (
+        <div className="partypad-map">
+          <div className="party-logo">PARTY<span>PAD</span><small>4 PLAYERS / 0 APPS</small></div>
+          <div className="phone phone-one"><i>↑</i><b>◀</b><b>●</b><em>P1</em></div>
+          <div className="phone phone-two"><i>＋</i><b>●</b><b>●</b><em>P2</em></div>
+          <div className="phone phone-three"><i>↖</i><b>●</b><b>●</b><em>P3</em></div>
+          <div className="phone phone-four"><i>IR</i><b>−</b><b>＋</b><em>P4</em></div>
+          <div className="signal"><i /><i /><i /></div>
+          <div className="console-port">DSU<br />26760</div>
+        </div>
+      ) : project.visual === 'model' ? (
         <div className="model-map">
           {Array.from({ length: 21 }).map((_, i) => <i key={i} />)}
           <b>LOSS ↓</b><em>0.041</em>
