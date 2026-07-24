@@ -165,7 +165,7 @@ nav a:hover { color: #557f76; padding-left: 9px; }
   .header-status { display: none; }
   .hero { padding: 82px 18px 0; min-height: 800px; }
   .hero-kicker span:last-child { display: none; }
-  .hero h1 { font-size: clamp(51px, 15vw, 78px); line-height: .82; margin: auto 0; }
+  .hero h1 { font-size: clamp(38px, 11.5vw, 70px); line-height: .86; margin: auto 0; }
   .hero .outline { margin-left: 0; -webkit-text-stroke-width: 1px; }
   .hero .shift { margin-left: 0; }
   .hero-footer { grid-template-columns: 1fr; gap: 28px; }
