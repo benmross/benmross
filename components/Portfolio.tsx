@@ -126,6 +126,7 @@ function ProjectVisual({ project }: { project: (typeof projects)[number] }) {
 
 export default function Portfolio() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [time, setTime] = useState('')
   const heroRef = useRef<HTMLElement>(null)
 
@@ -135,19 +136,26 @@ export default function Portfolio() {
     }).format(new Date()))
     update()
     const timer = setInterval(update, 30000)
+    const handleScroll = () => setScrolled(window.scrollY > 12)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('visible'))
     }, { threshold: 0.12 })
     document.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el))
-    return () => { clearInterval(timer); observer.disconnect() }
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('scroll', handleScroll)
+      observer.disconnect()
+    }
   }, [])
 
   const closeMenu = () => setMenuOpen(false)
 
   return (
     <main>
-      <header className="site-header">
+      <header className={`site-header${scrolled ? ' scrolled' : ''}`}>
         <a className="wordmark" href="#top" aria-label="Ben Ross, home">BR<span>®</span></a>
         <div className="header-status"><i /> AVAILABLE FOR INTERESTING WORK</div>
         <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen}>
