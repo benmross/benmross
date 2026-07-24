@@ -28,16 +28,16 @@ export default function CVPage() {
         <span>CURRICULUM VITAE / 2026</span>
         <h1>BEN<br /><i>ROSS</i></h1>
         <div>
-          <p>Developer + builder working across intelligent software, physical systems, and practical tools.</p>
+          <p>Incoming University of Maryland computer science freshman working across intelligent software, physical systems, and practical tools.</p>
           <p>Poolesville, Maryland<br /><a href="mailto:ben.m.ross08@gmail.com">ben.m.ross08@gmail.com</a></p>
         </div>
       </section>
       <section className="cv-section education">
         <span>01 / EDUCATION</span>
         <div>
-          <h2>Poolesville High School</h2>
-          <h3>Science, Math & Computer Science Magnet Program</h3>
-          <p>Coursework includes Analysis of Algorithms, AP Computer Science, AP Statistics, and Foundations of Technology.</p>
+          <h2>University of Maryland</h2>
+          <h3>B.S. Computer Science · Incoming Freshman</h3>
+          <p>Beginning undergraduate study in computer science. Previously attended the Science, Math & Computer Science Magnet Program at Poolesville High School, with coursework including Analysis of Algorithms, AP Computer Science, and AP Statistics.</p>
         </div>
       </section>
       <section className="cv-section">

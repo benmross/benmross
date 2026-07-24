@@ -149,7 +149,7 @@ export default function Portfolio() {
           <span className="shift">A PURPOSE.<i>✦</i></span>
         </h1>
         <div className="hero-footer">
-          <p>I’m Ben Ross. I build at the intersection of intelligent software, physical systems, and practical curiosity.</p>
+          <p>I’m Ben Ross, an incoming computer science freshman at the University of Maryland. I build at the intersection of intelligent software, physical systems, and practical curiosity.</p>
           <a href="#work">SELECTED WORK <Arrow /></a>
         </div>
         <div className="ticker" aria-hidden="true"><span>AI · ROBOTICS · FULL-STACK · INFRASTRUCTURE · COMPUTER VISION · AI · ROBOTICS · FULL-STACK · INFRASTRUCTURE · COMPUTER VISION · </span></div>
@@ -198,13 +198,13 @@ export default function Portfolio() {
         <div className="about-title" data-reveal><span>03 / THE HUMAN</span><h2>CURIOUS BY<br />DEFAULT.</h2></div>
         <div className="about-copy" data-reveal>
           <p className="lead">I like projects where the answer isn’t already sitting in a tutorial.</p>
-          <p>I’m a computer science student drawn to AI, cyber forensics, self-hosting, robotics, and the satisfying moment when an abstract idea starts doing something useful in the real world.</p>
+          <p>I’m an incoming computer science freshman at the University of Maryland, drawn to AI, cyber forensics, self-hosting, robotics, and the satisfying moment when an abstract idea starts doing something useful in the real world.</p>
           <p>That has meant everything from training language models and building agents to 3D-printing an autonomous blimp gondola and presenting XR research at Johns Hopkins.</p>
           <a href="/cv">READ THE FULL CV <Arrow /></a>
         </div>
         <div className="portrait" data-reveal>
-          <Image src="/images/BenSpeaking.jpg" alt="Ben Ross speaking at the Johns Hopkins XR Symposium" fill sizes="(max-width: 800px) 100vw, 35vw" />
-          <span>BEN, IN HIS NATURAL HABITAT — EXPLAINING A PROJECT</span>
+          <Image src="/images/BenRoss.jpeg" alt="Ben Ross beneath spring blossoms wearing a University of Maryland pullover" fill sizes="(max-width: 800px) 100vw, 35vw" />
+          <span>BEN ROSS — INCOMING COMPUTER SCIENCE FRESHMAN AT UMD</span>
         </div>
       </section>
 
@@ -214,7 +214,7 @@ export default function Portfolio() {
         <footer>
           <span>© {new Date().getFullYear()} BEN ROSS</span>
           <div><a href="https://github.com/benmross" target="_blank" rel="noreferrer">GITHUB ↗</a><a href="https://linkedin.com/in/ben-m-ross" target="_blank" rel="noreferrer">LINKEDIN ↗</a></div>
-          <span>BUILT WITH INTENTION + CAFFEINE</span>
+          <span>BUILT WITH INTENTION + CURIOSITY</span>
         </footer>
       </section>
     </main>

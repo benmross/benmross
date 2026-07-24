@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: '%s — Ben Ross',
   },
   description:
-    'Ben Ross builds intelligent software, physical systems, and useful tools at the edge of AI, robotics, and the web.',
+    'Ben Ross is an incoming University of Maryland computer science freshman building intelligent software, physical systems, and useful tools.',
   keywords: ['Ben Ross', 'developer', 'AI', 'robotics', 'software engineer', 'portfolio'],
   authors: [{ name: 'Ben Ross' }],
   alternates: { canonical: '/' },

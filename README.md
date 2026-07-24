@@ -16,8 +16,9 @@
 
 ---
 
-I’m a computer science student who likes projects where software has to meet the
-real world. My work ranges from fine-tuning language models and building
+I’m an incoming computer science freshman at the University of Maryland who
+likes projects where software has to meet the real world. My work ranges from
+fine-tuning language models and building
 tool-using agents to autonomous robots, computer vision systems, and
 infrastructure running on tiny hardware.
 
