@@ -59,9 +59,11 @@ nav a:hover { color: #557f76; padding-left: 9px; }
 .hero-footer p { margin: 0; max-width: 510px; font-size: clamp(15px, 1.4vw, 21px); line-height: 1.35; }
 .hero-footer a { justify-self: end; font: 700 11px/1 monospace; border-bottom: 1px solid; padding-bottom: 7px; }
 .hero-footer a span { margin-left: 40px; font-size: 18px; }
-.ticker { margin: 0 -2.2vw; background: var(--acid); color: var(--ink); white-space: nowrap; overflow: hidden; transform: rotate(-1.2deg) scale(1.02); }
-.ticker span { display: inline-block; padding: 11px 0; font: 900 13px/1 monospace; letter-spacing: .08em; animation: ticker 22s linear infinite; }
-@keyframes ticker { to { transform: translateX(-50%); } }
+.ticker { margin: 0 -3.2vw; background: var(--acid); color: var(--ink); white-space: nowrap; overflow: hidden; transform: rotate(-1.2deg) scale(1.02); }
+.ticker-track { display: flex; width: max-content; animation: ticker 22s linear infinite; }
+.ticker-group { display: flex; flex: none; }
+.ticker-group span { flex: none; padding: 11px 1.1em 11px 0; font: 900 13px/1 monospace; letter-spacing: .08em; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 .work, .experiments { padding: 140px 2.2vw; }
 .section-heading { display: grid; grid-template-columns: 24% 1fr 25%; gap: 2vw; align-items: start; margin-bottom: 110px; }

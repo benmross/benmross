@@ -78,6 +78,8 @@ const experiments = [
   ['Room Reservations', 'A full-stack scheduling system designed and delivered for a school administrator.', 'PRODUCT / WEB'],
 ]
 
+const tickerText = 'AI · ROBOTICS · FULL-STACK · INFRASTRUCTURE · COMPUTER VISION · '
+
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
   return <span aria-hidden="true">{diagonal ? '↗' : '→'}</span>
 }
@@ -174,7 +176,15 @@ export default function Portfolio() {
           <p>I’m Ben Ross, an incoming computer science freshman at the University of Maryland. I build at the intersection of intelligent software, physical systems, and practical curiosity.</p>
           <a href="#work">SELECTED WORK <Arrow /></a>
         </div>
-        <div className="ticker" aria-hidden="true"><span>AI · ROBOTICS · FULL-STACK · INFRASTRUCTURE · COMPUTER VISION · AI · ROBOTICS · FULL-STACK · INFRASTRUCTURE · COMPUTER VISION · </span></div>
+        <div className="ticker" aria-hidden="true">
+          <div className="ticker-track">
+            {[0, 1].map((group) => (
+              <div className="ticker-group" key={group}>
+                {[0, 1, 2].map((item) => <span key={item}>{tickerText}</span>)}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="work" id="work">
