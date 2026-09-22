@@ -1,47 +1,21 @@
-<h1 align="center">Ben Ross</h1>
+# benmross.com
 
-<p align="center">
-  <strong>I build intelligent software, physical systems, and useful tools.</strong>
-</p>
+Source for benmross.com. One scrolling page: a section per project, each with its own
+colour and its own scroll-driven visual.
 
-<p align="center">
-  AI · Robotics · Full-stack development · Self-hosted infrastructure
-</p>
+Vite, React, TypeScript, Motion and Lenis. Static output in `dist/`.
 
-<p align="center">
-  <a href="https://benmross.com">Portfolio</a> ·
-  <a href="https://linkedin.com/in/ben-m-ross">LinkedIn</a> ·
-  <a href="mailto:ben.m.ross08@gmail.com">Email</a>
-</p>
-
----
-
-I’m an incoming computer science freshman at the University of Maryland who
-likes projects where software has to meet the real world. My work ranges from
-fine-tuning language models and building
-tool-using agents to autonomous robots, computer vision systems, and
-infrastructure running on tiny hardware.
-
-### A few things I’ve built
-
-- Fine-tuned Llama 3.1 with Python, TensorFlow, CUDA, and Google Cloud
-- Designed and programmed an autonomous blimp using OpenCV and Raspberry Pi
-- Built a self-hosted LLM assistant connected to Spotify and Notion
-- Led programming for a rover that navigated a simulated exoplanet
-- Developed a full-stack nonprofit platform with Next.js, MongoDB, and Stripe
-- Presented XR education work at the Johns Hopkins University XR Symposium
-
-### Tools I reach for
-
-```text
-Languages       Python · TypeScript · Java · R
-Interfaces      React · React Native · Next.js · Tailwind CSS
-Systems         Linux · Docker · Raspberry Pi · n8n
-Data & AI       TensorFlow · Llama · Ollama · OpenCV · MongoDB
-Fabrication     CAD · 3D printing · rapid prototyping
+```bash
+npm install
+npm run dev
+npm run build
 ```
 
-<p align="center">
-  <em>Have a hard problem or a strange idea?</em><br />
-  <a href="mailto:ben.m.ross08@gmail.com"><strong>Let’s talk.</strong></a>
-</p>
+- `src/content.ts` holds every word on the site. Edit text there, not in components.
+- `src/scenes/` holds one visual per project. The canvas scenes (Herald, BenGPT, GNSS)
+  are drawn from code; the others use real screenshots and renders in `public/media/`.
+- `src/shaders/` are emulsion's own shaders, copied unchanged from
+  [benmross/emulsion](https://github.com/benmross/emulsion).
+- `docs/` lists where every image came from.
+
+The GNSS section is an illustration only. It contains no data or code from that project.
