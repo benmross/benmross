@@ -38,17 +38,17 @@ const draw: Draw = (ctx, w, h, t, p) => {
   if (wide) {
     const x = w * 0.1
     SOURCES.forEach((_, i) => src.push({ x, y: h * 0.2 + (i * h * 0.6) / (SOURCES.length - 1) }))
-    ledger = { x: w * 0.4 - 115 * k, y: h / 2 - 140 * k, w: 230 * k, h: 280 * k }
-    TIERS.forEach((_, i) => tiers.push({ x: w * 0.64, y: h * 0.33 + i * h * 0.17 }))
+    ledger = { x: w * 0.37 - 115 * k, y: h / 2 - 140 * k, w: 230 * k, h: 280 * k }
+    TIERS.forEach((_, i) => tiers.push({ x: w * 0.56, y: h * 0.33 + i * h * 0.17 }))
     const ph = Math.min(h * 0.64, 460 * k)
-    phone = { x: w * 0.87 - ph * 0.26, y: h / 2 - ph / 2, w: ph * 0.52, h: ph }
+    phone = { x: w * 0.885 - ph * 0.26, y: h / 2 - ph / 2, w: ph * 0.52, h: ph }
   } else {
     SOURCES.forEach((_, i) =>
       src.push({ x: w * (0.14 + (i % 4) * 0.24), y: h * 0.12 + Math.floor(i / 4) * 44 * k }),
     )
     ledger = { x: w / 2 - 110 * k, y: h * 0.27, w: 220 * k, h: 150 * k }
-    TIERS.forEach((_, i) => tiers.push({ x: w * (0.19 + i * 0.31), y: h * 0.58 }))
-    phone = { x: w * 0.08, y: h * 0.67, w: w * 0.84, h: h * 0.2 }
+    TIERS.forEach((_, i) => tiers.push({ x: w * (0.19 + i * 0.31), y: h * 0.54 }))
+    phone = { x: w * 0.08, y: h * 0.69, w: w * 0.84, h: h * 0.2 }
   }
   const lc = { x: ledger.x + ledger.w / 2, y: ledger.y + ledger.h / 2 }
   const lIn = wide ? { x: ledger.x, y: lc.y } : { x: lc.x, y: ledger.y }

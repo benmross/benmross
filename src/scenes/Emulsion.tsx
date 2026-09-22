@@ -95,8 +95,8 @@ function Field({ plate, seed, className, quality = 0.7 }: { plate: Plate; seed: 
   const canvas = useRef<HTMLCanvasElement>(null)
   const near = useNearViewport(canvas, '0px')
   const [failed, setFailed] = useState(false)
-  const state = useRef({ plate, seed })
-  state.current = { plate, seed }
+  const state = useRef({ plate, seed, dirty: true })
+  state.current = { plate, seed, dirty: true }
   const draw = useRef<Draw | null>(null)
   useEffect(() => {
     if (!canvas.current || draw.current) return
@@ -118,6 +118,9 @@ function Field({ plate, seed, className, quality = 0.7 }: { plate: Plate; seed: 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame)
       if (now - last < 33) return
+      // with reduced motion the plate holds still, so only redraw when it or the seed changes
+      if (still && !state.current.dirty) return
+      state.current.dirty = false
       last = now
       const r = c.getBoundingClientRect()
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -126,7 +129,6 @@ function Field({ plate, seed, className, quality = 0.7 }: { plate: Plate; seed: 
       const h = Math.max(2, Math.round(r.height * s))
       const phase = still ? 0 : ((now % loopMs) / loopMs) * Math.PI * 2
       d({ ...DEFAULTS, ...state.current.plate, seed: state.current.seed }, w, h, s, phase)
-      if (still) cancelAnimationFrame(raf)
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)

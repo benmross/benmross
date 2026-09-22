@@ -4,7 +4,7 @@ import { EASE, useSceneProgress } from '../lib/motion'
 
 const M = '/media/kart/'
 
-/** The control stack as the repository documents it: one motion authority, an advisory dashboard. */
+/** The control stack as the repository documents it. */
 function Architecture() {
   const ref = useRef<SVGSVGElement>(null)
   const inView = useInView(ref, { once: true, margin: '0px -10% 0px -10%' })
@@ -37,16 +37,9 @@ function Architecture() {
     </g>
   )
   return (
-    <svg ref={ref} viewBox="0 0 720 440" className="kart-arch" role="img" aria-label="Control architecture: a Raspberry Pi dashboard talks to a Teensy 4.1 over UART but cannot command motion; the Teensy drives the throttle and talks to an ESP32 steering controller over a 1 Mbps CAN bus.">
-      <motion.rect
-        x={16} y={16} width={220} height={140} rx={14} fill="none" stroke="rgba(236,235,228,.22)" strokeDasharray="3 6"
-        initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : undefined} transition={{ delay: 1.4 }}
-      />
-      <motion.text x={30} y={144} fill="#8d8b84" fontSize="11" initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : undefined} transition={{ delay: 1.5 }}>
-        advisory only, can crash
-      </motion.text>
+    <svg ref={ref} viewBox="0 0 720 440" className="kart-arch" role="img" aria-label="Control architecture: a Raspberry Pi dashboard talks to a Teensy 4.1 over UART; the Teensy drives the throttle and talks to an ESP32 steering controller over a 1 Mbps CAN bus.">
       {box(30, 34, 190, 64, 'Raspberry Pi 4', 'React dashboard, 800×480', false, 0)}
-      {box(260, 176, 200, 64, 'Teensy 4.1', 'sole motion authority', true, 1)}
+      {box(260, 176, 200, 64, 'Teensy 4.1', 'drive controller', true, 1)}
       {box(500, 34, 200, 64, 'ESP32 “Steervo”', 'steer-by-wire PID', false, 2)}
       {box(500, 176, 200, 64, 'Talon SRX → CIM', 'steering motor', false, 3)}
       {box(260, 340, 200, 64, 'Throttle DAC → ESC', 'FarDriver motor controller', false, 4)}

@@ -18,7 +18,7 @@ npm run build
   [benmross/emulsion](https://github.com/benmross/emulsion).
 - `docs/` lists where every image came from.
 
-The GNSS section is an illustration only. It contains no data or code from that project.
+The GNSS section is an illustration only, on Natural Earth outlines. It contains no data or code from that project.
 
 ## Rules for this repository
 

@@ -59,11 +59,11 @@ export const projects: Project[] = [
     role: 'Co-lead, with one classmate',
     stack: 'C++, PlatformIO, CAN, React, TypeScript',
     blurb:
-      'A drive-by-wire electric go-kart, pitched to replace the robotics curriculum at Poolesville High School and taught from as it was built. One microcontroller owns motion. The dashboard can crash and the kart keeps driving.',
+      'A drive-by-wire electric go-kart, pitched to replace the robotics curriculum at Poolesville High School and taught from as it was built.',
     stats: [
-      { value: '1 Mbps', label: 'CAN bus' },
-      { value: '3', label: 'processors' },
-      { value: '0', label: 'motion from the dashboard' },
+      { value: '40 mph', label: 'top speed' },
+      { value: '40 hp', label: 'peak motor power' },
+      { value: '72 V', label: 'drivetrain' },
     ],
     links: [{ label: 'Source', href: 'https://github.com/PHS-SMCS/gokart-dash' }],
     accent: '#ff4a3d',
@@ -104,7 +104,7 @@ export const projects: Project[] = [
     role: 'Research apprentice, Army Research Laboratory',
     stack: 'Python, ADS-B, AIS, DBSCAN',
     blurb:
-      'Finding where GPS is being spoofed, using the position reports ships and aircraft already broadcast. The graphic is an illustration, not the project.',
+      'Finding where GPS is being spoofed, using the position reports ships and aircraft already broadcast.',
     accent: '#35e0c2',
     tint: '#06110f',
   },

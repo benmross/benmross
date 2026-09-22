@@ -98,7 +98,7 @@ export function Reveal({
   )
 }
 
-/** A dot that trails the pointer and swells into a label over anything with data-cursor. */
+/** A dot on the pointer that swells into a label over anything with data-cursor. */
 export function Cursor() {
   const ref = useRef<HTMLDivElement>(null)
   const [label, setLabel] = useState<string | null>(null)
@@ -106,30 +106,16 @@ export function Cursor() {
   useEffect(() => {
     if (!window.matchMedia('(pointer: fine)').matches) return
     document.body.classList.add('has-cursor')
-    let x = -100
-    let y = -100
-    let cx = x
-    let cy = y
-    let raf = 0
     const move = (e: PointerEvent) => {
-      x = e.clientX
-      y = e.clientY
+      if (ref.current) ref.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`
       const t = e.target as HTMLElement | null
       const c = t?.closest<HTMLElement>('[data-cursor]')
       setLabel(c?.dataset.cursor || null)
       setLink(!c && !!t?.closest('a,button'))
     }
-    const loop = () => {
-      cx += (x - cx) * 0.2
-      cy += (y - cy) * 0.2
-      if (ref.current) ref.current.style.transform = `translate3d(${cx}px, ${cy}px, 0)`
-      raf = requestAnimationFrame(loop)
-    }
     window.addEventListener('pointermove', move)
-    raf = requestAnimationFrame(loop)
     return () => {
       window.removeEventListener('pointermove', move)
-      cancelAnimationFrame(raf)
       document.body.classList.remove('has-cursor')
     }
   }, [])

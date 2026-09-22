@@ -1,6 +1,7 @@
 import { CanvasScene, type Draw } from '../components/CanvasScene'
 import { alpha, font } from '../lib/draw'
 import { easeInOut, easeOut, rng, seg } from '../lib/motion'
+import { OUTLINES } from './middleEast'
 
 // An illustration of the idea, drawn from nothing. No data or code from the project.
 
@@ -10,31 +11,45 @@ const FG = '#ecebe4'
 const MUTED = '#8d8b84'
 
 type V = { x: number; y: number }
+/** Satellites live in screen space, along the top. */
 const SATS: V[] = [
   { x: 0.12, y: 0.1 },
   { x: 0.4, y: 0.05 },
   { x: 0.7, y: 0.08 },
   { x: 0.92, y: 0.16 },
 ]
-const PLANE: V = { x: 0.36, y: 0.5 }
-const GHOST: V = { x: 0.5, y: 0.36 }
-const SPOOFER: V = { x: 0.64, y: 0.72 }
-const RADIUS = 0.2
+// Everything on the ground is in degrees: x is longitude, y is latitude.
+const PLANE: V = { x: 33.3, y: 32.7 }
+const GHOST: V = { x: 35.49, y: 33.82 } // spoofed aircraft have shown up over Beirut airport
+const SPOOFER: V = { x: 34.95, y: 31.7 }
+const RADIUS = 2.1
+const VIEW = { lon0: 24, lon1: 50, lat0: 24, lat1: 40, lon: 35.8, lat: 32.2 }
+const KX = Math.cos((VIEW.lat * Math.PI) / 180)
+const LABELS: [string, number, number][] = [
+  ['Egypt', 30.6, 27.6],
+  ['Jordan', 37.0, 30.4],
+  ['Syria', 38.6, 35.2],
+  ['Iraq', 43.2, 32.8],
+  ['Saudi Arabia', 40.5, 27.6],
+  ['Cyprus', 33.1, 35.45],
+  ['Turkey', 36.4, 38.4],
+  ['Israel', 34.45, 30.55],
+]
 
 const r = rng(7)
 const gauss = () => (r() + r() + r() - 1.5) / 1.5
 const REPORTS: (V & { bad: boolean; at: number })[] = []
-for (let i = 0; i < 110; i++) {
+for (let i = 0; i < 120; i++) {
   const bad = i % 10 < 7
-  const x = bad ? SPOOFER.x + gauss() * RADIUS * 0.95 : 0.06 + r() * 0.88
-  const y = bad ? SPOOFER.y - 0.02 + gauss() * RADIUS * 0.7 : 0.25 + r() * 0.7
+  const x = bad ? SPOOFER.x + (gauss() * RADIUS) / KX : VIEW.lon0 + r() * (VIEW.lon1 - VIEW.lon0)
+  const y = bad ? SPOOFER.y + gauss() * RADIUS * 0.85 : VIEW.lat0 + r() * (VIEW.lat1 - VIEW.lat0)
   REPORTS.push({ x, y, bad, at: r() })
 }
-const TRAFFIC = Array.from({ length: 22 }, () => ({
-  x: r(),
-  y: 0.25 + r() * 0.7,
+const TRAFFIC = Array.from({ length: 26 }, () => ({
+  x: VIEW.lon0 + r() * (VIEW.lon1 - VIEW.lon0),
+  y: VIEW.lat0 + r() * (VIEW.lat1 - VIEW.lat0),
   a: r() * Math.PI * 2,
-  v: 0.012 + r() * 0.02,
+  v: 0.08 + r() * 0.12,
 }))
 
 function hull(pts: V[]) {
@@ -88,73 +103,107 @@ const draw: Draw = (ctx, w, h, t, p) => {
   const wide = w > h
   const k = Math.max(0.75, Math.min(w, h) / 760)
   const m = { x: w * 0.06, y: h * 0.1, w: w * 0.88, h: h * 0.78 }
-  const X = (v: V) => ({ x: m.x + v.x * m.w, y: m.y + v.y * m.h })
+  const S = (v: V) => ({ x: m.x + v.x * m.w, y: m.y + v.y * m.h })
+  // ground: cover the canvas with the view box, centred on the eastern Mediterranean
+  const deg = Math.max(w / ((VIEW.lon1 - VIEW.lon0) * KX), h / (VIEW.lat1 - VIEW.lat0))
+  const X = (v: V) => ({ x: w / 2 + (v.x - VIEW.lon) * KX * deg, y: h * 0.55 - (v.y - VIEW.lat) * deg })
 
   const tri = seg(p, 0.02, 0.26)
   const spoof = seg(p, 0.28, 0.48)
   const drop = seg(p, 0.5, 0.76)
   const clus = seg(p, 0.78, 0.94)
 
-  // ---- ground: faint graticule
+  // ---- ground: country outlines, drawn as wire
   ctx.lineWidth = 1
   ctx.strokeStyle = alpha(FG, 0.05)
-  for (let i = 0; i <= 12; i++) {
-    const x = m.x + (m.w * i) / 12
+  for (let lon = 25; lon <= 50; lon += 5) {
+    const a = X({ x: lon, y: 20 })
+    const b = X({ x: lon, y: 45 })
     ctx.beginPath()
-    ctx.moveTo(x, m.y + m.h * 0.2)
-    ctx.lineTo(x, m.y + m.h)
+    ctx.moveTo(a.x, a.y)
+    ctx.lineTo(b.x, b.y)
     ctx.stroke()
   }
-  for (let i = 0; i <= 8; i++) {
-    const y = m.y + m.h * 0.2 + (m.h * 0.8 * i) / 8
+  for (let lat = 20; lat <= 45; lat += 5) {
+    const a = X({ x: 20, y: lat })
+    const b = X({ x: 55, y: lat })
     ctx.beginPath()
-    ctx.moveTo(m.x, y)
-    ctx.lineTo(m.x + m.w, y)
+    ctx.moveTo(a.x, a.y)
+    ctx.lineTo(b.x, b.y)
     ctx.stroke()
   }
+  ctx.strokeStyle = alpha(TEAL, 0.4)
+  ctx.fillStyle = alpha(TEAL, 0.025)
+  ctx.lineJoin = 'round'
+  for (const ring of OUTLINES) {
+    ctx.beginPath()
+    for (let i = 0; i < ring.length; i += 2) {
+      const q = X({ x: ring[i], y: ring[i + 1] })
+      if (i) ctx.lineTo(q.x, q.y)
+      else ctx.moveTo(q.x, q.y)
+    }
+    ctx.closePath()
+    ctx.fill()
+    ctx.stroke()
+  }
+  font(ctx, 10.5 * k, 500)
+  ctx.textAlign = 'center'
+  for (const [name, lon, lat] of LABELS) {
+    const q = X({ x: lon, y: lat })
+    ctx.fillStyle = alpha(FG, name === 'Israel' ? 0.3 + clus * 0.4 : 0.24)
+    ctx.fillText(name.toUpperCase(), q.x, q.y)
+  }
+  // fade the ground out under the satellites
+  const g = ctx.createLinearGradient(0, 0, 0, h * 0.3)
+  g.addColorStop(0, 'rgba(6,17,15,0.95)')
+  g.addColorStop(1, 'rgba(6,17,15,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, w, h * 0.3)
 
   // ---- satellites and their ranges to the aircraft
   const P = X(PLANE)
   const G = X(GHOST)
   const pos = { x: P.x + (G.x - P.x) * easeInOut(spoof), y: P.y + (G.y - P.y) * easeInOut(spoof) }
   SATS.forEach((sv, i) => {
-    const S = X(sv)
+    const Sv = S(sv)
     const on = easeOut(seg(tri, i * 0.12, i * 0.12 + 0.55))
-    const d = Math.hypot(pos.x - S.x, pos.y - S.y)
+    const d = Math.hypot(pos.x - Sv.x, pos.y - Sv.y)
     ctx.strokeStyle = alpha(spoof > 0 ? RED : TEAL, (0.5 - drop * 0.4) * on)
     ctx.setLineDash(spoof > 0.05 ? [4, 6] : [])
     ctx.beginPath()
-    ctx.arc(S.x, S.y, Math.max(0.1, d * on), 0, Math.PI * 2)
+    ctx.arc(Sv.x, Sv.y, Math.max(0.1, d * on), 0, Math.PI * 2)
     ctx.stroke()
     ctx.setLineDash([])
     // pulse travelling down the range
     const q = (t * 0.6 + i * 0.25) % 1
     ctx.strokeStyle = alpha(TEAL, 0.35 * on * (1 - q) * (1 - drop))
     ctx.beginPath()
-    ctx.arc(S.x, S.y, d * q, 0, Math.PI * 2)
+    ctx.arc(Sv.x, Sv.y, d * q, 0, Math.PI * 2)
     ctx.stroke()
     // the satellite
     ctx.fillStyle = FG
-    ctx.fillRect(S.x - 4 * k, S.y - 4 * k, 8 * k, 8 * k)
+    ctx.fillRect(Sv.x - 4 * k, Sv.y - 4 * k, 8 * k, 8 * k)
     ctx.fillStyle = alpha(TEAL, 0.8)
-    ctx.fillRect(S.x - 15 * k, S.y - 2 * k, 9 * k, 4 * k)
-    ctx.fillRect(S.x + 6 * k, S.y - 2 * k, 9 * k, 4 * k)
+    ctx.fillRect(Sv.x - 15 * k, Sv.y - 2 * k, 9 * k, 4 * k)
+    ctx.fillRect(Sv.x + 6 * k, Sv.y - 2 * k, 9 * k, 4 * k)
     font(ctx, 10.5 * k, 600)
     ctx.fillStyle = MUTED
     ctx.textAlign = 'center'
-    ctx.fillText(`GPS ${[7, 12, 19, 24][i]}`, S.x, S.y + 20 * k)
+    ctx.fillText(`GPS ${[7, 12, 19, 24][i]}`, Sv.x, Sv.y + 20 * k)
   })
 
   // ---- background traffic
   const traffic = seg(p, 0.44, 0.56)
   if (traffic > 0) {
     const Sp = X(SPOOFER)
+    const span = VIEW.lon1 - VIEW.lon0
+    const spanY = VIEW.lat1 - VIEW.lat0
     TRAFFIC.forEach((a) => {
-      const tx = (((a.x + Math.cos(a.a) * a.v * t) % 1) + 1) % 1
-      const ty = 0.25 + ((((a.y - 0.25 + Math.sin(a.a) * a.v * t) % 0.7) + 0.7) % 0.7)
+      const tx = VIEW.lon0 + ((((a.x - VIEW.lon0 + Math.cos(a.a) * a.v * t) % span) + span) % span)
+      const ty = VIEW.lat0 + ((((a.y - VIEW.lat0 + Math.sin(a.a) * a.v * t) % spanY) + spanY) % spanY)
       const q = X({ x: tx, y: ty })
-      const inside = Math.hypot((q.x - Sp.x) / m.w, (q.y - Sp.y) / m.h) < RADIUS * 0.9
-      plane(ctx, q.x, q.y, 6 * k, a.a, alpha(inside && drop > 0 ? RED : FG, 0.45 * traffic * (1 - clus * 0.5)))
+      const inside = Math.hypot(q.x - Sp.x, q.y - Sp.y) < RADIUS * deg
+      plane(ctx, q.x, q.y, 6 * k, -a.a, alpha(inside && drop > 0 ? RED : FG, 0.5 * traffic * (1 - clus * 0.5)))
     })
   }
 
@@ -177,7 +226,7 @@ const draw: Draw = (ctx, w, h, t, p) => {
       const q = (t * 0.45 + i / 3) % 1
       ctx.strokeStyle = alpha(RED, spoof * (1 - q) * (1 - clus * 0.7) * 0.6)
       ctx.beginPath()
-      ctx.arc(Sp.x, Sp.y, q * RADIUS * m.w * 0.9, 0, Math.PI * 2)
+      ctx.arc(Sp.x, Sp.y, q * RADIUS * deg, 0, Math.PI * 2)
       ctx.stroke()
     }
     ctx.globalAlpha = spoof * (1 - clus)
@@ -190,7 +239,7 @@ const draw: Draw = (ctx, w, h, t, p) => {
     ctx.fill()
     font(ctx, 11 * k, 600)
     ctx.textAlign = 'center'
-    ctx.fillText('jammer / spoofer', Sp.x, Sp.y + 24 * k)
+    ctx.fillText('spoofer', Sp.x, Sp.y + 24 * k)
     ctx.globalAlpha = 1
   }
 
