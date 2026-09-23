@@ -690,3 +690,12 @@ button {
 @media (max-width: 820px) {
   .sp-phone { width: 34%; right: 2%; top: 22%; }
 }
+.emulsion-stage {
+  position: relative;
+}
+.emulsion-layer {
+  position: absolute;
+  inset: 0;
+  transition-property: opacity;
+  transition-timing-function: ease-in-out;
+}

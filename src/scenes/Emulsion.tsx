@@ -91,7 +91,7 @@ function makeRenderer(canvas: HTMLCanvasElement): Draw | null {
  * A live emulsion plate filling its parent. Renders below display resolution and at most
  * 30 frames a second, and only while on screen; a full-screen fBm shader is not free.
  */
-function Field({ plate, seed, className, quality = 0.7 }: { plate: Plate; seed: number; className?: string; quality?: number }) {
+function Field({ plate, seed, className, quality = 0.7, active = true }: { plate: Plate; seed: number; className?: string; quality?: number; active?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const near = useNearViewport(canvas, '0px')
   const [failed, setFailed] = useState(false)
@@ -110,7 +110,7 @@ function Field({ plate, seed, className, quality = 0.7 }: { plate: Plate; seed: 
   useEffect(() => {
     const c = canvas.current
     const d = draw.current
-    if (!c || !d || !near) return
+    if (!c || !d || !near || !active) return
     const still = reducedMotion()
     const loopMs = 9000
     let raf = 0
@@ -132,7 +132,7 @@ function Field({ plate, seed, className, quality = 0.7 }: { plate: Plate; seed: 
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
-  }, [near, quality])
+  }, [near, quality, active])
   return (
     <canvas
       ref={canvas}
@@ -146,12 +146,47 @@ export function EmulsionField(_: { preset: 'hero' }) {
   return <Field plate={HERO} seed={0.37} quality={0.5} />
 }
 
+const CYCLE_MS = 5000
+const FADE_MS = 1400
+
+/**
+ * Two stacked canvases so one plate can fade into the next. Plates cycle on their own while the
+ * section is on screen, until a plate is picked by hand.
+ */
 export function EmulsionScene() {
   const [i, setI] = useState(0)
+  const [layers, setLayers] = useState<[number, number]>([0, 0])
+  const [front, setFront] = useState<0 | 1>(0)
+  const [fading, setFading] = useState(false)
+  const [auto, setAuto] = useState(true)
   const [seed, setSeed] = useState(0.37)
   const drag = useRef<{ x: number; seed: number } | null>(null)
   const wrap = useRef<HTMLDivElement>(null)
+  const visible = useNearViewport(wrap, '0px')
   const plate = PLATES[i]
+
+  const show = (j: number) => {
+    if (j === i) return
+    const back = (front === 0 ? 1 : 0) as 0 | 1
+    setLayers((l) => {
+      const n: [number, number] = [...l] as [number, number]
+      n[back] = j
+      return n
+    })
+    setFront(back)
+    setFading(true)
+    setI(j)
+  }
+  useEffect(() => {
+    if (!fading) return
+    const t = setTimeout(() => setFading(false), FADE_MS + 100)
+    return () => clearTimeout(t)
+  }, [fading, front])
+  useEffect(() => {
+    if (!auto || !visible || reducedMotion()) return
+    const t = setTimeout(() => show((i + 1) % PLATES.length), CYCLE_MS)
+    return () => clearTimeout(t)
+  })
   useEffect(() => {
     document.documentElement.style.setProperty('--accent', plate.p.c2 as string)
   }, [plate])
@@ -163,7 +198,7 @@ export function EmulsionScene() {
         data-cursor="Drag"
         onPointerDown={(e) => {
           drag.current = { x: e.clientX, seed }
-          ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+          ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
         }}
         onPointerMove={(e) => {
           if (!drag.current) return
@@ -173,12 +208,25 @@ export function EmulsionScene() {
         onPointerUp={() => (drag.current = null)}
         onPointerCancel={() => (drag.current = null)}
       >
-        <Field plate={plate.p} seed={seed} quality={0.75} />
+        {([0, 1] as const).map((k) => (
+          <div key={k} className="emulsion-layer" style={{ opacity: front === k ? 1 : 0, zIndex: front === k ? 2 : 1, transitionDuration: `${FADE_MS}ms` }}>
+            <Field plate={PLATES[layers[k]].p} seed={seed} quality={0.75} active={front === k || fading} />
+          </div>
+        ))}
       </div>
       <div className="emulsion-bar">
         <div className="emulsion-plates" role="radiogroup" aria-label="Plate">
           {PLATES.map((p, j) => (
-            <button key={p.name} role="radio" aria-checked={i === j} className={i === j ? 'on' : ''} onClick={() => setI(j)}>
+            <button
+              key={p.name}
+              role="radio"
+              aria-checked={i === j}
+              className={i === j ? 'on' : ''}
+              onClick={() => {
+                setAuto(false)
+                show(j)
+              }}
+            >
               <i style={{ background: `linear-gradient(90deg, ${p.p.c0}, ${p.p.c1}, ${p.p.c2})` }} />
               {p.name}
             </button>
