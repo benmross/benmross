@@ -183,7 +183,7 @@ export function EmulsionScene() {
     return () => clearTimeout(t)
   }, [fading, front])
   useEffect(() => {
-    if (!auto || !visible || reducedMotion()) return
+    if (!auto || !visible) return
     const t = setTimeout(() => show((i + 1) % PLATES.length), CYCLE_MS)
     return () => clearTimeout(t)
   })
