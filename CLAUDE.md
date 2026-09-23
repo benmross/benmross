@@ -22,6 +22,9 @@ The GNSS section is an illustration only, on Natural Earth outlines. It contains
 
 ## Rules for this repository
 
+- **README.md is Ben's GitHub profile README**, because this repo is `benmross/benmross`.
+  It is not documentation for the site. Never overwrite it; site notes go in this file.
+
 - No AI co-author trailer on commits.
 - Text is Ben's or plain fact. No project write-ups, no marketing copy, no em dashes.
 - Nothing from ARL: the GNSS graphic stays a generic illustration.
