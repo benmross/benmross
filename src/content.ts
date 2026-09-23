@@ -11,7 +11,6 @@ export const site = {
     { label: 'GitHub', href: 'https://github.com/benmross' },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/ben-m-ross' },
     { label: 'CV', href: '/cv.pdf' },
-    { label: 'Blog', href: 'https://blog.benmross.com' },
   ],
 }
 

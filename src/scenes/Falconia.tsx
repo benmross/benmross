@@ -4,8 +4,9 @@ import { useSceneProgress } from '../lib/motion'
 
 const M = '/media/falconia/'
 
-/** From a table of sand to a room you can stand in: each step of the digital twin, in order. */
+/** The talk first, then each step of the digital twin in order, from a table of sand to a room you can stand in. */
 const STEPS = [
+  { src: 'symposium.webp', label: 'Symposium', alt: 'Ben speaking at the Johns Hopkins APL XR Symposium, July 2025', fit: 'cover' },
   { src: 'crop-01.webp', label: 'Terrain', alt: 'The physical terrain table from above: craters, a lava tube, dunes and a stream bed', fit: 'cover' },
   { src: 'crop-06.webp', label: 'Rover', alt: 'Photogrammetry scan of the Raspberry Pi rover', fit: 'contain' },
   { src: 'crop-08.webp', label: 'Tracking', alt: 'Overhead camera feed with AprilTag markers tracking the rover', fit: 'cover' },
