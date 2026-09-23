@@ -1,4 +1,4 @@
-<h1 align="center">Ben Ross</h1>
+<a href="https://benmross.com"><img src=".github/banner.jpg" alt="Ben Ross" width="100%" /></a>
 
 <p align="center">
   Computer science at the University of Maryland · Army Research Laboratory, summer 2026
