@@ -16,7 +16,7 @@ npm run build
   are drawn from code; the others use real screenshots and renders in `public/media/`.
 - `src/shaders/` are emulsion's own shaders, copied unchanged from
   [benmross/emulsion](https://github.com/benmross/emulsion).
-- `docs/` lists where every image came from.
+- Where each image came from is kept privately, outside this repository.
 
 The GNSS section is an illustration only, on Natural Earth outlines. It contains no data or code from that project.
 
