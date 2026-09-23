@@ -1,7 +1,15 @@
 import { CanvasScene, type Draw } from '../components/CanvasScene'
 import { alpha, font } from '../lib/draw'
 import { easeInOut, easeOut, rng, seg } from '../lib/motion'
-import { OUTLINES } from './middleEast'
+
+// The outlines are 40 KB, so they load the first time the scene is drawn rather than with the page.
+let OUTLINES: number[][] = []
+let requested = false
+const loadOutlines = () => {
+  if (requested) return
+  requested = true
+  import('./middleEast').then((m) => (OUTLINES = m.OUTLINES))
+}
 
 // An illustration of the idea, drawn from nothing. No data or code from the project.
 
@@ -100,6 +108,7 @@ function crosshair(ctx: CanvasRenderingContext2D, x: number, y: number, s: numbe
 }
 
 const draw: Draw = (ctx, w, h, t, p) => {
+  loadOutlines()
   const wide = w > h
   const k = Math.max(0.75, Math.min(w, h) / 760)
   const m = { x: w * 0.06, y: h * 0.1, w: w * 0.88, h: h * 0.78 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
-import { motion, useInView, useScroll, useTransform } from 'motion/react'
+import { m, useInView, useScroll, useTransform } from 'motion/react'
 import { EASE } from '../lib/motion'
 
 /** Sets the page accent and background tint while `ref` crosses the middle of the screen. */
@@ -24,13 +24,13 @@ export function Lines({ text, className, as = 'h2', delay = 0 }: { text: string 
     <Tag ref={ref} className={className} aria-label={lines.join(' ')}>
       {lines.map((l, i) => (
         <span className="line" key={i} aria-hidden>
-          <motion.span
+          <m.span
             initial={{ y: '105%' }}
             animate={inView ? { y: '0%' } : undefined}
             transition={{ duration: 1.1, ease: EASE, delay: delay + i * 0.09 }}
           >
             {l}
-          </motion.span>
+          </m.span>
         </span>
       ))}
     </Tag>
@@ -43,7 +43,7 @@ export function Rise({ children, delay = 0, className, immediate }: { children: 
   const seen = useInView(ref, { once: true, margin: '0px 0px -10% 0px' })
   const inView = immediate || seen
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className={className}
       initial={{ opacity: 0, y: 24 }}
@@ -51,7 +51,7 @@ export function Rise({ children, delay = 0, className, immediate }: { children: 
       transition={{ duration: 1, ease: EASE, delay }}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -77,7 +77,7 @@ export function Reveal({
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], [-drift, drift])
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className={`reveal ${className ?? ''}`}
       style={style}
@@ -86,15 +86,15 @@ export function Reveal({
       animate={inView ? { clipPath: 'inset(0% 0% 0% 0%)' } : undefined}
       transition={{ duration: 1.4, ease: EASE }}
     >
-      <motion.div
+      <m.div
         style={{ y, height: `calc(100% + ${drift * 2}px)`, marginTop: -drift }}
         initial={{ scale: 1.12 }}
         animate={inView ? { scale: 1 } : undefined}
         transition={{ duration: 1.8, ease: EASE }}
       >
         {children}
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }
 

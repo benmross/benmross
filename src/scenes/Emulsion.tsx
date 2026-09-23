@@ -142,8 +142,26 @@ function Field({ plate, seed, className, quality = 0.7, active = true }: { plate
   )
 }
 
+/**
+ * The plate behind the name. Compiling the shader takes the main thread for a moment, so it
+ * starts once the page has painted and is idle, then fades in.
+ */
 export function EmulsionField(_: { preset: 'hero' }) {
-  return <Field plate={HERO} seed={0.37} quality={0.5} />
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const go = () => setReady(true)
+    if ('requestIdleCallback' in window) {
+      const id = requestIdleCallback(go, { timeout: 1200 })
+      return () => cancelIdleCallback(id)
+    }
+    const t = setTimeout(go, 400)
+    return () => clearTimeout(t)
+  }, [])
+  return (
+    <div style={{ width: '100%', height: '100%', opacity: ready ? 1 : 0, transition: 'opacity 1.2s ease' }}>
+      {ready && <Field plate={HERO} seed={0.37} quality={0.5} />}
+    </div>
+  )
 }
 
 const CYCLE_MS = 5000

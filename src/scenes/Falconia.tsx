@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
-import { motion, useMotionValueEvent, useTransform, type MotionValue } from 'motion/react'
+import { m, useMotionValueEvent, useTransform, type MotionValue } from 'motion/react'
 import { useSceneProgress } from '../lib/motion'
+import { img } from '../lib/media'
 
 const M = '/media/falconia/'
 
@@ -25,9 +26,9 @@ function Layer({ i, progress }: { i: number; progress: MotionValue<number> }) {
   const scale = useTransform(progress, [a, b + 1 / n], [1.15, 1])
   const s = STEPS[i]
   return (
-    <motion.div className="fal-layer" style={{ clipPath: clip, zIndex: i }}>
-      <motion.img src={M + s.src} alt={s.alt} loading="lazy" style={{ scale, objectFit: s.fit }} />
-    </motion.div>
+    <m.div className="fal-layer" style={{ clipPath: clip, zIndex: i }}>
+      <m.img {...img(M + s.src, '(max-width: 820px) 100vw, 84vw')} alt={s.alt} loading="lazy" decoding="async" style={{ scale, objectFit: s.fit }} />
+    </m.div>
   )
 }
 

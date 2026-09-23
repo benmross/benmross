@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'motion/react'
+import { LazyMotion, domAnimation, m, useScroll, useTransform } from 'motion/react'
 import { projects, site } from './content'
 import { scrollToId, useSmoothScroll } from './lib/motion'
 import { Cursor, Lines, Rise, useAccent } from './components/ui'
@@ -53,15 +53,15 @@ function Hero() {
   const fade = useTransform(scrollYProgress, [0, 0.7], [1, 0])
   return (
     <section ref={ref} className="hero" id="top">
-      <motion.div className="hero-canvas" style={{ opacity: fade }}>
+      <m.div className="hero-canvas" style={{ opacity: fade }}>
         <EmulsionField preset="hero" />
-      </motion.div>
-      <motion.div style={{ y, alignSelf: 'end', position: 'relative', zIndex: 1 }}>
-        <motion.div style={{ fontVariationSettings: fvs }}>
+      </m.div>
+      <m.div style={{ y, alignSelf: 'end', position: 'relative', zIndex: 1 }}>
+        <m.div style={{ fontVariationSettings: fvs }}>
           <Lines as="h1" text={site.name} className="hero-name" delay={0.15} />
-        </motion.div>
-      </motion.div>
-      <Rise delay={0.5} className="hero-foot" immediate>
+        </m.div>
+      </m.div>
+      <Rise delay={0.3} className="hero-foot" immediate>
         <div>
           {site.lines.map((l) => (
             <p key={l}>{l}</p>
@@ -112,7 +112,7 @@ function Footer() {
 export function App() {
   useSmoothScroll()
   return (
-    <>
+    <LazyMotion features={domAnimation} strict>
       <Header />
       <main>
         <Hero />
@@ -125,6 +125,6 @@ export function App() {
       <Footer />
       <Cursor />
       <div className="grain" aria-hidden />
-    </>
+    </LazyMotion>
   )
 }
