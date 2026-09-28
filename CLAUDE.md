@@ -30,6 +30,9 @@ npm run build
 - `robots.txt` and `sitemap.xml` are written at build time, with lastmod set to the build day.
 - `public/og.jpg` is rendered from `scripts/og-image.html` (headless Chrome at 2x, then
   scaled to 1200x630). The PNG and ICO favicons are rendered from `public/favicon.svg`.
+- Vercel Web Analytics loads from `/p/s.js` and reports to `/p/view`, rewritten in
+  `vercel.json` to `/_vercel/insights/`. EasyPrivacy blocks that path by name, and
+  Ben chose on 28 Sep 2026 to count page views from blocker users too.
 - `vercel.json` redirects the old site's `/cv` and `/documents/*` to `/cv.pdf`.
 
 The GNSS section is an illustration only, on Natural Earth outlines. It contains no data or code from that project.

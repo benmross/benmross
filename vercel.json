@@ -43,5 +43,15 @@
       "destination": "/cv.pdf",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/p/s.js",
+      "destination": "/_vercel/insights/script.js"
+    },
+    {
+      "source": "/p/:path*",
+      "destination": "/_vercel/insights/:path*"
+    }
   ]
 }

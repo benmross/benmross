@@ -4,5 +4,6 @@ import './styles.css'
 import { App } from './App'
 
 hydrateRoot(document.getElementById('root')!, <App />)
-// Cookieless page views, read in the Vercel dashboard. Outside Vercel the script 404s harmlessly.
-inject()
+// Cookieless page views, read in the Vercel dashboard. Served from /p/ (rewritten in
+// vercel.json) because filter lists block /_vercel/insights/ by name. Outside Vercel it 404s.
+inject({ scriptSrc: '/p/s.js', endpoint: '/p' })
