@@ -47,11 +47,11 @@
   "rewrites": [
     {
       "source": "/p/s.js",
-      "destination": "/_vercel/insights/script.js"
+      "destination": "https://benmross.com/_vercel/insights/script.js"
     },
     {
       "source": "/p/:path*",
-      "destination": "/_vercel/insights/:path*"
+      "destination": "https://benmross.com/_vercel/insights/:path*"
     }
   ]
 }
