@@ -26,7 +26,7 @@ npm run build
   hydration will mismatch.
 - Title, description, canonical, Open Graph and schema.org data come from `site` in
   `src/content.ts` through the `seo()` plugin in `vite.config.ts`. The canonical host is
-  `www.benmross.com`, because that is the Vercel primary domain.
+  the apex, `benmross.com`, the Vercel primary domain since 28 Sep 2026; www 308s to it.
 - `robots.txt` and `sitemap.xml` are written at build time, with lastmod set to the build day.
 - `public/og.jpg` is rendered from `scripts/og-image.html` (headless Chrome at 2x, then
   scaled to 1200x630). The PNG and ICO favicons are rendered from `public/favicon.svg`.

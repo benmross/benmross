@@ -2,8 +2,8 @@
 
 export const site = {
   name: 'Ben Ross',
-  /** The one address Google and link previews should use. Vercel sends the apex here. */
-  url: 'https://www.benmross.com/',
+  /** The one address Google and link previews should use. Vercel sends www here. */
+  url: 'https://benmross.com/',
   /** What search results and link previews show. Keep the description under about 155 characters. */
   title: 'Ben Ross · Computer Science, University of Maryland',
   description:
