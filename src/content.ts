@@ -9,7 +9,7 @@ export const site = {
   description:
     'Ben Ross, computer science at the University of Maryland. Herald, SMCS Kart, BenGPT, Sparrows, GNSS spoofing research at ARL, Planet Falconia and emulsion.',
   lines: [
-    'Computer science, University of Maryland, class of 2030.',
+    'Computer science, University of Maryland, class of 2029.',
     'Research apprentice, Army Research Laboratory, summer 2026.',
   ],
   email: 'ben@benmross.com',
