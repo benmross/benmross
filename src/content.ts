@@ -2,6 +2,12 @@
 
 export const site = {
   name: 'Ben Ross',
+  /** The one address Google and link previews should use. Vercel sends the apex here. */
+  url: 'https://www.benmross.com/',
+  /** What search results and link previews show. Keep the description under about 155 characters. */
+  title: 'Ben Ross · Computer Science, University of Maryland',
+  description:
+    'Ben Ross, computer science at the University of Maryland. Herald, SMCS Kart, BenGPT, Sparrows, GNSS spoofing research at ARL, Planet Falconia and emulsion.',
   lines: [
     'Computer science, University of Maryland, class of 2030.',
     'Research apprentice, Army Research Laboratory, summer 2026.',

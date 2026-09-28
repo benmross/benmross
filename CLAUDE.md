@@ -18,6 +18,20 @@ npm run build
   [benmross/emulsion](https://github.com/benmross/emulsion).
 - Where each image came from is kept privately, outside this repository.
 
+## Search and link previews
+
+- `npm run build` prerenders the page into `dist/index.html` (`src/entry-server.tsx`,
+  `scripts/prerender.mjs`) and the client hydrates it, so the text is in the HTML Google
+  fetches. Anything read from `window` or `document` has to stay inside an effect, or
+  hydration will mismatch.
+- Title, description, canonical, Open Graph and schema.org data come from `site` in
+  `src/content.ts` through the `seo()` plugin in `vite.config.ts`. The canonical host is
+  `www.benmross.com`, because that is the Vercel primary domain.
+- `robots.txt` and `sitemap.xml` are written at build time, with lastmod set to the build day.
+- `public/og.jpg` is rendered from `scripts/og-image.html` (headless Chrome at 2x, then
+  scaled to 1200x630). The PNG and ICO favicons are rendered from `public/favicon.svg`.
+- `vercel.json` redirects the old site's `/cv` and `/documents/*` to `/cv.pdf`.
+
 The GNSS section is an illustration only, on Natural Earth outlines. It contains no data or code from that project.
 
 ## Rules for this repository
