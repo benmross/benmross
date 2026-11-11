@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import VERT from '../shaders/plate.vert.glsl?raw'
 import FRAG from '../shaders/plate.frag.glsl?raw'
 import { reducedMotion, useNearViewport } from '../lib/motion'
+import { emulsionPreview } from '../content'
 
 // The shaders are emulsion's own, copied unchanged from github.com/benmross/emulsion at 0d89967.
 // This file is a smaller renderer around them: no export, no controls beyond plate and seed.
@@ -164,93 +165,50 @@ export function EmulsionField(_: { preset: 'hero' }) {
   )
 }
 
-const CYCLE_MS = 5000
-const FADE_MS = 1400
-
-/**
- * Two stacked canvases so one plate can fade into the next. Plates cycle on their own while the
- * section is on screen, until a plate is picked by hand.
- */
+/** Actual app captures inside a device frame; the hero keeps its live shader. */
 export function EmulsionScene() {
-  const [i, setI] = useState(0)
-  const [layers, setLayers] = useState<[number, number]>([0, 0])
-  const [front, setFront] = useState<0 | 1>(0)
-  const [fading, setFading] = useState(false)
+  const [selected, setSelected] = useState(0)
   const [auto, setAuto] = useState(true)
-  const [seed, setSeed] = useState(0.37)
-  const drag = useRef<{ x: number; seed: number } | null>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const visible = useNearViewport(wrap, '0px')
-  const plate = PLATES[i]
-
-  const show = (j: number) => {
-    if (j === i) return
-    const back = (front === 0 ? 1 : 0) as 0 | 1
-    setLayers((l) => {
-      const n: [number, number] = [...l] as [number, number]
-      n[back] = j
-      return n
-    })
-    setFront(back)
-    setFading(true)
-    setI(j)
-  }
-  useEffect(() => {
-    if (!fading) return
-    const t = setTimeout(() => setFading(false), FADE_MS + 100)
-    return () => clearTimeout(t)
-  }, [fading, front])
   useEffect(() => {
     if (!auto || !visible) return
-    const t = setTimeout(() => show((i + 1) % PLATES.length), CYCLE_MS)
-    return () => clearTimeout(t)
-  })
-  useEffect(() => {
-    document.documentElement.style.setProperty('--accent', plate.p.c2 as string)
-  }, [plate])
+    const timer = setTimeout(() => setSelected((i) => (i + 1) % emulsionPreview.screens.length), 5000)
+    return () => clearTimeout(timer)
+  }, [auto, visible, selected])
   return (
-    <div className="emulsion">
-      <div
-        ref={wrap}
-        className="emulsion-stage"
-        data-cursor="Drag"
-        onPointerDown={(e) => {
-          drag.current = { x: e.clientX, seed }
-          ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-        }}
-        onPointerMove={(e) => {
-          if (!drag.current) return
-          const dx = (e.clientX - drag.current.x) / (wrap.current?.clientWidth || 1)
-          setSeed((((drag.current.seed + dx * 0.6) % 1) + 1) % 1)
-        }}
-        onPointerUp={() => (drag.current = null)}
-        onPointerCancel={() => (drag.current = null)}
-      >
-        {([0, 1] as const).map((k) => (
-          <div key={k} className="emulsion-layer" style={{ opacity: front === k ? 1 : 0, zIndex: front === k ? 2 : 1, transitionDuration: `${FADE_MS}ms` }}>
-            <Field plate={PLATES[layers[k]].p} seed={seed} quality={0.75} active={front === k || fading} />
-          </div>
-        ))}
-      </div>
-      <div className="emulsion-bar">
-        <div className="emulsion-plates" role="radiogroup" aria-label="Plate">
-          {PLATES.map((p, j) => (
-            <button
-              key={p.name}
-              role="radio"
-              aria-checked={i === j}
-              className={i === j ? 'on' : ''}
-              onClick={() => {
-                setAuto(false)
-                show(j)
-              }}
-            >
-              <i style={{ background: `linear-gradient(90deg, ${p.p.c0}, ${p.p.c1}, ${p.p.c2})` }} />
-              {p.name}
-            </button>
-          ))}
+    <div className="emulsion" ref={wrap}>
+      <div className="emulsion-showcase">
+        <div className="emulsion-ambient" aria-hidden="true">
+          <Field plate={PLATES[0].p} seed={0.37} quality={0.4} />
         </div>
-        <span className="emulsion-seed">seed {seed.toFixed(3)}</span>
+        <div className="emulsion-phone" role="group" aria-label={emulsionPreview.device}>
+          <div className="emulsion-screen">
+            {emulsionPreview.screens.map((screen, i) => (
+              <img
+                key={screen.name}
+                src={screen.src}
+                alt={screen.alt}
+                width="900"
+                height="1956"
+                loading="lazy"
+                decoding="async"
+                aria-hidden={selected !== i}
+                className={selected === i ? 'on' : ''}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="emulsion-gallery">
+          <span>{emulsionPreview.caption}</span>
+          <div className="emulsion-tabs" role="group" aria-label={emulsionPreview.caption}>
+            {emulsionPreview.screens.map((screen, i) => (
+              <button key={screen.name} aria-pressed={selected === i} onClick={() => { setAuto(false); setSelected(i) }}>
+                {screen.name}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

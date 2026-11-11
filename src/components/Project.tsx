@@ -32,8 +32,9 @@ export function Project({ p, children }: { p: P; children: ReactNode }) {
           {p.links && (
             <Rise delay={0.18} className="project-links">
               {p.links.map((l) => (
-                <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className="u">
+                <a key={l.href} href={l.href} target="_blank" rel="noreferrer" className={l.primary ? 'project-install' : 'u'}>
                   {l.label}
+                  {l.primary && <span aria-hidden="true">↗</span>}
                 </a>
               ))}
             </Rise>

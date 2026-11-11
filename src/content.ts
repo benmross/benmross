@@ -20,7 +20,7 @@ export const site = {
   ],
 }
 
-export type Link = { label: string; href: string }
+export type Link = { label: string; href: string; primary?: boolean }
 
 export type Project = {
   id: string
@@ -135,13 +135,24 @@ export const projects: Project[] = [
     title: 'emulsion',
     years: '2026',
     role: 'Solo',
-    stack: 'WebGL2, GLSL',
-    blurb: 'Film grain generated from math, in the browser. Drag to reseed.',
+    stack: 'SwiftUI, Metal, GLSL',
+    blurb: 'An iPhone app for making grainy, abstract wallpapers. Start with a plate, adjust the form, color and grain, and save it at the resolution of your screen. Every pixel is generated on your device.',
     links: [
-      { label: 'Open it', href: 'https://emulsion.benmross.com' },
+      { label: 'Install for iPhone', href: 'https://apps.apple.com/app/id6809967506', primary: true },
+      { label: 'Open web version', href: 'https://emulsion.benmross.com' },
       { label: 'Source', href: 'https://github.com/benmross/emulsion' },
     ],
     accent: '#ffe0d2',
     tint: '#0d0c0a',
   },
 ]
+
+export const emulsionPreview = {
+  device: 'Emulsion running on an iPhone',
+  caption: 'Inside the app',
+  screens: [
+    { name: 'Plates', src: '/media/emulsion/plates.webp', alt: 'Emulsion on iPhone: Satin wallpaper and the starting plate picker' },
+    { name: 'Color', src: '/media/emulsion/color.webp', alt: 'Emulsion on iPhone: wallpaper preview and color controls' },
+    { name: 'Grain', src: '/media/emulsion/grain.webp', alt: 'Emulsion on iPhone: wallpaper preview and grain controls' },
+  ],
+}
