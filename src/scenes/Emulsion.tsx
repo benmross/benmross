@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useNearViewport } from '../lib/motion'
 import { emulsionPreview } from '../content'
 
-/** Fixed shader loops are baked offline; the browser only decodes video. */
-export function EmulsionField({ preset }: { preset: 'hero' | 'satin' }) {
+/** The Emulsion preview's shader loop is baked offline. */
+function EmulsionField({ preset }: { preset: 'satin' }) {
   const video = useRef<HTMLVideoElement>(null)
   const visible = useNearViewport(video, '0px')
   const base = `/media/emulsion/${preset}`

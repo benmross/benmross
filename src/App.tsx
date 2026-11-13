@@ -10,7 +10,7 @@ import { BenGPTScene } from './scenes/BenGPT'
 import { SparrowsScene } from './scenes/Sparrows'
 import { GnssScene } from './scenes/Gnss'
 import { FalconiaScene } from './scenes/Falconia'
-import { EmulsionScene, EmulsionField } from './scenes/Emulsion'
+import { EmulsionScene } from './scenes/Emulsion'
 
 const scenes: Record<string, () => React.ReactNode> = {
   herald: () => <HeraldScene />,
@@ -54,7 +54,7 @@ function Hero() {
   return (
     <section ref={ref} className="hero" id="top">
       <m.div className="hero-canvas" style={{ opacity: fade }}>
-        <EmulsionField preset="hero" />
+        <img src="/media/emulsion/hero-poster.webp" alt="" aria-hidden="true" />
       </m.div>
       <m.div style={{ y, alignSelf: 'end', position: 'relative', zIndex: 1 }}>
         <m.div style={{ fontVariationSettings: fvs }}>

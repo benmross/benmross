@@ -17,9 +17,11 @@ npm run build
 - `src/shaders/` are emulsion's own shaders, copied unchanged from
   [benmross/emulsion](https://github.com/benmross/emulsion). They are used offline
   by `scripts/render-backgrounds.py` and `scripts/background-presets.json` to bake
-  the fixed hero and Satin loops: 9 seconds, 60 FPS, H.264, 960 × 960. Runtime
-  backgrounds play those cached MP4s with posters and `object-fit: cover`.
-  Playback pauses offscreen/in hidden tabs; Reduce Motion uses only the poster.
+  the fixed hero and Satin assets: 9 seconds, 60 FPS, H.264, 960 × 960.
+  Only the Emulsion preview plays its cached Satin loop with a poster and
+  `object-fit: cover`. The hero uses its static WebP poster; the page-wide grain
+  texture is static. Playback pauses offscreen/in hidden tabs; Reduce Motion
+  uses only the poster.
   Regeneration needs ffmpeg, ModernGL, Pillow and Mesa/EGL. It is not part of the normal site build.
 - Where each image came from is kept privately, outside this repository.
 
