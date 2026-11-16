@@ -24,6 +24,14 @@ npm run build
   uses only the poster.
   Regeneration needs ffmpeg, ModernGL, Pillow and Mesa/EGL. It is not part of the normal site build.
 - Where each image came from is kept privately, outside this repository.
+- The Falconia scene is a scroll-driven WebGL flight (three.js, loaded only near the
+  section) over the Scaniverse scan of the terrain table: wireframe first, then a sweep
+  to the textured scan, with the photos pinned to places on the route. Route, timing and
+  vertical exaggeration are in `src/scenes/falconia/route.ts`. Reduce Motion or no WebGL
+  falls back to the old stacked photos. `window.__falconia(t, true)` holds the camera at
+  progress `t` for screenshots. The models in `public/media/falconia/model/` come from
+  "Falconia V3.zip" in Drive via `scripts/falconia-model/build.sh` (level, crop, simplify,
+  WebP texture, meshopt).
 
 ## Search and link previews
 
