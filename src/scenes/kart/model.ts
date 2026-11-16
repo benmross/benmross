@@ -17,6 +17,30 @@ export type WireSpec = { id: string; kind: WireKind; pts: V3[]; r?: number; reve
 
 export const AXLE = { front: 0.64, rear: -0.66, frontHalf: 0.53, rearHalf: 0.57, frontR: 0.19, rearR: 0.205 }
 
+/** The dashboard's case: where it sits on the dash bar, tilted back toward the driver, and its size. */
+export const DASH = { pos: [0.43, 0.615, 0.22] as V3, tilt: -0.24, w: 0.25, h: 0.152, d: 0.105 }
+/**
+ * The mainboard behind the screen, components facing forward. Board millimetres (KiCad x = u,
+ * KiCad y = v, h above the copper) map to the case's frame with the board turned 180 degrees in
+ * its plane, so u runs along +z and v up. `uc`, `vc` are the middle of the board outline.
+ */
+export const BOARD = { x: -0.022, uc: 26.125, vc: 41.75 }
+/** The cable gland in the case's side wall that the wheel's USB cable comes in through, case frame. */
+export const GLAND = { x: BOARD.x + 0.0035, y: (40.7 - BOARD.vc) * 0.001, r: 0.0052, lift: 0.0018 }
+
+export function dashToBody(p: V3): V3 {
+  const c = Math.cos(DASH.tilt)
+  const s = Math.sin(DASH.tilt)
+  return [DASH.pos[0] + p[0] * c - p[1] * s, DASH.pos[1] + p[0] * s + p[1] * c, DASH.pos[2] + p[2]]
+}
+export const boardToDash = (u: number, v: number, h: number): V3 => [BOARD.x + h * 0.001, (v - BOARD.vc) * 0.001, (u - BOARD.uc) * 0.001]
+export const boardToBody = (u: number, v: number, h: number) => dashToBody(boardToDash(u, v, h))
+/** Board frame (x = u, y = h, z = v, millimetres) into the case's frame. */
+export function boardMatrix() {
+  const k = 0.001
+  return new THREE.Matrix4().set(0, k, 0, BOARD.x, 0, 0, k, -BOARD.vc * k, k, 0, 0, -BOARD.uc * k, 0, 0, 0, 1)
+}
+
 /** Where things are, for labels, signal ends and the camera. */
 export const ANCHOR = {
   motor: [-0.55, 0.43, 0.1],
@@ -34,8 +58,12 @@ export const ANCHOR = {
   wheel: [0.27, 0.9, 0.0],
   wheelBase: [0.47, 0.8, 0.0],
   screen: [0.375, 0.62, 0.22],
-  teensy: [0.445, 0.59, 0.165],
-  pi: [0.445, 0.615, 0.265],
+  teensy: boardToBody(9, 40, 14),
+  pi: boardToBody(40, 30, -12),
+  usbPort: boardToBody(-31, 40.7, 7.2),
+  can: boardToBody(48.5, 64.3, 4),
+  dac: boardToBody(-18, 79.6, 11.2),
+  gland: dashToBody([GLAND.x, GLAND.y, -DASH.w / 2]),
 } satisfies Record<string, V3>
 
 const TUBE_R = 0.0165
@@ -49,6 +77,8 @@ export type Kart = {
   /** 0 solid, 1 see-through: the body, and separately the dashboard's case. */
   ghost(body: number, dashCase: number): void
   screen: { canvas: HTMLCanvasElement; texture: THREE.CanvasTexture }
+  /** The dashboard case's frame: the mainboard is added here once it has loaded (board.ts). */
+  dash: THREE.Group
   /** Signal routes, kart frame. */
   wires: WireSpec[]
   /** LED brightness, for a flicker. */
@@ -481,18 +511,44 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
 
   // ------------------------------------------------------------- dashboard: screen, case, mainboard
   const dash = new THREE.Group()
-  dash.position.set(0.43, 0.615, 0.22)
-  dash.rotation.z = -0.24
+  dash.position.set(...DASH.pos)
+  dash.rotation.z = DASH.tilt
   body.add(dash)
-  // the case, as five walls so it can open to show the board
-  const CW = 0.25
-  const CH = 0.152
-  const CD = 0.105
-  box(CD, 0.008, CW, caseMat, [0, CH / 2, 0], undefined, dash)
-  box(CD, 0.008, CW, caseMat, [0, -CH / 2, 0], undefined, dash)
-  box(CD, CH, 0.008, caseMat, [0, 0, CW / 2], undefined, dash)
-  box(CD, CH, 0.008, caseMat, [0, 0, -CW / 2], undefined, dash)
-  box(0.006, CH, CW, caseMat, [CD / 2, 0, 0], undefined, dash)
+  // the case, as five walls so it can open to show the board; the side wall nearest the
+  // wheel has a gland in it for the wheel's USB cable
+  const CW = DASH.w
+  const CH = DASH.h
+  const CD = DASH.d
+  const T_ = 0.004
+  box(CD, T_, CW, caseMat, [0, CH / 2 - T_ / 2, 0], undefined, dash)
+  box(CD, T_, CW, caseMat, [0, -CH / 2 + T_ / 2, 0], undefined, dash)
+  box(CD, CH, T_, caseMat, [0, 0, CW / 2 - T_ / 2], undefined, dash)
+  box(T_, CH, CW, caseMat, [CD / 2 - T_ / 2, 0, 0], undefined, dash)
+  {
+    const z = -CW / 2 + T_ / 2
+    const hx = GLAND.x
+    const hy = GLAND.y + GLAND.lift
+    const r = GLAND.r
+    const x0 = -CD / 2
+    const x1 = CD / 2
+    box(hx - r - x0, CH, T_, caseMat, [(x0 + hx - r) / 2, 0, z], undefined, dash)
+    box(x1 - (hx + r), CH, T_, caseMat, [(hx + r + x1) / 2, 0, z], undefined, dash)
+    box(2 * r, hy - r + CH / 2, T_, caseMat, [hx, (-CH / 2 + hy - r) / 2, z], undefined, dash)
+    box(2 * r, CH / 2 - (hy + r), T_, caseMat, [hx, (hy + r + CH / 2) / 2, z], undefined, dash)
+    // the gland: a ribbed nut round a short sleeve
+    const gl = core('#18181b', 0.55, 0.1)
+    const nut = new THREE.Mesh(keep(new THREE.CylinderGeometry(r + 0.0032, r + 0.0032, 0.004, 6, 1, true)), gl)
+    nut.rotation.x = Math.PI / 2
+    nut.position.set(hx, hy, -CW / 2 - 0.002)
+    dash.add(nut)
+    const sleeve = new THREE.Mesh(keep(new THREE.CylinderGeometry(r, r, 0.012, 28, 1, true)), keep(new THREE.MeshStandardMaterial({ color: '#202024', roughness: 0.6, side: THREE.DoubleSide })))
+    sleeve.rotation.x = Math.PI / 2
+    sleeve.position.set(hx, hy, -CW / 2 + 0.002)
+    dash.add(sleeve)
+    const face = new THREE.Mesh(keep(new THREE.RingGeometry(r, r + 0.0032, 6, 1)), keep(new THREE.MeshStandardMaterial({ color: '#18181b', roughness: 0.55, side: THREE.DoubleSide })))
+    face.position.set(hx, hy, -CW / 2 - 0.004)
+    dash.add(face)
+  }
   // bezel round the screen
   for (const [y, z, sy, sz] of [[0.064, 0, 0.026, CW], [-0.064, 0, 0.026, CW], [0, 0.107, 0.105, 0.036], [0, -0.107, 0.105, 0.036]] as const)
     box(0.008, sy, sz, core('#0c0c0e', 0.6), [-CD / 2, y, z], undefined, dash)
@@ -509,26 +565,15 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
   screen.position.set(-CD / 2 - 0.0045, 0, 0)
   screen.rotation.y = -Math.PI / 2
   dash.add(screen)
-  // mainboard behind it, carrying the Teensy and the Pi
-  const pcb = core('#0b2a1c', 0.5, 0.2, '#0c6a3c', 0.18)
-  box(0.003, 0.13, 0.225, pcb, [-0.012, 0, 0], undefined, dash)
-  const piMat = core('#1c7a3a', 0.5, 0.2, '#22b060', 0.3)
-  box(0.004, 0.056, 0.085, piMat, [0.004, 0.022, 0.05], undefined, dash)
-  box(0.016, 0.014, 0.018, silver, [0.014, 0.022, 0.086], undefined, dash)
-  box(0.014, 0.016, 0.014, silver, [0.014, 0.04, 0.086], undefined, dash)
-  box(0.003, 0.014, 0.014, core('#111113', 0.4, 0.3), [0.007, 0.02, 0.04], undefined, dash)
-  const teensyMat = core('#16406a', 0.5, 0.2, '#2a8cff', 0.35)
-  box(0.004, 0.018, 0.061, teensyMat, [0.004, -0.028, -0.05], undefined, dash)
-  box(0.003, 0.009, 0.009, core('#111113', 0.4, 0.3), [0.007, -0.028, -0.05], undefined, dash)
-  box(0.006, 0.008, 0.008, silver, [0.008, -0.028, -0.078], undefined, dash)
-  // headers and connectors along the board's edge
-  for (let i = 0; i < 7; i++) box(0.008, 0.01, 0.018, core('#e8e4d8', 0.6), [-0.006, -0.056, -0.09 + i * 0.03], undefined, dash)
+  // the back of the screen panel
+  box(0.006, 0.112, 0.18, core('#0e0e10', 0.5), [-CD / 2 + 0.006, 0, 0], undefined, dash)
   // the blue cable coiled on the pillar beside the dash, as in the photographs
   for (let i = 0; i < 4; i++) add(new THREE.TorusGeometry(0.062 + i * 0.004, 0.005, 6, 28), blue, [0.5, 0.64 - i * 0.004, 0.375 + i * 0.006], [0.2 * i, 1.2 + 0.1 * i, 0])
 
   // ------------------------------------------------------------- signal routes
-  const T = ANCHOR.teensy
-  const P = ANCHOR.pi
+  // routes off the board leave through the bottom of the case
+  const T = dashToBody([0.0, -CH / 2 - 0.004, -0.03])
+  const P = dashToBody([-0.02, -CH / 2 - 0.004, 0.05])
   const aL = (f: number, dz = 0, dy = 0): V3 => {
     const p = mix(aBase(-1), roofF(-1), f)
     return [p[0] + 0.02, p[1] + dy, p[2] + dz]
@@ -542,7 +587,7 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
   const guardL = (o: number): V3[] => [aL(0.19, o), [0.12, 0.5 - 0.02, -0.43 - o], [-0.42, 0.5 - 0.02, -0.4 - o]]
   const wires: WireSpec[] = [
     // driver input
-    { id: 'usb', kind: 'cmd', pts: [[0.52, 0.8, 0.0], [0.53, 0.72, 0.03], [0.49, 0.69, 0.1], T], spacing: 0.16, speed: 0.5 },
+    { id: 'usb', kind: 'cmd', pts: [[0.52, 0.8, 0.0], [0.5, 0.74, 0.03], dashToBody([GLAND.x, GLAND.y + 0.02, -CW / 2 - 0.05]), dashToBody([GLAND.x, GLAND.y, -CW / 2 - 0.012]), dashToBody([GLAND.x, GLAND.y, -CW / 2 + 0.01]), dashToBody(boardToDash(-39.2, 40.7, 3.5))], r: 0.0024, spacing: 0.16, speed: 0.5 },
     // throttle: Teensy to the DAC, then the analog line to the controller, along the left side
     { id: 'throttle', kind: 'cmd', pts: [T, dashM, dashL, aL(DASH_F - 0.04), ...guardL(0), [-0.47, 0.42, -0.36], ANCHOR.esc], spacing: 0.3, speed: 0.75 },
     { id: 'escSerial', kind: 'tel', reverse: true, pts: [[T[0], T[1] + 0.02, T[2]], [dashM[0], dashM[1] + 0.02, dashM[2]], [dashL[0], dashL[1] + 0.02, dashL[2]], aL(DASH_F - 0.04, 0, 0.03), ...guardL(0.022), [-0.47, 0.44, -0.39], [ANCHOR.esc[0], ANCHOR.esc[1] + 0.02, ANCHOR.esc[2] - 0.03]], spacing: 0.42, speed: 0.6 },
@@ -612,6 +657,7 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
     body,
     wires,
     leds,
+    dash,
     screen: { canvas, texture },
     pose({ steer, roll, frontSpin, rearSpin, chain: ch, fans: fa }) {
       body.rotation.x = roll

@@ -160,7 +160,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
   }
 
   return (
-    <div ref={ref} className="scene kart3d" style={{ height: '1100vh' }}>
+    <div ref={ref} className="scene kart3d" style={{ height: '1500vh' }}>
       <div className="scene-sticky kart3d-sticky">
         <canvas ref={canvas} className="kart3d-canvas" aria-hidden />
 

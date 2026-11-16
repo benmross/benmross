@@ -136,7 +136,10 @@ def main(src, dst):
             if ex:
                 break
         box = [min(p[0] for p in ex), min(p[1] for p in ex), max(p[0] for p in ex), max(p[1] for p in ex)] if ex else [-1, -1, 1, 1]
+        lp = [(float(one(pp, 'at')[1]), float(one(pp, 'at')[2]), float(one(pp, 'size')[1]) / 2, float(one(pp, 'size')[2]) / 2) for pp in find(fpn, 'pad')]
+        pbox = [round(min(a - w for a, b, w, h in lp), 2), round(min(b - h for a, b, w, h in lp), 2), round(max(a + w for a, b, w, h in lp), 2), round(max(b + h for a, b, w, h in lp), 2)] if lp else box
         parts.append({
+            'pbox': pbox,
             'ref': props.get('Reference', ''),
             'value': props.get('Value', ''),
             'fp': fpn[1].split(':')[-1],

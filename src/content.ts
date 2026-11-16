@@ -229,12 +229,19 @@ export const kartScene = {
       tags: [{ at: 'wheel', label: 'Hori Racing Wheel Overdrive' }],
     },
     {
-      title: 'Mainboard and dashboard',
-      spec: 'Teensy 4.1 and Raspberry Pi 4',
-      text: 'A custom board carries both computers. The Teensy is the only one that can move the kart: it holds the drive state machine, the pedal mapping and the watchdogs. The Pi runs the React dashboard and only listens, so it can crash without affecting the drive.',
+      title: 'Dashboard',
+      spec: 'React on a Raspberry Pi 4',
+      text: 'The Pi runs the dashboard and only listens. It can crash without affecting the drive.',
+      tags: [{ at: 'screen', label: 'Touchscreen' }],
+    },
+    {
+      title: 'Mainboard',
+      spec: 'Teensy 4.1 on a custom board',
+      text: 'Behind the screen, one board joins every system. The Teensy is the only computer that can move the kart: it holds the drive state machine, the pedal mapping and the watchdogs. The wheel reaches it over USB on these traces, and its commands leave as I2C to the throttle DAC and CAN through an MCP2562.',
       tags: [
+        { at: 'usbPort', label: 'USB host port' },
         { at: 'teensy', label: 'Teensy 4.1' },
-        { at: 'pi', label: 'Raspberry Pi 4' },
+        { at: 'can', label: 'MCP2562 CAN transceiver' },
       ],
     },
     {

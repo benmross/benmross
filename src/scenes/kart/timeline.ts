@@ -15,10 +15,10 @@ export const lerp = (a: number, b: number, u: number) => a + (b - a) * u
 
 /** Scroll progress where each act starts and ends. */
 export const ACT = {
-  drift: [0, 0.085],
-  slow: [0.085, 0.165],
-  tour: [0.165, 0.87],
-  exit: [0.87, 1],
+  drift: [0, 0.075],
+  slow: [0.075, 0.165],
+  tour: [0.165, 0.91],
+  exit: [0.91, 1],
 } as const
 
 /** Kart seconds per unit of scroll progress, in each phase. */
@@ -135,42 +135,79 @@ export function stateAt(t: number): KartState {
 
 // ------------------------------------------------------------------ the tour
 
+export type V3 = [number, number, number]
 export type Key = {
-  /** Scroll progress at which the camera is here. */
+  /** Scroll progress at which the camera is here, roughly: speed is smoothed across keys. */
   p: number
-  /** Camera and what it looks at, in the kart's own frame: x forward, y up, z right, metres. */
-  pos: [number, number, number]
-  look: [number, number, number]
+  /**
+   * Which frame pos and look are in. body: the kart's own frame, metres (x forward, y up, z right).
+   * dash: the dashboard case's frame, metres. board: the mainboard, millimetres (KiCad x, KiCad y,
+   * height above the copper). model.ts converts.
+   */
+  frame: 'body' | 'dash' | 'board'
+  pos: V3
+  look: V3
   fov: number
+  /** 0: the world's up. 1: the board's normal, so the board is the ground under the camera. */
+  up?: number
+  /** The card (content.ts kartScene.stops) this key carries. */
+  stop?: number
 }
 
 /**
- * The camera's route round the kart. Stop k of content.ts kartScene.stops is KEYS[k + 1].
- * The first key is the arrival behind the kart as time slows; the last is where it lets go.
+ * One continuous path round the kart and into its mainboard. The camera never stops: it slows
+ * near a part and carries on, like the Falconia flight. stage.ts bakes these into a smoothed path.
+ * Keys either side of a change of scale are spaced so neighbouring stretches are of similar length,
+ * which keeps the spline from overshooting into the parts.
  */
 export const KEYS: Key[] = [
-  { p: 0.165, pos: [-2.9, 1.0, 0.85], look: [0.0, 0.55, 0.0], fov: 40 },
-  { p: 0.255, pos: [-1.72, 0.98, -0.72], look: [-0.56, 0.37, -0.04], fov: 36 },
-  { p: 0.34, pos: [-1.32, 1.12, 0.62], look: [-0.56, 0.64, 0.06], fov: 36 },
-  { p: 0.43, pos: [0.42, 0.4, 1.5], look: [0.24, 0.26, 0.0], fov: 38 },
-  { p: 0.52, pos: [1.58, 0.52, -0.82], look: [0.66, 0.27, -0.12], fov: 36 },
-  { p: 0.61, pos: [-0.6, 1.14, -0.66], look: [0.3, 0.84, 0.02], fov: 40 },
-  { p: 0.7, pos: [0.0, 0.79, 0.13], look: [0.4, 0.62, 0.22], fov: 36 },
-  { p: 0.79, pos: [-1.75, 2.5, 1.6], look: [0.06, 0.38, 0.0], fov: 40 },
-  { p: 0.87, pos: [-2.5, 0.6, -0.55], look: [0.2, 0.5, 0.0], fov: 46 },
+  { p: 0.165, frame: 'body', pos: [-2.9, 1.0, 0.85], look: [0.0, 0.55, 0.0], fov: 40 },
+  // motor and controller, low from the rear right
+  { p: 0.225, frame: 'body', pos: [-1.6, 0.72, 0.66], look: [-0.55, 0.4, -0.04], fov: 38, stop: 0 },
+  // up over the back to look down on the cooling loop
+  { p: 0.285, frame: 'body', pos: [-1.3, 1.42, -0.05], look: [-0.5, 0.7, 0.05], fov: 38, stop: 1 },
+  { p: 0.32, frame: 'body', pos: [-0.9, 1.0, 0.98], look: [-0.15, 0.42, 0.25], fov: 38 },
+  // down the right side to the battery under the floor
+  { p: 0.355, frame: 'body', pos: [0.15, 0.44, 1.22], look: [0.2, 0.24, 0.22], fov: 38, stop: 2 },
+  { p: 0.39, frame: 'body', pos: [1.35, 0.5, 0.88], look: [0.65, 0.3, 0.05], fov: 38 },
+  // round the nose, low, to the steering
+  { p: 0.425, frame: 'body', pos: [1.52, 0.45, -0.52], look: [0.66, 0.27, -0.14], fov: 36, stop: 3 },
+  { p: 0.46, frame: 'body', pos: [0.62, 0.95, -0.98], look: [0.3, 0.8, 0.0], fov: 38 },
+  // up the left side to the wheel
+  { p: 0.49, frame: 'body', pos: [-0.45, 1.16, -0.66], look: [0.3, 0.86, 0.02], fov: 38, stop: 4 },
+  { p: 0.52, frame: 'body', pos: [-0.22, 1.04, -0.12], look: [0.36, 0.67, 0.18], fov: 38 },
+  // the driver's view of the dashboard
+  { p: 0.55, frame: 'body', pos: [0.1, 0.7, 0.21], look: [0.375, 0.628, 0.22], fov: 36, stop: 5 },
+  // round the side of the case, to the gland the wheel's cable comes in through
+  { p: 0.575, frame: 'dash', pos: [-0.13, 0.05, -0.2], look: [-0.03, 0.005, -0.125], fov: 40 },
+  { p: 0.595, frame: 'dash', pos: [-0.045, 0.012, -0.175], look: [-0.019, 0.0, -0.12], fov: 46 },
+  { p: 0.61, frame: 'dash', pos: [-0.0215, 0.0025, -0.142], look: [-0.0185, 0.0007, -0.11], fov: 56 },
+  // through it: the camera is a few millimetres across now
+  { p: 0.622, frame: 'dash', pos: [-0.0182, 0.0021, -0.127], look: [-0.0182, 0.0014, -0.1], fov: 66, up: 0.15 },
+  { p: 0.634, frame: 'dash', pos: [-0.0172, 0.0026, -0.112], look: [-0.0178, 0.0012, -0.085], fov: 72, up: 0.45 },
+  // over the USB receptacle the cable plugs into, and down onto the copper
+  { p: 0.648, frame: 'board', pos: [-43, 41.8, 9.6], look: [-30, 41.6, 7], fov: 76, up: 0.85 },
+  { p: 0.664, frame: 'board', pos: [-28, 42.8, 9.4], look: [-18, 42.6, 3], fov: 78, up: 1 },
+  // along the USB data pair and in under the Teensy, between its rows of sockets
+  { p: 0.68, frame: 'board', pos: [-18.5, 42.4, 3.4], look: [-6, 41.2, 2.8], fov: 80, up: 1, stop: 6 },
+  { p: 0.698, frame: 'board', pos: [-3, 40.6, 4.0], look: [10, 40.2, 4.0], fov: 80, up: 1 },
+  { p: 0.716, frame: 'board', pos: [14, 40.2, 4.2], look: [27, 40.4, 4.0], fov: 80, up: 1 },
+  { p: 0.733, frame: 'board', pos: [31, 41.2, 3.6], look: [39, 47, 2.4], fov: 80, up: 1 },
+  // out from under it, along the CAN pair to the transceiver
+  { p: 0.75, frame: 'board', pos: [38.4, 50.6, 2.6], look: [45, 58, 2.2], fov: 78, up: 1 },
+  { p: 0.767, frame: 'board', pos: [44.6, 57.4, 6.8], look: [50, 66, 4], fov: 76, up: 1 },
+  { p: 0.784, frame: 'board', pos: [55.5, 68.5, 7.4], look: [52, 80, 7], fov: 74, up: 1 },
+  // up past the CAN connectors and off the board
+  { p: 0.8, frame: 'board', pos: [53, 74, 15], look: [44, 84, 10], fov: 70, up: 1 },
+  { p: 0.815, frame: 'board', pos: [48, 92, 36], look: [34, 62, 0], fov: 64, up: 0.85 },
+  { p: 0.832, frame: 'dash', pos: [0.07, 0.15, 0.04], look: [-0.01, 0.0, 0.0], fov: 54, up: 0.35 },
+  { p: 0.852, frame: 'body', pos: [0.45, 1.6, 0.85], look: [0.2, 0.6, 0.12], fov: 46 },
+  // every signal on the kart, from above and behind
+  { p: 0.88, frame: 'body', pos: [-1.55, 2.35, 1.45], look: [0.06, 0.38, 0.0], fov: 40, stop: 7 },
+  { p: 0.91, frame: 'body', pos: [-2.55, 0.72, 0.55], look: [0.2, 0.5, 0.0], fov: 44 },
 ]
 
-export const STOP_COUNT = KEYS.length - 2
-
-/** Which stop's card is up at p, or -1 between acts. */
-export function stopAt(p: number) {
-  if (p < KEYS[0].p + 0.035 || p > KEYS[KEYS.length - 1].p - 0.02) return -1
-  let best = 0
-  for (let k = 1; k <= STOP_COUNT; k++) if (p >= (KEYS[k - 1].p + KEYS[k].p) / 2 - 0.004) best = k
-  return best - 1
-}
-
-/** 0..1: how much of the kart is see-through. The whole kart for the signals overview. */
-export const ghostAt = (p: number) => Math.min(sm(p, 0.725, 0.775), 1 - sm(p, 0.835, 0.868))
-/** 0..1: the dashboard's case opens before the rest, to show the mainboard behind the screen. */
-export const caseAt = (p: number) => Math.min(sm(p, 0.682, 0.712), 1 - sm(p, 0.84, 0.868))
+/** Keys where the camera is inside the dashboard case: from the gland until it is clear of the case. */
+export const INSIDE = { in: [13, 15], out: [26, 27] } as const
+/** Keys between which the case, then the whole kart, goes see-through, and back. */
+export const GHOST = { caseIn: [25, 27], bodyIn: [27, 29], bodyOut: [29, 30] } as const
