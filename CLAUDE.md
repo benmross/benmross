@@ -48,6 +48,16 @@ npm run build
   `src/scenes/loop/timeline.ts`. `window.__loop(t)` holds the scene at progress `t`. Reduce Motion or
   no WebGL shows a still from the armtrack demo. The console screens are drawn, not screenshots: the
   team repositories are private. The scripted session has no Home press, on Ben's request (16 Nov 2026).
+- The Kart scene (`src/scenes/Kart.tsx`, `src/scenes/kart/`) is a kart modelled from photographs
+  drifting through a turn; time slows to about 0.04x and the camera tours the parts, slips in through
+  the gland where the wheel's USB cable enters the dashboard case, flies millimetres above the real
+  mainboard (along the USB pair, under the Teensy between its sockets, along the CAN pair), climbs out
+  into a see-through kart with every signal running, and lets the kart drive off. The tour is one
+  baked path (`stage.ts`): keys in `timeline.ts` KEYS, timed by how far each stretch feels (distance
+  over distance to what the camera looks at), speed and zoom blurred like the Falconia flight. The board
+  comes from github.com/PHS-SMCS/SMCSKart-Mainboard (public): `python3 -I scripts/kart-board/extract.py
+  <SMCSKart-Mainboard.kicad_pcb> public/media/kart/board.json`, built at real size by `board.ts`.
+  `window.__kart(t)` holds the scene at progress `t`.
 
 ## Search and link previews
 
