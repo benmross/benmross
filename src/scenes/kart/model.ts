@@ -365,7 +365,8 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
   cyl('z', 0.012, 0.09, steel, [MOTOR[0], MOTOR[1], -0.11], undefined, 12)
   // mount: an angle bracket and a foot plate
   box(0.012, 0.27, 0.2, steel, [MOTOR[0] - 0.005, 0.4, MOTOR[2] + 0.135], undefined)
-  box(0.24, 0.008, 0.36, steel, [MOTOR[0], 0.29, MOTOR[2]])
+  // the foot plate stops short of the chain's plane, so the sprocket and chain run clear of it
+  box(0.24, 0.008, 0.27, steel, [MOTOR[0], 0.29, SPROCKET_Z + 0.04 + 0.135])
   // sprockets
   const motorSprocket = add(gear(0.032, 11, 0.007, 0.006), steel, [MOTOR[0], MOTOR[1], SPROCKET_Z])
   const axleSprocket = add(gear(0.112, 40, 0.007, 0.006, 0.06), darkSteel, [0, 0, SPROCKET_Z], undefined, rearAxle)
@@ -496,7 +497,11 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
 
   // ------------------------------------------------------------- speakers
   both((s) => {
-    const p: V3 = [DB[0] + 0.03, DB[1] + 0.105, s * 0.265]
+    // each stands on a printed block on the dash bar, held by a strap up its back, as built
+    const p: V3 = [DB[0] + 0.03, DB[1] + TUBE_R + 0.014 + 0.078, s * 0.265]
+    box(0.07, 0.014, 0.05, white, [p[0] - 0.01, DB[1] + TUBE_R + 0.007, p[2]])
+    box(0.004, 0.07, 0.022, steel, [p[0] - 0.07, DB[1] + TUBE_R + 0.035, p[2]])
+    box(0.03, 0.004, 0.022, steel, [p[0] - 0.056, DB[1] + TUBE_R + 0.068, p[2]])
     cyl('x', 0.078, 0.02, plastic, p, undefined, 28)
     add(new THREE.TorusGeometry(0.078, 0.006, 8, 32).rotateY(Math.PI / 2), silver, [p[0] + 0.01, p[1], p[2]])
     cyl('x', 0.05, 0.04, black, [p[0] - 0.025, p[1], p[2]], undefined, 20, 0.07)
@@ -567,8 +572,6 @@ export function buildKart(opts: { accent: string; shadows: boolean }): Kart {
   dash.add(screen)
   // the back of the screen panel
   box(0.006, 0.112, 0.18, core('#0e0e10', 0.5), [-CD / 2 + 0.006, 0, 0], undefined, dash)
-  // the blue cable coiled on the pillar beside the dash, as in the photographs
-  for (let i = 0; i < 4; i++) add(new THREE.TorusGeometry(0.062 + i * 0.004, 0.005, 6, 28), blue, [0.5, 0.64 - i * 0.004, 0.375 + i * 0.006], [0.2 * i, 1.2 + 0.1 * i, 0])
 
   // ------------------------------------------------------------- signal routes
   // routes off the board leave through the bottom of the case

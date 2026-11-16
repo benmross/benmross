@@ -194,9 +194,10 @@ export const KEYS: Key[] = [
   { p: 0.68, frame: 'board', pos: [-18.5, 42.4, 3.4], look: [-6, 41.2, 2.8], fov: 80, up: 1, stop: 6, holdTo: 26 },
   { p: 0.698, frame: 'board', pos: [-3, 40.6, 4.0], look: [10, 40.2, 4.0], fov: 80, up: 1 },
   { p: 0.716, frame: 'board', pos: [14, 40.2, 4.2], look: [27, 40.4, 4.0], fov: 80, up: 1 },
-  { p: 0.733, frame: 'board', pos: [31, 41.2, 3.6], look: [39, 47, 2.4], fov: 80, up: 1 },
+  { p: 0.733, frame: 'board', pos: [31, 40.4, 3.8], look: [41, 42, 3.4], fov: 80, up: 1 },
   // out from under it, along the CAN pair to the transceiver
-  { p: 0.75, frame: 'board', pos: [38.4, 50.6, 2.6], look: [45, 58, 2.2], fov: 78, up: 1 },
+  // clear of the socket row's end before turning, and short of the MOSFET beyond it
+  { p: 0.75, frame: 'board', pos: [41.8, 45.6, 3.2], look: [42.6, 56, 2.6], fov: 78, up: 1 },
   { p: 0.767, frame: 'board', pos: [42, 54.5, 4.5], look: [49, 62, 5], fov: 76, up: 1 },
   { p: 0.784, frame: 'board', pos: [48.5, 63.5, 11], look: [49, 76, 6], fov: 74, up: 1 },
   // up past the CAN connectors and off the board
