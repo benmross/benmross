@@ -256,7 +256,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   kart.dash.add(board.group)
   disposables.push(board)
   // a small lamp that travels with the camera inside the case, where the floodlights cannot reach
-  const lamp = new THREE.PointLight('#ffe6d6', 0, 0.09, 1.2)
+  const lamp = new THREE.PointLight('#ffe6d6', 0, 0.1, 0)
   scene.add(lamp)
   const glow = new THREE.PointLight(accent, 0.9, 6, 1.6)
   glow.position.set(0.05, 0.92, 0)
@@ -287,6 +287,13 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
         },
       }),
     )
+    if (w.id === 'usb') {
+      // the wheel's cable is a real cable the camera follows in: black, with its pulses added on top
+      const r = w.r ?? 0.0055
+      kart.body.add(new THREE.Mesh(keep(new THREE.TubeGeometry(curve, Math.max(8, Math.round(len / 0.004)), r * 0.92, 14, false)), keep(new THREE.MeshStandardMaterial({ color: '#0d0d10', roughness: 0.5 }))))
+      mat.blending = THREE.AdditiveBlending
+      mat.depthWrite = false
+    }
     kart.body.add(new THREE.Mesh(geo, mat))
     return { id: w.id, mat, level: 0 }
   })
@@ -544,26 +551,20 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     return P1
   }
   const KP = KEYS.map((_, k) => passP(k))
-  const STOPS = KEYS.map((k, i) => ({ stop: k.stop ?? -1, p: KP[i] })).filter((s) => s.stop >= 0)
-  /** The card up at p: the stop the camera last passed or is about to, within reach of it. */
+  const STOPS = KEYS.map((k, i) => ({ stop: k.stop ?? -1, p: KP[i], until: k.holdTo !== undefined ? KP[k.holdTo] : KP[i] + 0.028 })).filter((s) => s.stop >= 0)
+  /** The card up at p: from a little before the camera reaches its part until it has gone past, or until the next card. */
   function stopAt(p: number) {
-    let best = -1
-    let bd = 0.03
-    for (let i = 0; i < STOPS.length; i++) {
-      const prev = i ? (STOPS[i - 1].p + STOPS[i].p) / 2 : STOPS[i].p - 0.03
-      const next = i < STOPS.length - 1 ? (STOPS[i].p + STOPS[i + 1].p) / 2 : STOPS[i].p + 0.03
-      if (p >= prev - 0.002 && p < next) {
-        const d = Math.abs(p - STOPS[i].p)
-        if (d < bd + 0.02) {
-          best = STOPS[i].stop
-          bd = d
-        }
-      }
+    for (let i = STOPS.length - 1; i >= 0; i--) {
+      const s = STOPS[i]
+      const next = i < STOPS.length - 1 ? STOPS[i + 1].p - 0.026 : Infinity
+      if (p >= s.p - 0.026 && p < Math.min(s.until, next)) return s.stop
     }
-    return best
+    return -1
   }
   const between = (p: number, [a, b]: readonly [number, number]) => sm(p, KP[a], KP[b])
   const insideAt = (p: number) => Math.min(between(p, INSIDE.in), 1 - between(p, INSIDE.out))
+  /** From the side of the case until clear of it: the wheel cable's glow fades so it does not fill the frame up close. */
+  const closeAt = (p: number) => Math.min(sm(p, KP[INSIDE.in[0] - 2], KP[INSIDE.in[0]]), 1 - between(p, INSIDE.out))
   const caseAt = (p: number) => Math.min(between(p, GHOST.caseIn), 1 - sm(p, ACT.exit[0], ACT.exit[0] + 0.03))
   const ghostAt = (p: number) => Math.min(between(p, GHOST.bodyIn), 1 - between(p, GHOST.bodyOut))
 
@@ -662,6 +663,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     const stop = stopAt(p)
     const ghost = ghostAt(p)
     const inside = insideAt(p)
+    const close = closeAt(p)
 
     kart.root.position.set(st.x, 0, st.z)
     kart.root.rotation.y = st.yaw
@@ -686,7 +688,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
       w.mat.uniforms.uLevel.value = w.level
       w.mat.uniforms.uTime.value = wall
       // inside the case only the wheel's cable is near enough to matter
-      w.mat.uniforms.uOpacity.value = w.id === 'usb' ? 1 : 1 - inside
+      w.mat.uniforms.uOpacity.value = w.id === 'usb' ? 1 - 0.88 * close : 1 - inside
     }
     for (const n of nodes) {
       let l = 0
@@ -749,7 +751,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     board.signal.uniforms.uLevel.value = Math.max(inside, 0.6 * ghost)
     placeCamera(p, st)
     lamp.position.copy(cam.position)
-    lamp.intensity = 0.5 * inside
+    lamp.intensity = 0.85 * inside
     smokeMat.uniforms.uScale.value = (H * dpr) / (2 * Math.tan((cam.fov * Math.PI) / 360))
     for (const f of frameFns) f({ p, state: st, scale, stop, ghost, level })
     composer.render()

@@ -233,8 +233,8 @@ export function buildBoard(d: BoardData, colors: { cmd: string; tel: string; pwr
   }
 
   // ---------------------------------------------------------------- pads and vias: bare gold
-  const gold = keep(new THREE.MeshStandardMaterial({ color: '#e0b765', roughness: 0.28, metalness: 0.95 }))
-  const tin = keep(new THREE.MeshStandardMaterial({ color: '#d8dadf', roughness: 0.22, metalness: 1 }))
+  const gold = keep(new THREE.MeshStandardMaterial({ color: '#c9a35a', roughness: 0.42, metalness: 0.85 }))
+  const tin = keep(new THREE.MeshStandardMaterial({ color: '#9ea2a8', roughness: 0.5, metalness: 0.8 }))
   const holeMat = keep(new THREE.MeshBasicMaterial({ color: '#0a0505' }))
   {
     const round = d.pads.filter((p) => p[4] === 0 || p[4] === 3)
@@ -274,7 +274,7 @@ export function buildBoard(d: BoardData, colors: { cmd: string; tel: string; pwr
       holes.setMatrixAt(i, dummy.matrix)
       const r = Math.min(p[2], p[3]) * 0.8
       dummy.position.set(p[0], 0.06, p[1])
-      dummy.scale.set(r, 0.9, r)
+      dummy.scale.set(r, 0.7, r)
       dummy.updateMatrix()
       pins.setMatrixAt(i, dummy.matrix)
     })
@@ -343,10 +343,10 @@ export function buildBoard(d: BoardData, colors: { cmd: string; tel: string; pwr
 
   // ---------------------------------------------------------------- parts
   const M = (color: string, rough = 0.55, metal = 0) => keep(new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal }))
-  const blackPl = M('#141416', 0.6)
+  const blackPl = M('#2a2a2f', 0.55)
   const darkPl = M('#1e1e22', 0.5)
-  const steel = M('#c4c7cc', 0.3, 0.9)
-  const tab = M('#b9bcc2', 0.32, 0.95)
+  const steel = M('#a7abb1', 0.42, 0.85)
+  const tab = M('#8e9298', 0.5, 0.85)
   const resin = M('#d8b88c', 0.55)
   const discMat = M('#d27a2c', 0.5)
   const capBlue = M('#2453b0', 0.4, 0.1)

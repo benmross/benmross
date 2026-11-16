@@ -152,6 +152,8 @@ export type Key = {
   up?: number
   /** The card (content.ts kartScene.stops) this key carries. */
   stop?: number
+  /** Keep that card up until the camera reaches this key. */
+  holdTo?: number
 }
 
 /**
@@ -189,19 +191,19 @@ export const KEYS: Key[] = [
   { p: 0.648, frame: 'board', pos: [-43, 41.8, 9.6], look: [-30, 41.6, 7], fov: 76, up: 0.85 },
   { p: 0.664, frame: 'board', pos: [-28, 42.8, 9.4], look: [-18, 42.6, 3], fov: 78, up: 1 },
   // along the USB data pair and in under the Teensy, between its rows of sockets
-  { p: 0.68, frame: 'board', pos: [-18.5, 42.4, 3.4], look: [-6, 41.2, 2.8], fov: 80, up: 1, stop: 6 },
+  { p: 0.68, frame: 'board', pos: [-18.5, 42.4, 3.4], look: [-6, 41.2, 2.8], fov: 80, up: 1, stop: 6, holdTo: 26 },
   { p: 0.698, frame: 'board', pos: [-3, 40.6, 4.0], look: [10, 40.2, 4.0], fov: 80, up: 1 },
   { p: 0.716, frame: 'board', pos: [14, 40.2, 4.2], look: [27, 40.4, 4.0], fov: 80, up: 1 },
   { p: 0.733, frame: 'board', pos: [31, 41.2, 3.6], look: [39, 47, 2.4], fov: 80, up: 1 },
   // out from under it, along the CAN pair to the transceiver
   { p: 0.75, frame: 'board', pos: [38.4, 50.6, 2.6], look: [45, 58, 2.2], fov: 78, up: 1 },
-  { p: 0.767, frame: 'board', pos: [44.6, 57.4, 6.8], look: [50, 66, 4], fov: 76, up: 1 },
-  { p: 0.784, frame: 'board', pos: [55.5, 68.5, 7.4], look: [52, 80, 7], fov: 74, up: 1 },
+  { p: 0.767, frame: 'board', pos: [42, 54.5, 4.5], look: [49, 62, 5], fov: 76, up: 1 },
+  { p: 0.784, frame: 'board', pos: [48.5, 63.5, 11], look: [49, 76, 6], fov: 74, up: 1 },
   // up past the CAN connectors and off the board
-  { p: 0.8, frame: 'board', pos: [53, 74, 15], look: [44, 84, 10], fov: 70, up: 1 },
-  { p: 0.815, frame: 'board', pos: [48, 92, 36], look: [34, 62, 0], fov: 64, up: 0.85 },
+  { p: 0.8, frame: 'board', pos: [49, 72, 17], look: [44, 82, 4], fov: 70, up: 1 },
+  { p: 0.815, frame: 'board', pos: [47, 90, 30], look: [35, 64, 0], fov: 64, up: 0.85 },
   { p: 0.832, frame: 'dash', pos: [0.07, 0.15, 0.04], look: [-0.01, 0.0, 0.0], fov: 54, up: 0.35 },
-  { p: 0.852, frame: 'body', pos: [0.45, 1.6, 0.85], look: [0.2, 0.6, 0.12], fov: 46 },
+  { p: 0.852, frame: 'body', pos: [0.95, 1.45, 0.95], look: [0.2, 0.58, 0.12], fov: 46 },
   // every signal on the kart, from above and behind
   { p: 0.88, frame: 'body', pos: [-1.55, 2.35, 1.45], look: [0.06, 0.38, 0.0], fov: 40, stop: 7 },
   { p: 0.91, frame: 'body', pos: [-2.55, 0.72, 0.55], look: [0.2, 0.5, 0.0], fov: 44 },
@@ -210,4 +212,4 @@ export const KEYS: Key[] = [
 /** Keys where the camera is inside the dashboard case: from the gland until it is clear of the case. */
 export const INSIDE = { in: [13, 15], out: [26, 27] } as const
 /** Keys between which the case, then the whole kart, goes see-through, and back. */
-export const GHOST = { caseIn: [25, 27], bodyIn: [27, 29], bodyOut: [29, 30] } as const
+export const GHOST = { caseIn: [25, 27], bodyIn: [26, 28], bodyOut: [29, 30] } as const
