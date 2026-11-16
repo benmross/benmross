@@ -45,11 +45,13 @@ function layout(p: number, W: number, H: number) {
   const narrow = W < 820 || W < H
   const op: Rect = narrow ? { x: 0, y: H * 0.06, w: W, h: H * 0.32 } : { x: 0, y: 0, w: W * 0.36, h: H }
   const arm0: Rect = narrow ? { x: 0, y: H * 0.38, w: W, h: H * 0.5 } : { x: W * 0.36, y: 0, w: W * 0.64, h: H }
+  // five seats side by side; on a phone only the first three, so they stay readable
+  const n = narrow ? 3 : 5
   const gap = Math.max(6, W * 0.008)
-  const mh = Math.min(H * (narrow ? 0.5 : 0.66), (((W * 0.95 - 4 * gap) / 5) * 16) / 9)
+  const mh = Math.min(H * (narrow ? 0.56 : 0.66), (((W * 0.95 - (n - 1) * gap) / n) * 16) / 9)
   const mw = (mh * 9) / 16
-  const x0 = (W - (5 * mw + 4 * gap)) / 2
-  const y0 = Math.max(narrow ? 120 : 150, (H - mh) / 2 + (narrow ? 30 : 40))
+  const x0 = (W - (n * mw + (n - 1) * gap)) / 2
+  const y0 = Math.max(narrow ? 150 : 150, (H - mh) / 2 + (narrow ? 40 : 40))
   const monitors: Rect[] = [0, 1, 2, 3, 4].map((i) => ({ x: x0 + i * (mw + gap), y: y0, w: mw, h: mh }))
   const m = monitors[ARM_SEAT]
   const arm1: Rect = { x: m.x + mw * 0.025, y: m.y + mh * 0.135, w: mw * 0.95, h: mh * 0.42 }
@@ -216,7 +218,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
         if (!el) return
         place(el, r)
         const a = seg(p, 0.85 + Math.abs(i - ARM_SEAT) * 0.012, 0.875 + Math.abs(i - ARM_SEAT) * 0.012)
-        el.style.opacity = a.toFixed(3)
+        el.style.opacity = (i < (L.narrow ? 3 : 5) ? a : 0).toFixed(3)
       })
       if (wallHead.current) {
         wallHead.current.style.opacity = seg(p, 0.9, 0.93).toFixed(3)
@@ -243,16 +245,18 @@ function StageScene({ onFail }: { onFail: () => void }) {
             <div key={seat} className="loop-mon" ref={(el) => void (monitors.current[i] = el)}>
               <div className="mon-band">
                 <div>
-                  <small>Screen {i + 1} · Delivery</small>
+                  <small>
+                    {T.console.screen} {i + 1} · {T.console.mission}
+                  </small>
                   <strong>{seat}</strong>
                 </div>
                 <span className="mon-cell">
-                  <small>Link</small>−66
+                  <small>{T.console.link}</small>−66
                 </span>
                 <span className="mon-cell">
-                  <small>Battery</small>94
+                  <small>{T.console.battery}</small>94
                 </span>
-                <span className="mon-stop">Stop</span>
+                <span className="mon-stop">{T.console.stop}</span>
               </div>
               <Monitor seat={i} joints={miniJoints} bw={bw} />
             </div>
@@ -323,6 +327,18 @@ function StageScene({ onFail }: { onFail: () => void }) {
   )
 }
 
+function Tabs({ names, on = 0 }: { names: readonly string[]; on?: number }) {
+  return (
+    <>
+      {names.map((n, i) => (
+        <span key={n} className={i === on ? 'on' : undefined}>
+          {n}
+        </span>
+      ))}
+    </>
+  )
+}
+
 /** The schematic contents of each console seat; text from content.ts. */
 function Monitor({
   seat,
@@ -337,12 +353,10 @@ function Monitor({
     return (
       <div className="mon-body">
         <div className="mon-tabs">
-          <span className="on">Rover</span>
-          <span>Network</span>
-          <span>CAN and ROS</span>
+          <Tabs names={T.console.tabs[0]} />
         </div>
         <div className="mon-panel">
-          <small>Readiness</small>
+          <small>{T.console.readiness}</small>
           <div className="mon-ready">
             {T.readiness.map((r) => (
               <span key={r}>
@@ -353,7 +367,7 @@ function Monitor({
           </div>
         </div>
         <div className="mon-panel grow">
-          <small>Camera bandwidth</small>
+          <small>{T.console.bandwidth}</small>
           {T.cameras.map((c, i) => (
             <div key={c} className="mon-bw" ref={(el) => void (bw.current[i] = el)}>
               <span>{c}</span>
@@ -367,12 +381,11 @@ function Monitor({
     return (
       <div className="mon-body">
         <div className="mon-tabs">
-          <span>Cameras</span>
-          <span className="on">Kinematics</span>
+          <Tabs names={T.console.tabs[1]} on={1} />
         </div>
         <div className="mon-panel mon-hole" />
         <div className="mon-panel grow">
-          <small>Arm joints</small>
+          <small>{T.console.armJoints}</small>
           {T.joints.map((j, i) => (
             <div key={j} className="mon-joint" ref={(el) => void (joints.current[i] = el)}>
               <span>{j}</span>
@@ -386,9 +399,7 @@ function Monitor({
     return (
       <div className="mon-body">
         <div className="mon-tabs">
-          <span className="on">Map</span>
-          <span>Mission</span>
-          <span>Terrain</span>
+          <Tabs names={T.console.tabs[2]} />
         </div>
         <div className="mon-panel grow">
           <svg viewBox="0 0 100 160" className="mon-map" preserveAspectRatio="xMidYMid slice">
@@ -415,14 +426,13 @@ function Monitor({
     return (
       <div className="mon-body">
         <div className="mon-tabs">
-          <span className="on">Flight</span>
-          <span>Survey</span>
+          <Tabs names={T.console.tabs[3]} />
         </div>
         <div className="mon-panel grow mon-feed">
-          <small>Drone</small>
+          <small>{T.console.droneFeed}</small>
         </div>
         <div className="mon-panel">
-          <small>Battery</small>
+          <small>{T.console.battery}</small>
           <div className="mon-bw static">
             <span>71%</span>
             <i />
@@ -433,18 +443,17 @@ function Monitor({
   return (
     <div className="mon-body">
       <div className="mon-tabs">
-        <span className="on">Drive</span>
-        <span>Map</span>
+        <Tabs names={T.console.tabs[4]} />
       </div>
       <div className="mon-panel grow mon-feed">
-        <small>Front (ZED)</small>
+        <small>{T.console.driveFeeds[0]}</small>
       </div>
       <div className="mon-split">
         <div className="mon-panel mon-feed">
-          <small>Wheel FL</small>
+          <small>{T.console.driveFeeds[1]}</small>
         </div>
         <div className="mon-panel mon-feed">
-          <small>Wheel FR</small>
+          <small>{T.console.driveFeeds[2]}</small>
         </div>
       </div>
     </div>

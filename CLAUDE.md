@@ -33,6 +33,18 @@ npm run build
   progress `t` for screenshots. The models in `public/media/falconia/model/` come from
   "Falconia V3.zip" in Drive via `scripts/falconia-model/build.sh` (level, crop, simplify,
   WebP texture, meshopt).
+- The Loop scene (`src/scenes/Loop.tsx`, `src/scenes/loop/`) replays an Arm Pilot session against
+  scroll: the operator's phone (or, in the tracker comparison, a stereo or mono hand or the marker
+  wand) on the left, the rover arm on the right, then the arm view lands in the Arm Operator seat of
+  a schematic Delivery-mission console. The arm is never animated by hand: `scripts/loop-track/bake.py`
+  feeds every phone packet through armtrack's own controller (clutch, IK, 0.5 rad/s joint caps) and
+  writes `public/media/loop/track.json`. Record a real session with
+  `armtrack phone --record session.jsonl` and bake it with
+  `uv run --project ../stereo-hand python scripts/loop-track/bake.py session.jsonl [--trim A B]`;
+  `--scripted` rebuilds the stand-in. Act boundaries and the track seconds each act plays are in
+  `src/scenes/loop/timeline.ts`. `window.__loop(t)` holds the scene at progress `t`. Reduce Motion or
+  no WebGL shows a still from the armtrack demo. The console is drawn, not screenshots: the team
+  repositories are private.
 
 ## Search and link previews
 

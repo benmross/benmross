@@ -211,6 +211,26 @@ export const loopScene = {
   seats: ['Rover Technician', 'Arm Operator', 'Navigator', 'Drone', 'Driver'],
   readiness: ['Link', 'GNSS', 'Telemetry', 'Drive', 'Arm', 'Power', 'Cameras', 'CAN'],
   cameras: ['Mast 360', 'Front (ZED)', 'Wheel FL', 'Wheel FR', 'Arm base', 'Arm wrist', 'Gripper', 'Rear', 'Drone'],
+  /** Labels on the schematic console screens, as in the team console. */
+  console: {
+    screen: 'Screen',
+    mission: 'Delivery',
+    link: 'Link',
+    battery: 'Battery',
+    stop: 'Stop',
+    readiness: 'Readiness',
+    bandwidth: 'Camera bandwidth',
+    armJoints: 'Arm joints',
+    droneFeed: 'Drone',
+    driveFeeds: ['Front (ZED)', 'Wheel FL', 'Wheel FR'],
+    tabs: [
+      ['Rover', 'Network', 'CAN and ROS'],
+      ['Cameras', 'Kinematics'],
+      ['Map', 'Mission', 'Terrain'],
+      ['Flight', 'Survey'],
+      ['Drive', 'Map'],
+    ],
+  },
   fallbackAlt: 'Arm Pilot driving the simulated Loop arm: the rover model with its arm reaching out, and Ben holding the phone in the corner',
   fallbackCaption: 'Arm Pilot driving the simulated arm',
 }

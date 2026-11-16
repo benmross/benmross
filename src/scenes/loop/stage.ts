@@ -450,7 +450,7 @@ export async function createStage(
   op.add(phoneG)
   const phoneLine = line(FG, 0.85)
   box(0.155, 0.075, 0.008, phoneG, phoneLine)
-  const screen = new THREE.Mesh(keep(new THREE.PlaneGeometry(0.145, 0.066)), keep(new THREE.MeshBasicMaterial({ color: tint, transparent: true })))
+  const screen = new THREE.Mesh(keep(new THREE.PlaneGeometry(0.145, 0.066)), keep(new THREE.MeshBasicMaterial({ color: tint.clone().lerp(FG, 0.1), transparent: true })))
   screen.position.z = 0.0042
   phoneG.add(screen)
   const padMat = keep(new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.2 }))
@@ -506,9 +506,9 @@ export async function createStage(
   }
   const camMat = line(FG, 0.7)
   const aim = new THREE.Vector3(-0.1, -0.1, -0.1)
-  const camL = frustum(new THREE.Vector3(-0.28, 0.0, -0.55), aim, camMat)
-  const camR = frustum(new THREE.Vector3(0.08, 0.0, -0.55), aim, camMat)
-  const camC = frustum(new THREE.Vector3(-0.1, 0.0, -0.55), aim, camMat)
+  const camL = frustum(new THREE.Vector3(-0.26, 0.02, -0.5), aim, camMat)
+  const camR = frustum(new THREE.Vector3(0.06, 0.02, -0.5), aim, camMat)
+  const camC = frustum(new THREE.Vector3(-0.1, 0.02, -0.5), aim, camMat)
   const rayGeo = keep(new THREE.BufferGeometry())
   rayGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(2 * 21 * 2 * 3), 3))
   const rayMat = line(accent, 0.16)
@@ -531,6 +531,20 @@ export async function createStage(
   const wandLine = line(FG, 0.85)
   cyl('z', 0.011, 0.12, wandG, wandLine, [0, 0, -0.04], 14)
   const wandMats = [...cubeMats]
+
+  // what the operator camera must keep in view
+  let lastFit = { key: '', d: 1, ctr: new THREE.Vector3() }
+  const opBounds = (() => {
+    // the phone's actual path (every fifth frame), with the phone's size around each point
+    const drivePts: THREE.Vector3[] = []
+    track.frames.forEach((f, i) => {
+      if (i % 5) return
+      for (const d of [[0.07, 0, 0], [-0.07, 0, 0], [0, 0.05, 0], [0, -0.05, 0], [0, 0, 0.07], [0, 0, -0.07]])
+        drivePts.push(new THREE.Vector3(f[1] + d[0], f[2] + d[1], f[3] + d[2]))
+    })
+    const trackerPts = [...drivePts, camL.position.clone(), camR.position.clone(), camC.position.clone()]
+    return { drivePts, trackerPts }
+  })()
 
   // ============================================================= sizing
   let aw = 1
@@ -665,7 +679,7 @@ export async function createStage(
     phoneG.position.copy(P)
     phoneG.quaternion.copy(tmpQ)
     phoneG.visible = wPhone > 0.01
-    phoneG.scale.setScalar(0.85 + 0.15 * wPhone)
+    phoneG.scale.setScalar(1.5 + 0.3 * wPhone)
     phoneLine.opacity = 0.85 * wPhone
     padMat.opacity = (s.engaged ? 0.85 : 0.12) * wPhone
     knob.position.x = -0.05 + 0.1 * s.gripCmd
@@ -678,9 +692,9 @@ export async function createStage(
       const tt = Math.max(0, s.t - (3 * (OTRAIL - 1 - i)) / (OTRAIL - 1))
       const si = sample(track, tt)
       op_.setXYZ(i, si.p[0], si.p[1], si.p[2])
-      const a = (i / (OTRAIL - 1)) ** 1.4
+      const a = 0.2 + 0.8 * (i / (OTRAIL - 1)) ** 1.2
       const c = si.engaged ? accent : FG
-      const k = si.engaged ? a : a * 0.35
+      const k = si.engaged ? a : a * 0.4
       oc.setXYZ(i, lerp(tint.r, c.r, k), lerp(tint.g, c.g, k), lerp(tint.b, c.b, k))
     }
     op_.needsUpdate = true
@@ -696,7 +710,7 @@ export async function createStage(
       const cam = wMono > wStereo ? camC.position : camL.position.clone().lerp(camR.position, 0.5)
       const ray = P.clone().sub(cam).normalize()
       const noise = wMono > wStereo ? 0.028 * Math.sin(s.t * 7.3) * Math.sin(s.t * 2.1 + 1) : 0.004 * Math.sin(s.t * 13.1) * (0.3 + s.speed)
-      const world = pts.map((v) => v.clone().applyQuaternion(tmpQ).add(P).addScaledVector(ray, noise))
+      const world = pts.map((v) => v.clone().multiplyScalar(1.5).applyQuaternion(tmpQ).add(P).addScaledVector(ray, noise))
       const hp = handGeo.attributes.position as THREE.BufferAttribute
       BONES.forEach(([a, b], i) => {
         hp.setXYZ(i * 2, world[a].x, world[a].y, world[a].z)
@@ -750,6 +764,7 @@ export async function createStage(
     if (wandG.visible) {
       wandG.position.copy(P)
       wandG.quaternion.copy(tmpQ)
+      wandG.scale.setScalar(1.4)
       for (const m of wandMats) {
         m.transparent = wWand < 0.99
         m.opacity = wWand
@@ -771,13 +786,40 @@ export async function createStage(
     // operator camera: behind the operator's right shoulder, half following the phone;
     // for the camera trackers, higher, so the cameras in front and the hand both fit
     const k = inTrackers ? smooth(seg(p, ACT.trackers[0], ACT.trackers[0] + 0.025)) : 0
-    const centre = new THREE.Vector3(-0.11, -0.08, -0.1)
-    const look = centre.clone().lerp(P, 0.45 * (1 - k)).lerp(new THREE.Vector3(-0.1, -0.12, -0.26), k)
+    // a fixed camera that frames everywhere the phone goes (and, for the trackers, the cameras too),
+    // from behind the operator's right shoulder
+    const dir = new THREE.Vector3(0.38, 0.55, 0.74).lerp(new THREE.Vector3(0.3, 0.72, 0.62), k).normalize()
     const aspect = ow / oh
-    const fit = aspect < 0.8 ? 1.05 : aspect > 1.6 ? 0.85 : 1
-    const off = new THREE.Vector3(0.32, 0.5, 0.95).lerp(new THREE.Vector3(0.35, 0.95, 0.7), k).multiplyScalar(fit)
-    opCam.position.copy(look).add(off)
-    opCam.lookAt(look)
+    const fitKey = `${aspect.toFixed(3)}:${k.toFixed(3)}`
+    if (fitKey !== lastFit.key) {
+      // the nearest distance at which every corner of the box lands inside the frame,
+      // leaving the bottom of the panel to the words
+      const corners = k > 0 ? opBounds.trackerPts : opBounds.drivePts
+      const box = new THREE.Box3().setFromPoints(corners)
+      const ctr = box.getCenter(new THREE.Vector3())
+      const bottom = aspect < 1 ? (k > 0 ? -0.28 : -0.42) : k > 0 ? -0.5 : -0.7
+      let lo = 0.2
+      let hi = 6
+      for (let it = 0; it < 18; it++) {
+        const d = (lo + hi) / 2
+        opCam.clearViewOffset()
+        opCam.position.copy(ctr).addScaledVector(dir, d)
+        opCam.lookAt(ctr)
+        opCam.updateMatrixWorld()
+        let ok = true
+        for (const c of corners) {
+          const v = c.clone().project(opCam)
+          if (Math.abs(v.x) > 0.78 || v.y > 0.66 || v.y < bottom) ok = false
+        }
+        if (ok) hi = d
+        else lo = d
+      }
+      lastFit = { key: fitKey, d: hi, ctr }
+      ;(window as unknown as { __loopFit?: unknown }).__loopFit = { ...lastFit, box: [box.min.toArray(), box.max.toArray()], aspect, fov: opCam.fov }
+    }
+    opCam.position.copy(lastFit.ctr).addScaledVector(dir, lastFit.d)
+    opCam.lookAt(lastFit.ctr)
+    opCam.clearViewOffset()
     opCam.updateMatrixWorld()
   }
 
