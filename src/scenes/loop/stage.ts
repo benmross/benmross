@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { ACT, SEAM, WALL, easeInOut, seg, smooth, trackTime, trackerAt } from './timeline'
 import { createBase } from './base'
-import { buildPhone } from './phone'
+import { BONES, buildPhone } from './phone'
 
 /**
  * The Loop section's two WebGL views, drawn from one baked Arm Pilot track:
@@ -107,43 +107,6 @@ export function fk(spec: Spec, q: number[]) {
 
 /** ArUco DICT_4X4_50 markers 0 to 5, inner 4x4 bits, row-major (the wand's cube). */
 const ARUCO = ['1011010100110010', '0000111110011010', '0011001100101101', '1001100101000110', '0101010010011110', '0111100111001101']
-
-/** MediaPipe's 21 hand landmarks as bones. */
-const BONES = [
-  [0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12],
-  [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [0, 17], [17, 18], [18, 19], [19, 20],
-]
-
-/**
- * A right hand, palm down, in the phone's own frame (ARKit camera axes: x toward the
- * phone's bottom edge, y its right side, z out of the screen). Fingers point along -x,
- * where the phone's top edge points. `curl` 0 open to 1 closed, from the gripper slider.
- */
-function handPoints(curl: number): THREE.Vector3[] {
-  const out: THREE.Vector3[] = []
-  const P = (f: number, r: number, v: number) => new THREE.Vector3(-f, r, v)
-  out.push(P(-0.075, 0.0, -0.01)) // wrist
-  // thumb, from the wrist out to the left (a right hand, palm down)
-  const th = [[-0.055, -0.03], [-0.03, -0.05], [-0.005, -0.065], [0.018, -0.075]]
-  th.forEach(([f, r], i) => out.push(P(f - curl * 0.012 * i, r + curl * 0.012 * i, -0.012 - curl * 0.01 * i)))
-  // four fingers: knuckle across the hand, then three segments, curling down
-  const knuckles = [-0.026, -0.008, 0.01, 0.027]
-  const lens = [[0.04, 0.025, 0.02], [0.045, 0.028, 0.022], [0.042, 0.026, 0.021], [0.032, 0.02, 0.018]]
-  knuckles.forEach((r, k) => {
-    const base = k === 3 ? 0.0 : 0.008
-    let f = base
-    let v = 0
-    let ang = 0.12 + curl * 0.4
-    out.push(P(f, r, v))
-    for (const l of lens[k]) {
-      f += l * Math.cos(ang)
-      v -= l * Math.sin(ang)
-      out.push(P(f, r * (1 + 0.1 * (f - base) * 10), v))
-      ang += 0.18 + curl * 0.75
-    }
-  })
-  return out
-}
 
 function markerTexture(bits: string, accent: string) {
   const c = document.createElement('canvas')
@@ -516,13 +479,14 @@ export async function createStage(
 
   // the marker wand: a 50 mm ArUco cube on a handle
   const wandG = new THREE.Group()
-  op.add(wandG)
+  phoneG.add(wandG)
   const cubeMats = ARUCO.map((b) => keep(new THREE.MeshBasicMaterial({ map: keep(markerTexture(b, opts.accent)) })))
   const cube = new THREE.Mesh(keep(new THREE.BoxGeometry(0.05, 0.05, 0.05)), cubeMats)
-  cube.position.z = 0.045
+  // held like a torch: the handle along the hand's grip (the phone's long axis), the cube out in front
+  cube.position.x = -0.082
   wandG.add(cube)
   const wandLine = line(FG, 0.85)
-  cyl('z', 0.011, 0.12, wandG, wandLine, [0, 0, -0.04], 14)
+  cyl('x', 0.012, 0.13, wandG, wandLine, [0.008, 0, 0], 14)
   const wandMats = [...cubeMats]
 
   // what the operator camera must keep in view
@@ -700,7 +664,7 @@ export async function createStage(
         const b = i + 1 - 0.15
         w[i] = smooth(seg(u, a, a + 0.3)) * (1 - smooth(seg(u, b, b + 0.3)))
         if (i === 0 && u < 0.15) w[i] = 1
-        if (i === 3 && u > 3.5) w[i] = 1
+        if (i === 3 && u > 3.85) w[i] = 1
       }
     }
     const [wPhone, wStereo, wMono, wWand] = w
@@ -710,9 +674,18 @@ export async function createStage(
 
     phoneG.position.copy(P)
     phoneG.quaternion.copy(tmpQ)
-    phoneG.visible = wPhone > 0.01
-    phoneG.scale.setScalar(1.5 + 0.3 * wPhone)
-    phone.set(wPhone, !!s.engaged, s.gripCmd, frameDt)
+    phoneG.scale.setScalar(1.7)
+    // the see-through hand stays throughout: its skin thins as its joints take over, and in the last
+    // section it closes round the wand's handle
+    phone.set({
+      body: wPhone,
+      ghost: wPhone + 0.22 * (wStereo + wMono) + 0.55 * wWand,
+      wrap: smooth(wWand),
+      engaged: !!s.engaged || wPhone < 0.5,
+      grip: s.gripCmd,
+      dt: frameDt,
+    })
+    phoneG.updateMatrixWorld(true)
 
     // operator trail, three seconds
     const op_ = oTrailGeo.attributes.position as THREE.BufferAttribute
@@ -730,16 +703,18 @@ export async function createStage(
     oc.needsUpdate = true
     oTrailMat.opacity = Math.max(wPhone, wWand, 0.35)
 
-    // the hand: same pose as the phone, curled by the gripper slider
-    const wHand = Math.max(wStereo, wMono)
+    // the hand's joints: the see-through hand's own 21 landmarks, as the cameras would find them
+    const wHand = Math.max(wStereo, wMono, 0.6 * wWand)
+    const wandLead = wWand > Math.max(wStereo, wMono)
     hand.visible = handJoints.visible = wHand > 0.01
     if (hand.visible) {
-      const pts = handPoints(1 - s.gripCmd)
       // noisy depth along the camera ray: a little for stereo, a lot for one camera
       const cam = wMono > wStereo ? camC.position : camL.position.clone().lerp(camR.position, 0.5)
       const ray = P.clone().sub(cam).normalize()
-      const noise = wMono > wStereo ? 0.028 * Math.sin(s.t * 7.3) * Math.sin(s.t * 2.1 + 1) : 0.004 * Math.sin(s.t * 13.1) * (0.3 + s.speed)
-      const world = pts.map((v) => v.clone().multiplyScalar(1.5).applyQuaternion(tmpQ).add(P).addScaledVector(ray, noise))
+      const noise =
+        (wMono > wStereo ? 0.022 * Math.sin(s.t * 7.3) * Math.sin(s.t * 2.1 + 1) : 0.003 * Math.sin(s.t * 13.1) * (0.3 + s.speed)) *
+        Math.max(wStereo, wMono)
+      const world = phone.landmarks().map((v) => phoneG.localToWorld(v.clone()).addScaledVector(ray, noise))
       const hp = handGeo.attributes.position as THREE.BufferAttribute
       BONES.forEach(([a, b], i) => {
         hp.setXYZ(i * 2, world[a].x, world[a].y, world[a].z)
@@ -752,18 +727,21 @@ export async function createStage(
       handMat.opacity = 0.9 * wHand
       jointsMat.opacity = wHand
 
-      const rp = rayGeo.attributes.position as THREE.BufferAttribute
-      const cams = [wStereo >= wMono ? camL : camC, camR]
-      let n = 0
-      cams.forEach((c, ci) => {
-        world.forEach((v) => {
-          const use = ci === 0 || wStereo >= wMono
-          rp.setXYZ(n++, c.position.x, c.position.y, c.position.z)
-          rp.setXYZ(n++, use ? v.x : c.position.x, use ? v.y : c.position.y, use ? v.z : c.position.z)
+      if (!wandLead) {
+        const rp = rayGeo.attributes.position as THREE.BufferAttribute
+        const stereo = wStereo >= wMono
+        const cams = [stereo ? camL : camC, camR]
+        let n = 0
+        cams.forEach((c, ci) => {
+          world.forEach((v) => {
+            const use = ci === 0 || stereo
+            rp.setXYZ(n++, c.position.x, c.position.y, c.position.z)
+            rp.setXYZ(n++, use ? v.x : c.position.x, use ? v.y : c.position.y, use ? v.z : c.position.z)
+          })
         })
-      })
-      rp.needsUpdate = true
-      rayMat.opacity = 0.16 * wHand
+        rp.needsUpdate = true
+        rayMat.opacity = 0.16 * Math.max(wStereo, wMono)
+      }
 
       // depth bracket for mono
       const dp = depthGeo.attributes.position as THREE.BufferAttribute
@@ -788,19 +766,16 @@ export async function createStage(
     camC.visible = wMono > 0.01 || wWand > 0.01
     camMat.opacity = 0.7 * Math.max(wStereo, wMono, wWand)
 
-    // the wand
+    // the wand, in the hand
     wandG.visible = wWand > 0.01
     if (wandG.visible) {
-      wandG.position.copy(P)
-      wandG.quaternion.copy(tmpQ)
-      wandG.scale.setScalar(1.4)
       for (const m of wandMats) {
         m.transparent = wWand < 0.99
         m.opacity = wWand
       }
       wandLine.opacity = 0.85 * wWand
-      if (!hand.visible) {
-        // one ray from the camera to the cube
+      if (wandLead) {
+        // the camera sees the cube, not the hand
         const rp = rayGeo.attributes.position as THREE.BufferAttribute
         const c = cube.getWorldPosition(tmpV)
         for (let i = 0; i < rp.count; i += 2) {

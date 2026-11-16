@@ -23,8 +23,8 @@ export const WALL = {
 const SPANS: { p: readonly [number, number]; t: [number, number] }[] = [
   { p: ACT.intro, t: [0, 0] },
   { p: ACT.drive, t: [0, 22.4] },
-  { p: ACT.trackers, t: [1.7, 13.2] },
-  { p: ACT.wall, t: [13.2, 17.8] },
+  { p: ACT.trackers, t: [1.7, 17.6] },
+  { p: ACT.wall, t: [17.6, 21.6] },
 ]
 
 /** Scroll progress over which the arm blends from where the drive ended into the tracker replay. */
@@ -43,10 +43,9 @@ export function trackTime(p: number): number {
 
 export const TRACKER_COUNT = 4
 
-/** Which tracker is on screen (fractional, for crossfades) at a scroll progress. */
+/** Where the tracker comparison is, 0 at its start to 4 at its end: tracker k fills [k, k + 1). */
 export function trackerAt(p: number): number {
-  const u = seg(p, ACT.trackers[0], ACT.trackers[1])
-  return Math.min(TRACKER_COUNT - 1, u * TRACKER_COUNT)
+  return seg(p, ACT.trackers[0], ACT.trackers[1]) * TRACKER_COUNT
 }
 
 /** The seat whose screen draws the arm live (Arm Operator, in content.ts loopScene.seats). */
