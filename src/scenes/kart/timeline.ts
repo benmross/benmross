@@ -188,10 +188,11 @@ export const KEYS: Key[] = [
   { p: 0.622, frame: 'dash', pos: [-0.0182, 0.0021, -0.127], look: [-0.0182, 0.0014, -0.1], fov: 66, up: 0.15 },
   { p: 0.634, frame: 'dash', pos: [-0.0172, 0.0026, -0.112], look: [-0.0178, 0.0012, -0.085], fov: 72, up: 0.45 },
   // over the USB receptacle the cable plugs into, and down onto the copper
-  { p: 0.648, frame: 'board', pos: [-43, 41.8, 9.6], look: [-30, 41.6, 7], fov: 76, up: 0.85 },
-  { p: 0.664, frame: 'board', pos: [-28, 42.8, 9.4], look: [-18, 42.6, 3], fov: 78, up: 1 },
+  { p: 0.648, frame: 'board', pos: [-43, 41.8, 10.3], look: [-30, 41.6, 7.4], fov: 76, up: 0.85 },
+  // stay above the receptacle (7 mm tall) until past its back edge, then drop in under the Teensy
+  { p: 0.664, frame: 'board', pos: [-21.8, 42.8, 9.3], look: [-12, 42.4, 4.2], fov: 78, up: 1 },
   // along the USB data pair and in under the Teensy, between its rows of sockets
-  { p: 0.68, frame: 'board', pos: [-18.5, 42.4, 3.4], look: [-6, 41.2, 2.8], fov: 80, up: 1, stop: 6, holdTo: 26 },
+  { p: 0.68, frame: 'board', pos: [-14.5, 42.4, 3.6], look: [-2, 41.2, 3.0], fov: 80, up: 1, stop: 6, holdTo: 26 },
   { p: 0.698, frame: 'board', pos: [-3, 40.6, 4.0], look: [10, 40.2, 4.0], fov: 80, up: 1 },
   { p: 0.716, frame: 'board', pos: [14, 40.2, 4.2], look: [27, 40.4, 4.0], fov: 80, up: 1 },
   { p: 0.733, frame: 'board', pos: [31, 40.4, 3.8], look: [41, 42, 3.4], fov: 80, up: 1 },

@@ -346,6 +346,8 @@ export function buildBoard(d: BoardData, colors: { cmd: string; tel: string; pwr
   const blackPl = M('#2a2a2f', 0.55)
   const darkPl = M('#1e1e22', 0.5)
   const steel = M('#a7abb1', 0.42, 0.85)
+  // the jack shells: little to reflect in here, so a full metal would read as a black slab
+  const shell = M('#c6c9ce', 0.38, 0.35)
   const tab = M('#8e9298', 0.5, 0.85)
   const resin = M('#d8b88c', 0.55)
   const discMat = M('#d27a2c', 0.5)
@@ -482,12 +484,17 @@ export function buildBoard(d: BoardData, colors: { cmd: string; tel: string; pwr
       bx(fp, brass, bcx + bw / 2 - 4, bcz - bd / 2 + 4, 10.6, 6, 6, 6)
       for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) cy(fp, steel, bcx + sx * (bw / 2 - 2.5), bcz + sz * (bd / 2 - 2.5), 0, 1.2, 9)
     } else if (n.startsWith('RJ45')) {
-      bx(fp, steel, bcx, bcz, 0, bw - 0.4, 13.5, bd - 0.4)
+      bx(fp, shell, bcx, bcz, 0, bw - 0.4, 13.5, bd - 0.4)
     } else if (n.startsWith('USB-A')) {
       // drawn in the board's frame: the receptacle runs from its pins out past the board edge
       fp.rotation.y = 0
       fp.position.set(0, 0, 0)
-      bx(fp, steel, -31.5, 40.7, 0, 15, 7, 13.2)
+      bx(fp, shell, -31.5, 40.7, 0, 15, 7, 13.2)
+      // stamped detail on the shell: a seam, two spring tabs, a rear lip
+      const pressed = M('#8d9096', 0.45, 0.3)
+      bx(fp, pressed, -31.5, 40.7, 7, 14, 0.06, 0.35)
+      for (const v of [37.4, 44]) bx(fp, pressed, -34.5, v, 7, 4, 0.18, 1.6)
+      bx(fp, pressed, -24.3, 40.7, 0, 0.6, 7.25, 13.4)
       bx(fp, chip, -38.6, 40.7, 1.4, 0.4, 4.2, 11)
       bx(fp, M('#f4f0e8', 0.5), -36.5, 40.7, 3.2, 4.5, 0.9, 10)
     } else if (n.startsWith('PWRM')) {
