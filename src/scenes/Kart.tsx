@@ -33,10 +33,6 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const stage = useRef<Stage | null>(null)
-  const clockVal = useRef<HTMLElement>(null)
-  const clockBar = useRef<HTMLElement>(null)
-  const clockNote = useRef<HTMLSpanElement>(null)
-  const speed = useRef<HTMLElement>(null)
   const card = useRef<HTMLDivElement>(null)
   const cardNo = useRef<HTMLSpanElement>(null)
   const cardTitle = useRef<HTMLHeadingElement>(null)
@@ -86,20 +82,11 @@ function StageScene({ onFail }: { onFail: () => void }) {
     return () => void delete w.__kart
   }, [])
 
-  function update({ p, state: s, scale, stop, level }: FrameInfo) {
+  function update({ p, state: s, stop, level }: FrameInfo) {
     const box = ref.current?.querySelector('.scene-sticky') as HTMLElement | null
     if (!box) return
     const W = box.clientWidth
     const narrow = W < 820 || W < box.clientHeight
-
-    // the clock
-    if (clockVal.current) clockVal.current.textContent = scale > 0.995 ? '1.00×' : `${scale.toFixed(2)}×`
-    if (clockBar.current) clockBar.current.style.transform = `scaleX(${Math.max(0.012, scale).toFixed(3)})`
-    if (clockNote.current) {
-      const text = scale > 0.6 ? T.fullSpeed : T.slowed
-      if (clockNote.current.textContent !== text) clockNote.current.textContent = text
-    }
-    if (speed.current) speed.current.textContent = (s.v * 2.237).toFixed(0)
 
     // the card for this stop
     if (stop !== shown.current) {
@@ -177,19 +164,6 @@ function StageScene({ onFail }: { onFail: () => void }) {
       <div className="scene-sticky kart3d-sticky">
         <canvas ref={canvas} className="kart3d-canvas" aria-hidden />
 
-        <div className="kart3d-clock" aria-hidden>
-          <span className="kart3d-kicker">{T.clock}</span>
-          <b ref={clockVal}>1.00×</b>
-          <div className="bar">
-            <i ref={clockBar} />
-          </div>
-          <span ref={clockNote} className="kart3d-clock-note">
-            {T.fullSpeed}
-          </span>
-          <span className="kart3d-speed">
-            <b ref={speed}>28</b> {T.mph}
-          </span>
-        </div>
 
         <svg className="kart3d-leaders" aria-hidden>
           {Array.from({ length: MAX_TAGS }, (_, i) => (
