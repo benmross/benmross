@@ -22,6 +22,8 @@ export type Flight = {
   project(p: Vec3): { x: number; y: number; d: number } | null
   /** Called after each frame is drawn, with the smoothed progress. */
   onFrame(fn: (t: number) => void): void
+  /** Screen box of the whole table in CSS pixels of the canvas layout, or null if it is behind the camera. */
+  bounds(): { x: number; y: number; w: number; h: number } | null
   /** Camera state at progress t, for checking the track. */
   sample(t: number): { p: number[]; q: number[]; fov: number }
   setActive(active: boolean): void
@@ -389,6 +391,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     const fwd = new THREE.Vector3()
     const nose = new THREE.Vector3()
     const heading = new THREE.Vector3(0, 0, -1)
+    const northZ = new THREE.Vector3(0, 0, -1)
     const hint = new THREE.Vector3()
     const right = new THREE.Vector3()
     const up = new THREE.Vector3()
@@ -420,8 +423,11 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
       // screen-up: world up when looking out, the heading when looking steeply down,
       // so the picture never spins as the camera passes over the point it looks at
       const flat = Math.hypot(fwd.x, fwd.z)
-      if (flat > 0.25) heading.set(fwd.x, 0, fwd.z).normalize()
       const steep = smooth(seg(-fwd.y, 0.55, 0.97))
+      // looking down, the top of the frame turns to face -z, so the table ends upright
+      // with the crescent at the top instead of keeping whatever heading the climb had
+      if (flat > 1e-4) heading.set(fwd.x, 0, fwd.z).normalize()
+      heading.lerp(northZ, steep).normalize()
       hint.set(0, 1, 0).multiplyScalar(1 - steep).addScaledVector(heading, steep).normalize()
       right.crossVectors(fwd, hint).normalize()
       up.crossVectors(right, fwd)
@@ -463,9 +469,9 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   const frameFns: ((t: number) => void)[] = []
 
   const size = () => {
-    const r = canvas.getBoundingClientRect()
-    w = Math.max(1, r.width)
-    h = Math.max(1, r.height)
+    // layout size, not the bounding rect: the finale scales the canvas with a CSS transform
+    w = Math.max(1, canvas.clientWidth)
+    h = Math.max(1, canvas.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.mobile ? 1.5 : 1.75))
     renderer.setSize(w, h, false)
     camera.aspect = w / h
@@ -528,6 +534,23 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     },
     onFrame(fn) {
       frameFns.push(fn)
+    },
+    bounds() {
+      let x0 = Infinity
+      let y0 = Infinity
+      let x1 = -Infinity
+      let y1 = -Infinity
+      for (let c = 0; c < 8; c++) {
+        proj.set(c & 1 ? bb.max.x : bb.min.x, (c & 2 ? bb.max.y : bb.min.y) * EXAGGERATION, c & 4 ? bb.max.z : bb.min.z).project(camera)
+        if (proj.z > 1 || proj.z < -1) return null
+        const sx = ((proj.x + 1) / 2) * w
+        const sy = ((1 - proj.y) / 2) * h
+        x0 = Math.min(x0, sx)
+        y0 = Math.min(y0, sy)
+        x1 = Math.max(x1, sx)
+        y1 = Math.max(y1, sy)
+      }
+      return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
     },
     sample(t) {
       place(t)
