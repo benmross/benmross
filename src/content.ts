@@ -175,6 +175,91 @@ export const emulsionPreview = {
   ],
 }
 
+/** Words in the Kart section's scroll scene. */
+export const kartScene = {
+  clock: 'Kart time',
+  fullSpeed: 'Full speed',
+  slowed: 'Slowed to look round it',
+  mph: 'mph',
+  /** The tour, in the order the camera visits. `tags` name points on the model (src/scenes/kart/model.ts ANCHOR). */
+  stops: [
+    {
+      title: 'Motor and controller',
+      spec: '72 V, 40 hp peak',
+      text: 'A FarDriver controller runs the motor, which turns the rear axle by chain. There is no friction brake. Braking is the motor, commanded in software.',
+      tags: [
+        { at: 'motor', label: 'Motor' },
+        { at: 'chain', label: 'Chain to the rear axle' },
+        { at: 'esc', label: 'FarDriver ND721000' },
+      ],
+    },
+    {
+      title: 'Cooling',
+      spec: 'Liquid loop above the motor',
+      text: 'A radiator with two fans, a pump and a reservoir.',
+      tags: [
+        { at: 'radiator', label: 'Radiator and fans' },
+        { at: 'pump', label: 'Pump and reservoir' },
+      ],
+    },
+    {
+      title: 'Battery',
+      spec: '72 V pack under the floor',
+      text: 'A JK BMS watches the cells and reports to the dashboard. Power reaches the controller through a main contactor that only the Teensy can close, and only once the kart is armed.',
+      tags: [
+        { at: 'pack', label: 'Cells' },
+        { at: 'bms', label: 'BMS' },
+        { at: 'contactor', label: 'Main contactor' },
+      ],
+    },
+    {
+      title: 'Steer by wire',
+      spec: 'ESP32, Talon SRX, CIM motor',
+      text: 'Nothing mechanical joins the steering wheel to the front wheels. An ESP32 runs a PID loop on a potentiometer and drives a CIM motor through a Talon SRX. The target angle arrives over CAN 50 times a second. If it stops for 150 ms, the motor is cut.',
+      tags: [
+        { at: 'esp32', label: 'ESP32' },
+        { at: 'talon', label: 'Talon SRX' },
+        { at: 'cim', label: 'CIM motor' },
+      ],
+    },
+    {
+      title: 'Wheel and pedals',
+      spec: 'USB into the Teensy',
+      text: 'A Hori racing wheel on the Teensy\'s USB host port. The wheel angle becomes the steering target and the pedals become throttle and brake. If its reports stop for 100 ms, the kart brings itself to a stop.',
+      tags: [{ at: 'wheel', label: 'Hori Racing Wheel Overdrive' }],
+    },
+    {
+      title: 'Mainboard and dashboard',
+      spec: 'Teensy 4.1 and Raspberry Pi 4',
+      text: 'A custom board carries both computers. The Teensy is the only one that can move the kart: it holds the drive state machine, the pedal mapping and the watchdogs. The Pi runs the React dashboard and only listens, so it can crash without affecting the drive.',
+      tags: [
+        { at: 'teensy', label: 'Teensy 4.1' },
+        { at: 'pi', label: 'Raspberry Pi 4' },
+      ],
+    },
+    {
+      title: 'Drive by wire',
+      spec: 'Every signal on the kart',
+      text: 'Commands leave the Teensy, telemetry comes back to it, and the Pi sees a copy.',
+      tags: [],
+    },
+  ],
+  /** The three colours of signal. */
+  kinds: { cmd: 'Command', tel: 'Telemetry', pwr: 'Power' },
+  /** The bus monitor. `wire` is the signal route it lights with (model.ts wires). */
+  bus: [
+    { wire: 'usb', kind: 'cmd', bus: 'USB', what: 'Wheel to Teensy' },
+    { wire: 'throttle', kind: 'cmd', bus: 'I2C', what: 'Teensy to DAC 0x60' },
+    { wire: 'canSet', kind: 'cmd', bus: 'CAN', what: '0x100 STEER_SET' },
+    { wire: 'canStatus', kind: 'tel', bus: 'CAN', what: '0x101 STEER_STATUS' },
+    { wire: 'uart', kind: 'tel', bus: 'UART', what: 'Teensy to Pi' },
+    { wire: 'bms', kind: 'tel', bus: 'RS485', what: 'BMS to Pi' },
+  ],
+  drive: 'DRIVE',
+  active: 'ACTIVE',
+  modelNote: 'Model built from photographs of the kart',
+} as const
+
 /** Words in the Loop section's scroll scene. */
 export const loopScene = {
   operator: 'Operator',
