@@ -165,24 +165,46 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     m.receiveShadow = shadows
     scene.add(m)
   }
-  // kerbs inside the turn, red and white
+  // kerbs inside the turn, red and white: one curved strip, so neighbouring blocks never overlap and flicker
   {
-    const g = keep(new THREE.BoxGeometry(1.0, 0.05, 0.55))
-    const mat = keep(new THREE.MeshStandardMaterial({ roughness: 0.6 }))
-    const n = 34
-    const im = new THREE.InstancedMesh(g, mat, n)
-    const m = new THREE.Matrix4()
-    const q = new THREE.Quaternion()
-    const up = new THREE.Vector3(0, 1, 0)
-    for (let i = 0; i < n; i++) {
-      const p = pathAt(5 + i * 1.02)
-      q.setFromAxisAngle(up, p.h)
-      m.compose(new THREE.Vector3(p.x + Math.sin(p.h) * (IN - 0.36), 0.012, p.z + Math.cos(p.h) * (IN - 0.36)), q, new THREE.Vector3(1, 1, 1))
-      im.setMatrixAt(i, m)
-      im.setColorAt(i, new THREE.Color(i % 2 ? '#e9e5dc' : '#c81a1c'))
+    const W = 0.55
+    const OFF = IN - 0.36
+    const prof: [number, number][] = [[-W / 2, 0.003], [-W / 2 + 0.07, 0.03], [W / 2 - 0.07, 0.03], [W / 2, 0.003]]
+    const pos: number[] = []
+    const col: number[] = []
+    const idx: number[] = []
+    const red = new THREE.Color('#c81a1c')
+    const white = new THREE.Color('#e9e5dc')
+    const S0 = 4.5
+    const BLOCK = 1.02
+    const STEPS = 4
+    for (let b = 0; b < 34; b++) {
+      const c = b % 2 ? white : red
+      const base = pos.length / 3
+      for (let k = 0; k <= STEPS; k++) {
+        const p = pathAt(S0 + (b + k / STEPS) * BLOCK)
+        const rx = Math.sin(p.h)
+        const rz = Math.cos(p.h)
+        for (const [o, y] of prof) {
+          pos.push(p.x + rx * (OFF + o), y, p.z + rz * (OFF + o))
+          col.push(c.r, c.g, c.b)
+        }
+      }
+      for (let k = 0; k < STEPS; k++)
+        for (let j = 0; j < prof.length - 1; j++) {
+          const i0 = base + k * prof.length + j
+          const i1 = i0 + prof.length
+          idx.push(i0, i0 + 1, i1, i0 + 1, i1 + 1, i1)
+        }
     }
-    im.receiveShadow = shadows
-    scene.add(im)
+    const g = keep(new THREE.BufferGeometry())
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+    g.setIndex(idx)
+    g.computeVertexNormals()
+    const kerb = new THREE.Mesh(g, keep(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 })))
+    kerb.receiveShadow = shadows
+    scene.add(kerb)
   }
   // tyre wall round the outside
   {
