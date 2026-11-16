@@ -24,11 +24,12 @@ export const KEYS: Key[] = [
   { t: 0.5, pos: [-0.27, 0.14, 0.1], look: [-0.3, 0.12, -0.6], fov: 78 },
   { t: 0.58, pos: [-0.32, 0.12, -0.5], look: [-0.3, 0.12, -1.1], fov: 78 },
   // out of the gap, pull up toward the crescent and look down onto its rim
-  { t: 0.66, pos: [-0.15, 0.32, -1.0], look: [0.0, 0.1, -1.6], fov: 74 },
-  { t: 0.75, pos: [0.05, 0.9, -1.4], look: [0.0, 0.15, -1.62], fov: 60 },
-  // climb out over the rim and turn back to see the whole thing
-  { t: 0.86, pos: [-0.1, 1.9, -2.7], look: [0, 0, -0.9], fov: 50 },
-  { t: 1.0, pos: [-2.0, 4.6, -4.2], look: [0, -0.1, 0], fov: 34 },
+  { t: 0.66, pos: [-0.15, 0.32, -1.0], look: [0.0, 0.14, -1.7], fov: 74 },
+  { t: 0.75, pos: [0.0, 0.8, -1.35], look: [0.0, 0.1, -1.75], fov: 62 },
+  // rise and drift back, tilting down until the whole table is under the camera.
+  // It never turns around: the crescent stays at the top of the frame.
+  { t: 0.86, pos: [0.0, 2.4, -0.9], look: [0.0, 0.0, -1.3], fov: 50 },
+  { t: 1.0, pos: [0.0, 5.8, 0.55], look: [0.0, 0.0, -0.15], fov: 36 },
 ]
 
 /** Where the scan replaces the wireframe: the sweep crosses the table between these progress values. */

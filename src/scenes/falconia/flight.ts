@@ -22,6 +22,8 @@ export type Flight = {
   project(p: Vec3): { x: number; y: number; d: number } | null
   /** Called after each frame is drawn, with the smoothed progress. */
   onFrame(fn: (t: number) => void): void
+  /** Camera state at progress t, for checking the track. */
+  sample(t: number): { p: number[]; q: number[]; fov: number }
   setActive(active: boolean): void
   dispose(): void
 }
@@ -230,71 +232,142 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   })
 
   // --- camera path
+  /*
+   * Everything about the camera is baked once into samples over scroll progress, then
+   * smoothed, so speed, attitude and zoom all change continuously:
+   *  - distance along the route follows a speed profile taken from the keyframes,
+   *    eased in at the start and blurred, so speed never steps at a key;
+   *  - the height is lifted over the sand by a smooth envelope, not the raw height grid;
+   *  - attitude is the aircraft's: nose along travel at low level, bank from turn rate,
+   *    tan(bank) = v^2 * curvature / g; the resulting rotations are blurred as quaternions;
+   *  - field of view is interpolated between keys and blurred, so the zoom never stalls.
+   */
   const v = (a: Vec3) => new THREE.Vector3(...a)
   const posCurve = new THREE.CatmullRomCurve3(KEYS.map((k) => v(k.pos)), false, 'centripetal')
   const lookCurve = new THREE.CatmullRomCurve3(KEYS.map((k) => v(k.look)), false, 'centripetal')
-  const u = (t: number) => {
-    let i = 0
-    while (i < KEYS.length - 2 && t > KEYS[i + 1].t) i++
-    const f = seg(t, KEYS[i].t, KEYS[i + 1].t)
-    return { u: (i + f) / (KEYS.length - 1), i, f }
-  }
-  const fovAt = (t: number) => {
-    const { i, f } = u(t)
-    return KEYS[i].fov + (KEYS[i + 1].fov - KEYS[i].fov) * smooth(f)
-  }
+  const nk = KEYS.length
 
-  /*
-   * The track is baked once: positions sampled along the spline, lifted to clear the sand,
-   * smoothed, then given the attitude an aircraft flying it would have. Nose along the
-   * direction of travel at low level, so pitch follows climbs and dives; bank from the
-   * turn rate, tan(bank) = v^2 * curvature / g, at a constant notional airspeed.
-   */
-  const NS = 1600
-  const tx = new Float32Array(NS)
-  const ty = new Float32Array(NS)
-  const tz = new Float32Array(NS)
-  const lx = new Float32Array(NS)
-  const ly = new Float32Array(NS)
-  const lz = new Float32Array(NS)
-  const bank = new Float32Array(NS)
-  {
-    const q = new THREE.Vector3()
-    for (let i = 0; i < NS; i++) {
-      const t = i / (NS - 1)
-      posCurve.getPoint(u(t).u, q)
-      const g = ground(q.x, q.z)
-      tx[i] = q.x
-      ty[i] = g > -1 ? Math.max(q.y, g + CLEARANCE) : q.y
-      tz[i] = q.z
-      lookCurve.getPoint(u(t).u, q)
-      lx[i] = q.x
-      ly[i] = q.y
-      lz[i] = q.z
-    }
-    // smooth the height so terrain clearance never makes a kink, and never dips below it
-    const blur = (a: Float32Array, r: number) => {
-      const o = new Float32Array(a.length)
-      for (let i = 0; i < a.length; i++) {
+  const blur = (a: Float32Array, r: number, passes = 1) => {
+    let src = a
+    const wts: number[] = []
+    for (let k = -r; k <= r; k++) wts.push(Math.exp(-(k * k) / (0.5 * r * r)))
+    for (let p = 0; p < passes; p++) {
+      const o = new Float32Array(src.length)
+      for (let i = 0; i < src.length; i++) {
         let sum = 0
         let wsum = 0
         for (let k = -r; k <= r; k++) {
-          const j = Math.max(0, Math.min(a.length - 1, i + k))
-          const wk = Math.exp(-(k * k) / (0.5 * r * r))
-          sum += a[j] * wk
-          wsum += wk
+          const j = Math.max(0, Math.min(src.length - 1, i + k))
+          sum += src[j] * wts[k + r]
+          wsum += wts[k + r]
         }
         o[i] = sum / wsum
       }
-      return o
+      src = o
     }
-    const lifted = ty.slice()
-    for (let pass = 0; pass < 3; pass++) {
-      const b = blur(ty, 24)
-      for (let i = 0; i < NS; i++) ty[i] = Math.max(b[i], lifted[i])
+    return src
+  }
+
+  // arc length along the position spline, densely, to turn distance back into spline parameter
+  const NU = 6000
+  const arc = new Float32Array(NU)
+  {
+    const a = new THREE.Vector3()
+    const b = new THREE.Vector3()
+    posCurve.getPoint(0, a)
+    for (let i = 1; i < NU; i++) {
+      posCurve.getPoint(i / (NU - 1), b)
+      arc[i] = arc[i - 1] + a.distanceTo(b)
+      a.copy(b)
     }
-    ty.set(blur(ty, 10))
-    // signed heading change per unit of horizontal distance, then bank
+  }
+  const arcAtKey = (k: number) => arc[Math.round((k / (nk - 1)) * (NU - 1))]
+  const uAtArc = (d: number) => {
+    let lo = 0
+    let hi = NU - 1
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1
+      if (arc[mid] < d) lo = mid
+      else hi = mid
+    }
+    const f = arc[hi] > arc[lo] ? (d - arc[lo]) / (arc[hi] - arc[lo]) : 0
+    return (lo + f) / (NU - 1)
+  }
+
+  const NS = 2000
+  const tx = new Float32Array(NS)
+  const ty = new Float32Array(NS)
+  const tz = new Float32Array(NS)
+  const dist = new Float32Array(NS)
+  const fov = new Float32Array(NS)
+  const low = new Float32Array(NS)
+  const qx = new Float32Array(NS)
+  const qy = new Float32Array(NS)
+  const qz = new Float32Array(NS)
+  const qw = new Float32Array(NS)
+  {
+    const tOf = (i: number) => i / (NS - 1)
+    const keyAt = (t: number) => {
+      let i = 0
+      while (i < nk - 2 && t > KEYS[i + 1].t) i++
+      return i
+    }
+    // speed profile: constant within each pair of keys, eased in from rest, then blurred
+    const speed = new Float32Array(NS)
+    for (let i = 0; i < NS; i++) {
+      const t = tOf(i)
+      const k = keyAt(t)
+      speed[i] = (arcAtKey(k + 1) - arcAtKey(k)) / (KEYS[k + 1].t - KEYS[k].t)
+      speed[i] *= smooth(seg(t, 0, 0.05)) * (1 - smooth(seg(t, 0.93, 1)))
+    }
+    const sp = blur(speed, 70, 2)
+    const along = new Float32Array(NS)
+    for (let i = 1; i < NS; i++) along[i] = along[i - 1] + (sp[i - 1] + sp[i]) / 2
+    const total = arc[NU - 1]
+    const q = new THREE.Vector3()
+    const lx = new Float32Array(NS)
+    const ly = new Float32Array(NS)
+    const lz = new Float32Array(NS)
+    const fovRaw = new Float32Array(NS)
+    const lift = new Float32Array(NS)
+    for (let i = 0; i < NS; i++) {
+      const uu = uAtArc((along[i] / along[NS - 1]) * total)
+      posCurve.getPoint(uu, q)
+      tx[i] = q.x
+      ty[i] = q.y
+      tz[i] = q.z
+      const g = ground(q.x, q.z)
+      lift[i] = g > -1 ? Math.max(0, g + CLEARANCE - q.y) : 0
+      lookCurve.getPoint(uu, q)
+      lx[i] = q.x
+      ly[i] = q.y
+      lz[i] = q.z
+      const t = tOf(i)
+      const k = keyAt(t)
+      fovRaw[i] = KEYS[k].fov + (KEYS[k + 1].fov - KEYS[k].fov) * seg(t, KEYS[k].t, KEYS[k + 1].t)
+      low[i] = smooth(seg(t, 0.23, 0.36)) * (1 - smooth(seg(t, 0.52, 0.8)))
+    }
+    fov.set(blur(fovRaw, 70, 2))
+    // spline segments meet with slightly different parametric speeds; a light blur
+    // removes the leftover ripple at each key
+    for (const arr of [tx, ty, tz, lx, ly, lz]) arr.set(blur(arr, 10))
+    for (let i = 0; i < NS; i++) {
+      const g = ground(tx[i], tz[i])
+      lift[i] = g > -1 ? Math.max(0, g + CLEARANCE - ty[i]) : 0
+    }
+    // terrain clearance: widen each lift with a running maximum, then blur, so it stays
+    // above the sand without following the blocky height grid
+    const R = 60
+    const wide = new Float32Array(NS)
+    for (let i = 0; i < NS; i++) {
+      let m = 0
+      for (let k = Math.max(0, i - R); k <= Math.min(NS - 1, i + R); k++) m = Math.max(m, lift[k])
+      wide[i] = m
+    }
+    const lifted = blur(wide, R / 2, 2)
+    for (let i = 0; i < NS; i++) ty[i] += lifted[i]
+
+    // turn rate per unit of distance, for the bank
     const turn = new Float32Array(NS)
     for (let i = 1; i < NS - 1; i++) {
       const ax = tx[i] - tx[i - 1]
@@ -309,8 +382,64 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
       const cross = (az * bx - ax * bz) / (la * lb)
       turn[i] = Math.asin(Math.max(-1, Math.min(1, cross))) / ((la + lb) / 2)
     }
-    const k = blur(turn, 40)
-    for (let i = 0; i < NS; i++) bank[i] = Math.max(-0.7, Math.min(0.7, Math.atan(BANK * k[i])))
+    const kt = blur(turn, 50)
+
+    // attitude
+    const P0 = new THREE.Vector3()
+    const fwd = new THREE.Vector3()
+    const nose = new THREE.Vector3()
+    const heading = new THREE.Vector3(0, 0, -1)
+    const hint = new THREE.Vector3()
+    const right = new THREE.Vector3()
+    const up = new THREE.Vector3()
+    const m = new THREE.Matrix4()
+    const qq = new THREE.Quaternion()
+    const roll = new THREE.Quaternion()
+    const Z = new THREE.Vector3(0, 0, 1)
+    const prev = new THREE.Quaternion()
+    for (let i = 0; i < NS; i++) {
+      P0.set(tx[i], ty[i], tz[i])
+      fwd.set(lx[i], ly[i], lz[i]).sub(P0)
+      dist[i] = fwd.length()
+      fwd.normalize()
+      const a = Math.max(0, i - 4)
+      const b = Math.min(NS - 1, i + 4)
+      nose.set(tx[b] - tx[a], ty[b] - ty[a], tz[b] - tz[a])
+      if (nose.lengthSq() > 1e-12) {
+        // a drone camera on a gimbal: pitch follows the climb only a little, so a pull-up
+        // over the crescent keeps the ground in frame instead of filling it with sky
+        nose.normalize()
+        const hz = Math.hypot(nose.x, nose.z)
+        if (hz > 1e-6) {
+          const pitch = Math.atan2(nose.y, hz)
+          const p2 = pitch > 0 ? Math.min(pitch * 0.35, 0.12) : pitch
+          nose.set((nose.x / hz) * Math.cos(p2), Math.sin(p2), (nose.z / hz) * Math.cos(p2))
+        }
+        fwd.lerp(nose, low[i]).normalize()
+      }
+      // screen-up: world up when looking out, the heading when looking steeply down,
+      // so the picture never spins as the camera passes over the point it looks at
+      const flat = Math.hypot(fwd.x, fwd.z)
+      if (flat > 0.25) heading.set(fwd.x, 0, fwd.z).normalize()
+      const steep = smooth(seg(-fwd.y, 0.55, 0.97))
+      hint.set(0, 1, 0).multiplyScalar(1 - steep).addScaledVector(heading, steep).normalize()
+      right.crossVectors(fwd, hint).normalize()
+      up.crossVectors(right, fwd)
+      m.makeBasis(right, up, fwd.clone().negate())
+      qq.setFromRotationMatrix(m)
+      // bank, in full when the camera faces along the track
+      const nf = Math.hypot(nose.x, nose.z)
+      const facing = nf > 1e-6 && flat > 1e-6 ? Math.max(0, (nose.x * fwd.x + nose.z * fwd.z) / (nf * flat)) : 0
+      const bank = Math.max(-0.7, Math.min(0.7, Math.atan(BANK * kt[i])))
+      qq.multiply(roll.setFromAxisAngle(Z, bank * facing))
+      if (i > 0 && qq.dot(prev) < 0) qq.set(-qq.x, -qq.y, -qq.z, -qq.w)
+      prev.copy(qq)
+      qx[i] = qq.x
+      qy[i] = qq.y
+      qz[i] = qq.z
+      qw[i] = qq.w
+    }
+    for (const arr of [qx, qy, qz, qw]) arr.set(blur(arr, 60, 2))
   }
   const at = (a: Float32Array, t: number) => {
     const f = Math.max(0, Math.min(1, t)) * (NS - 1)
@@ -319,9 +448,8 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   }
 
   const P = new THREE.Vector3()
-  const L = new THREE.Vector3()
-  const N2 = new THREE.Vector3()
   const tmp = new THREE.Vector3()
+  const back = new THREE.Vector3()
 
   let target = 0
   let entry = 0
@@ -349,33 +477,20 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
 
   const place = (t: number) => {
     P.set(at(tx, t), at(ty, t), at(tz, t))
-    L.set(at(lx, t), at(ly, t), at(lz, t))
-    // narrow screens get pulled back a little during the aerial parts so the table fits
-    const aerial = 1 - seg(t, 0.18, 0.3) + seg(t, 0.84, 1)
-    if (w < h) P.sub(L).multiplyScalar(1 + 0.45 * Math.min(1, aerial)).add(L)
-
-    // low level: the camera is the aircraft's nose, looking where it is going
-    const low = smooth(seg(t, 0.25, 0.34)) * (1 - smooth(seg(t, 0.6, 0.72)))
-    const d = 0.004
-    N2.set(at(tx, t + d) - at(tx, t - d), at(ty, t + d) - at(ty, t - d), at(tz, t + d) - at(tz, t - d))
-    if (N2.lengthSq() > 1e-10) {
-      const lookDir = tmp.subVectors(L, P).normalize()
-      N2.normalize().lerp(lookDir, 1 - low).normalize()
-      L.copy(P).addScaledVector(N2, 0.5)
+    camera.quaternion.set(at(qx, t), at(qy, t), at(qz, t), at(qw, t)).normalize()
+    // narrow screens are pulled back during the aerial parts so the table fits
+    if (w < h) {
+      const aerial = 1 - smooth(seg(t, 0.16, 0.3)) + smooth(seg(t, 0.8, 1))
+      back.set(0, 0, 1).applyQuaternion(camera.quaternion)
+      P.addScaledVector(back, at(dist, t) * 0.45 * Math.min(1, aerial))
     }
     camera.position.copy(P)
-    camera.up.set(0, 1, 0)
-    camera.lookAt(L)
-    // the bank shows in full when the camera faces along the track, less when it looks elsewhere
-    N2.set(at(tx, t + d) - at(tx, t - d), 0, at(tz, t + d) - at(tz, t - d))
-    const view = tmp.subVectors(L, P).setY(0)
-    const facing = N2.lengthSq() > 1e-10 && view.lengthSq() > 1e-10 ? N2.normalize().dot(view.normalize()) : 0
-    camera.rotateZ(at(bank, t) * facing)
-    camera.fov = fovAt(t)
+    camera.fov = at(fov, t)
     camera.updateProjectionMatrix()
+    camera.updateMatrixWorld()
     shared.uCam.value.copy(P)
     // fog follows how far the camera can see: long in the air, short on the deck
-    const near = 1 - low
+    const near = 1 - at(low, t)
     shared.uFogRange.value.set(1.2 + 3.5 * near, 3.4 + 9 * near)
   }
 
@@ -413,6 +528,11 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     },
     onFrame(fn) {
       frameFns.push(fn)
+    },
+    sample(t) {
+      place(t)
+      const q = camera.quaternion
+      return { p: [P.x, P.y, P.z], q: [q.x, q.y, q.z, q.w], fov: camera.fov }
     },
     setActive(a) {
       if (a === active) return

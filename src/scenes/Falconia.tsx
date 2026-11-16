@@ -92,6 +92,7 @@ function FlightScene({ onFail }: { onFail: () => void }) {
   useEffect(() => {
     const w = window as unknown as { __falconia?: (t: number, snap?: boolean) => void }
     w.__falconia = (t, snap) => (snap ? flight.current?.jump(t, 1) : flight.current?.set(t, 1))
+    ;(window as unknown as { __falconiaSample?: unknown }).__falconiaSample = (t: number) => flight.current?.sample(t)
     return () => void delete w.__falconia
   }, [])
 
