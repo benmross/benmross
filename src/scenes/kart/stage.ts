@@ -269,7 +269,8 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   const wires: Wire[] = kart.wires.map((w) => {
     const curve = new THREE.CatmullRomCurve3(w.pts.map((p) => new THREE.Vector3(...p)), false, 'catmullrom', 0.22)
     const len = curve.getLength()
-    const geo = keep(new THREE.TubeGeometry(curve, Math.max(8, Math.round(len / 0.02)), w.r ?? 0.0055, 6, false))
+    const fine = w.id === 'usb'
+    const geo = keep(new THREE.TubeGeometry(curve, Math.max(8, Math.round(len / (fine ? 0.003 : 0.02))), w.r ?? 0.0055, fine ? 16 : 6, false))
     const mat = keep(
       new THREE.ShaderMaterial({
         vertexShader: WIRE_VERT,
@@ -290,7 +291,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     if (w.id === 'usb') {
       // the wheel's cable is a real cable the camera follows in: black, with its pulses added on top
       const r = w.r ?? 0.0055
-      kart.body.add(new THREE.Mesh(keep(new THREE.TubeGeometry(curve, Math.max(8, Math.round(len / 0.004)), r * 0.92, 14, false)), keep(new THREE.MeshStandardMaterial({ color: '#0d0d10', roughness: 0.5 }))))
+      kart.body.add(new THREE.Mesh(keep(new THREE.TubeGeometry(curve, Math.max(8, Math.round(len / 0.004)), r * 0.92, 14, false)), keep(new THREE.MeshStandardMaterial({ color: '#0b0b0d', roughness: 0.85 }))))
       mat.blending = THREE.AdditiveBlending
       mat.depthWrite = false
     }
@@ -479,6 +480,23 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     return (lo + f) / (NU - 1)
   }
 
+  // timing: each stretch gets scroll in proportion to how far it feels, plus a dwell either side of
+  // every card, so the felt speed stays even from the kart's scale down to the board's
+  const KEY_P: number[] = []
+  {
+    const w: number[] = []
+    for (let k = 0; k < nk - 1; k++) w.push(Math.pow(arcAtKey(k + 1) - arcAtKey(k), 0.85))
+    const mean = w.reduce((a, b) => a + b, 0) / w.length
+    KEYS.forEach((key, k) => {
+      if (key.stop === undefined) return
+      if (k > 0) w[k - 1] += 0.45 * mean
+      if (k < nk - 1) w[k] += 0.45 * mean
+    })
+    const total = w.reduce((a, b) => a + b, 0)
+    let acc = P0
+    KEY_P.push(acc)
+    for (const x of w) KEY_P.push((acc += ((P1 - P0) * x) / total))
+  }
   const NS = 3000
   const cx = new Float32Array(NS)
   const cy = new Float32Array(NS)
@@ -495,14 +513,14 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   {
     const keyAt = (p: number) => {
       let i = 0
-      while (i < nk - 2 && p > KEYS[i + 1].p) i++
+      while (i < nk - 2 && p > KEY_P[i + 1]) i++
       return i
     }
     const speed = new Float32Array(NS)
     for (let i = 0; i < NS; i++) {
       const p = pOf(i)
       const k = keyAt(p)
-      speed[i] = (arcAtKey(k + 1) - arcAtKey(k)) / (KEYS[k + 1].p - KEYS[k].p)
+      speed[i] = (arcAtKey(k + 1) - arcAtKey(k)) / (KEY_P[k + 1] - KEY_P[k])
       speed[i] *= sm(p, P0, P0 + 0.035) * (1 - sm(p, P1 - 0.03, P1))
     }
     const sp = blur(speed, 60, 3)
@@ -751,7 +769,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     board.signal.uniforms.uLevel.value = Math.max(inside, 0.6 * ghost)
     placeCamera(p, st)
     lamp.position.copy(cam.position)
-    lamp.intensity = 0.85 * inside
+    lamp.intensity = 0.85 * Math.max(inside, 0.8 * close)
     smokeMat.uniforms.uScale.value = (H * dpr) / (2 * Math.tan((cam.fov * Math.PI) / 360))
     for (const f of frameFns) f({ p, state: st, scale, stop, ghost, level })
     composer.render()

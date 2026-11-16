@@ -137,7 +137,7 @@ export function stateAt(t: number): KartState {
 
 export type V3 = [number, number, number]
 export type Key = {
-  /** Scroll progress at which the camera is here, roughly: speed is smoothed across keys. */
+  /** Scroll progress. Only the first and last are used: stage.ts times the keys between from how far each stretch feels. */
   p: number
   /**
    * Which frame pos and look are in. body: the kart's own frame, metres (x forward, y up, z right).
