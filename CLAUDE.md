@@ -27,7 +27,8 @@ npm run build
 - The Falconia scene is a scroll-driven WebGL flight (three.js, loaded only near the
   section) over the Scaniverse scan of the terrain table: wireframe first, then a sweep
   to the textured scan, with the photos pinned to places on the route. Route, timing and
-  vertical exaggeration are in `src/scenes/falconia/route.ts`. Reduce Motion or no WebGL
+  vertical exaggeration are in `src/scenes/falconia/route.ts`. Camera attitude is baked from
+  the track (nose along travel at low level, bank from turn rate), not animated over time. Reduce Motion or no WebGL
   falls back to the old stacked photos. `window.__falconia(t, true)` holds the camera at
   progress `t` for screenshots. The models in `public/media/falconia/model/` come from
   "Falconia V3.zip" in Drive via `scripts/falconia-model/build.sh` (level, crop, simplify,

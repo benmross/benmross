@@ -95,9 +95,17 @@ function FlightScene({ onFail }: { onFail: () => void }) {
     return () => void delete w.__falconia
   }, [])
 
+  // what each card is actually showing; eased in time so a fast scroll past a card's
+  // stretch of the route cannot flash it on for a frame
+  const shown = useRef<number[]>(STEPS.map(() => 0))
+  const lastFrame = useRef(0)
+
   function layoutCards(f: Flight, t: number) {
     const box = canvasRef.current?.getBoundingClientRect()
     if (!box) return
+    const now = performance.now()
+    const dt = Math.min(0.1, (now - lastFrame.current) / 1000)
+    lastFrame.current = now
     const W = box.width
     const H = box.height
     const narrow = W < 820
@@ -109,13 +117,15 @@ function FlightScene({ onFail }: { onFail: () => void }) {
       const dot = dots.current[i]
       if (!el || !line || !dot) return
       const [a, b] = s.on
-      const fade = Math.min(1, (t - a) / 0.025, (b - t) / 0.025)
-      const alpha = Math.max(0, fade)
+      const want = Math.max(0, Math.min(1, (t - a) / 0.03, (b - t) / 0.03))
+      const prev = shown.current[i]
+      // in over at least 0.3 s, out over at least 0.2 s
+      const alpha = want > prev ? Math.min(want, prev + dt / 0.3) : Math.max(want, prev - dt / 0.2)
+      shown.current[i] = alpha
+      if (want > bestA) ((bestA = want), (best = i))
       const p = alpha > 0 ? f.project(s.at) : null
-      if (alpha > bestA) ((bestA = alpha), (best = i))
       if (alpha <= 0) {
         el.style.opacity = '0'
-        el.style.visibility = 'hidden'
         line.style.opacity = '0'
         dot.style.opacity = '0'
         return
@@ -131,7 +141,6 @@ function FlightScene({ onFail }: { onFail: () => void }) {
       x += (px - W / 2) * 0.06
       y += (py - H / 2) * 0.05
       const rise = (1 - Math.min(1, (t - a) / 0.04)) * 24
-      el.style.visibility = 'visible'
       el.style.opacity = alpha.toFixed(3)
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${(y + rise).toFixed(1)}px, 0)`
       // leader from the card edge nearest the pinned point

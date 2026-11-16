@@ -650,9 +650,8 @@ button {
   margin: 0;
   width: min(25vw, 400px);
   opacity: 0;
-  visibility: hidden;
+  pointer-events: none;
   z-index: 2;
-  will-change: transform, opacity;
 }
 .fal3-card img {
   display: block;

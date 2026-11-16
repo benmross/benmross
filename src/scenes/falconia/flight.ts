@@ -9,7 +9,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
-import { CLEARANCE, EXAGGERATION, KEYS, SWEEP, type Vec3 } from './route'
+import { BANK, CLEARANCE, EXAGGERATION, KEYS, SWEEP, type Vec3 } from './route'
 
 const BASE = '/media/falconia/model/'
 
@@ -244,10 +244,83 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     return KEYS[i].fov + (KEYS[i + 1].fov - KEYS[i].fov) * smooth(f)
   }
 
+  /*
+   * The track is baked once: positions sampled along the spline, lifted to clear the sand,
+   * smoothed, then given the attitude an aircraft flying it would have. Nose along the
+   * direction of travel at low level, so pitch follows climbs and dives; bank from the
+   * turn rate, tan(bank) = v^2 * curvature / g, at a constant notional airspeed.
+   */
+  const NS = 1600
+  const tx = new Float32Array(NS)
+  const ty = new Float32Array(NS)
+  const tz = new Float32Array(NS)
+  const lx = new Float32Array(NS)
+  const ly = new Float32Array(NS)
+  const lz = new Float32Array(NS)
+  const bank = new Float32Array(NS)
+  {
+    const q = new THREE.Vector3()
+    for (let i = 0; i < NS; i++) {
+      const t = i / (NS - 1)
+      posCurve.getPoint(u(t).u, q)
+      const g = ground(q.x, q.z)
+      tx[i] = q.x
+      ty[i] = g > -1 ? Math.max(q.y, g + CLEARANCE) : q.y
+      tz[i] = q.z
+      lookCurve.getPoint(u(t).u, q)
+      lx[i] = q.x
+      ly[i] = q.y
+      lz[i] = q.z
+    }
+    // smooth the height so terrain clearance never makes a kink, and never dips below it
+    const blur = (a: Float32Array, r: number) => {
+      const o = new Float32Array(a.length)
+      for (let i = 0; i < a.length; i++) {
+        let sum = 0
+        let wsum = 0
+        for (let k = -r; k <= r; k++) {
+          const j = Math.max(0, Math.min(a.length - 1, i + k))
+          const wk = Math.exp(-(k * k) / (0.5 * r * r))
+          sum += a[j] * wk
+          wsum += wk
+        }
+        o[i] = sum / wsum
+      }
+      return o
+    }
+    const lifted = ty.slice()
+    for (let pass = 0; pass < 3; pass++) {
+      const b = blur(ty, 24)
+      for (let i = 0; i < NS; i++) ty[i] = Math.max(b[i], lifted[i])
+    }
+    ty.set(blur(ty, 10))
+    // signed heading change per unit of horizontal distance, then bank
+    const turn = new Float32Array(NS)
+    for (let i = 1; i < NS - 1; i++) {
+      const ax = tx[i] - tx[i - 1]
+      const az = tz[i] - tz[i - 1]
+      const bx = tx[i + 1] - tx[i]
+      const bz = tz[i + 1] - tz[i]
+      // 3D lengths, so a near-vertical dive does not read as a tight horizontal turn
+      const la = Math.hypot(ax, ty[i] - ty[i - 1], az)
+      const lb = Math.hypot(bx, ty[i + 1] - ty[i], bz)
+      if (la < 1e-6 || lb < 1e-6) continue
+      // y component of a x b; positive is a left turn
+      const cross = (az * bx - ax * bz) / (la * lb)
+      turn[i] = Math.asin(Math.max(-1, Math.min(1, cross))) / ((la + lb) / 2)
+    }
+    const k = blur(turn, 40)
+    for (let i = 0; i < NS; i++) bank[i] = Math.max(-0.7, Math.min(0.7, Math.atan(BANK * k[i])))
+  }
+  const at = (a: Float32Array, t: number) => {
+    const f = Math.max(0, Math.min(1, t)) * (NS - 1)
+    const i = Math.min(NS - 2, Math.floor(f))
+    return a[i] + (a[i + 1] - a[i]) * (f - i)
+  }
+
   const P = new THREE.Vector3()
   const L = new THREE.Vector3()
-  const ahead = new THREE.Vector3()
-  const behind = new THREE.Vector3()
+  const N2 = new THREE.Vector3()
   const tmp = new THREE.Vector3()
 
   let target = 0
@@ -259,7 +332,6 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   let active = false
   let raf = 0
   let last = 0
-  let roll = 0
   const frameFns: ((t: number) => void)[] = []
 
   const size = () => {
@@ -275,33 +347,30 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   const ro = new ResizeObserver(size)
   ro.observe(canvas)
 
-  const place = (t: number, time: number) => {
-    const { u: uu } = u(t)
-    posCurve.getPoint(uu, P)
-    lookCurve.getPoint(uu, L)
+  const place = (t: number) => {
+    P.set(at(tx, t), at(ty, t), at(tz, t))
+    L.set(at(lx, t), at(ly, t), at(lz, t))
     // narrow screens get pulled back a little during the aerial parts so the table fits
     const aerial = 1 - seg(t, 0.18, 0.3) + seg(t, 0.84, 1)
     if (w < h) P.sub(L).multiplyScalar(1 + 0.45 * Math.min(1, aerial)).add(L)
 
-    // keep the drone off the sand
-    const g = ground(P.x, P.z)
-    if (g > -1) P.y = Math.max(P.y, g + CLEARANCE)
-
-    // a little FPV life at low altitude: a soft wobble and banking into turns
-    const low = seg(t, 0.28, 0.36) * (1 - seg(t, 0.78, 0.86))
-    P.x += Math.sin(time * 1.7) * 0.004 * low
-    P.y += Math.sin(time * 2.3 + 1.0) * 0.003 * low
-    posCurve.getPoint(Math.min(1, uu + 0.01), ahead)
-    posCurve.getPoint(Math.max(0, uu - 0.01), behind)
-    const d1 = tmp.subVectors(ahead, P).setY(0)
-    const d0 = new THREE.Vector3().subVectors(P, behind).setY(0)
-    const turn = d0.lengthSq() > 1e-8 && d1.lengthSq() > 1e-8 ? d0.normalize().cross(d1.normalize()).y : 0
-    roll += (THREE.MathUtils.clamp(turn * 6, -0.5, 0.5) * low - roll) * 0.08
-
+    // low level: the camera is the aircraft's nose, looking where it is going
+    const low = smooth(seg(t, 0.25, 0.34)) * (1 - smooth(seg(t, 0.6, 0.72)))
+    const d = 0.004
+    N2.set(at(tx, t + d) - at(tx, t - d), at(ty, t + d) - at(ty, t - d), at(tz, t + d) - at(tz, t - d))
+    if (N2.lengthSq() > 1e-10) {
+      const lookDir = tmp.subVectors(L, P).normalize()
+      N2.normalize().lerp(lookDir, 1 - low).normalize()
+      L.copy(P).addScaledVector(N2, 0.5)
+    }
     camera.position.copy(P)
     camera.up.set(0, 1, 0)
     camera.lookAt(L)
-    camera.rotateZ(roll)
+    // the bank shows in full when the camera faces along the track, less when it looks elsewhere
+    N2.set(at(tx, t + d) - at(tx, t - d), 0, at(tz, t + d) - at(tz, t - d))
+    const view = tmp.subVectors(L, P).setY(0)
+    const facing = N2.lengthSq() > 1e-10 && view.lengthSq() > 1e-10 ? N2.normalize().dot(view.normalize()) : 0
+    camera.rotateZ(at(bank, t) * facing)
     camera.fov = fovAt(t)
     camera.updateProjectionMatrix()
     shared.uCam.value.copy(P)
@@ -321,7 +390,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     const sweep = terrainReady ? smooth(seg(cur, SWEEP[0], SWEEP[1])) : 0
     shared.uSweep.value = -2.0 + sweep * 4.2
     shared.uWire.value = 1 - seg(cur, SWEEP[1], SWEEP[1] + 0.04)
-    place(cur, now / 1000)
+    place(cur)
     renderer.render(scene, camera)
     for (const f of frameFns) f(cur)
   }
