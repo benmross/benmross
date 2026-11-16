@@ -370,7 +370,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   const kartPos = new THREE.Vector3()
   const yAxis = new THREE.Vector3(0, 1, 0)
   const toWorld = (v: THREE.Vector3, st: KartState) => v.applyAxisAngle(yAxis, st.yaw).add(kartPos.set(st.x, 0, st.z))
-  const cr = (a: number, b: number, c: number, d: number, u: number) => 0.5 * (2 * b + (c - a) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (3 * b - 3 * a + d - c) * u * u * u)
+  const cr = (a: number, b: number, c: number, d: number, u: number) => 0.5 * (2 * b + (c - a) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (3 * b - 3 * c + d - a) * u * u * u)
   const K = (i: number) => KEYS[Math.max(0, Math.min(KEYS.length - 1, i))]
   /** The tour camera at p, in the kart's frame. It eases into and out of every stop. */
   function tour(p: number, pos: THREE.Vector3, look: THREE.Vector3) {
@@ -381,6 +381,16 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     const f = (get: (k: (typeof KEYS)[number]) => number) => cr(get(K(i - 1)), get(K(i)), get(K(i + 1)), get(K(i + 2)), u)
     pos.set(f((k) => k.pos[0]), f((k) => k.pos[1]), f((k) => k.pos[2]))
     look.set(f((k) => k.look[0]), f((k) => k.look[1]), f((k) => k.look[2]))
+    // between stops, swing out and up so the move clears the cage instead of cutting through it
+    const b = Math.sin(Math.PI * lin) ** 1.5 * (i === 0 ? 0 : 1)
+    if (b > 0) {
+      const dx = pos.x - 0.1
+      const dz = pos.z
+      const r = Math.hypot(dx, dz) || 1
+      pos.x += (dx / r) * 0.75 * b
+      pos.z += (dz / r) * 0.75 * b
+      pos.y += 0.35 * b
+    }
     return lerp(KEYS[i].fov, KEYS[i + 1].fov, u)
   }
   // the opening shot: a long lens low on the outside of the turn

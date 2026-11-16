@@ -686,8 +686,13 @@ button {
 .kart3d-bus {
   position: absolute;
   right: var(--pad);
-  bottom: 60px;
+  top: 84px;
   width: min(430px, 36vw);
+  padding: 12px 14px;
+  background: rgba(16, 7, 7, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  backdrop-filter: blur(6px);
   z-index: 3;
   pointer-events: none;
   opacity: 0;
@@ -759,7 +764,7 @@ button {
 }
 @media (max-width: 820px), (orientation: portrait) {
   .kart3d-clock {
-    top: 14px;
+    top: 66px;
     width: 150px;
   }
   .kart3d-clock > b {
@@ -782,10 +787,11 @@ button {
     font-size: 13px;
   }
   .kart3d-bus {
-    top: 14px;
+    top: 66px;
     bottom: auto;
     right: var(--pad);
     width: calc(100vw - var(--pad) * 2 - 166px);
+    padding: 8px 10px;
   }
   .kart3d-legend {
     display: none;
