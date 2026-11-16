@@ -574,7 +574,16 @@ export async function createStage(
   }
   sizeArm()
   sizeOp()
-  const ro = new ResizeObserver(() => (sizeArm(), sizeOp()))
+  // Sizes are checked at the start of every frame, after the page has laid out the panels for this
+  // frame and before drawing. Resizing from a ResizeObserver instead would clear the canvas after it
+  // was drawn, and the arm view would blink out while it widens to full screen.
+  const fitSizes = () => {
+    if (armCanvas.clientWidth !== aw || armCanvas.clientHeight !== ah) sizeArm()
+    if (opCanvas.clientWidth !== ow || opCanvas.clientHeight !== oh) sizeOp()
+  }
+  const ro = new ResizeObserver(() => {
+    if (!active) fitSizes()
+  })
   ro.observe(armCanvas)
   ro.observe(opCanvas)
 
@@ -891,6 +900,9 @@ export async function createStage(
       }
       rockAt = rockPos(SEAM.from).lerp(rockAt, seam)
     }
+    // lay out the page for this frame first, then size the canvases to it, then draw
+    for (const f of frameFns) f({ p: cur, s, vel, spec, source: track.source })
+    fitSizes()
     const inWall = cur > WALL.terrain[0] - 0.005
     base.setVisible(inWall)
     base.setTerrain(smooth(seg(cur, WALL.terrain[0], WALL.terrain[1])))
@@ -902,7 +914,6 @@ export async function createStage(
       placeOperator(cur, s)
       opR.render(op, opCam)
     }
-    for (const f of frameFns) f({ p: cur, s, vel, spec, source: track.source })
   }
   const frame = (now: number) => {
     raf = requestAnimationFrame(frame)
