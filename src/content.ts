@@ -7,7 +7,7 @@ export const site = {
   /** What search results and link previews show. Keep the description under about 155 characters. */
   title: 'Ben Ross · Computer Science, University of Maryland',
   description:
-    'Ben Ross, computer science at the University of Maryland. Herald, UMD Loop, SMCS Kart, BenGPT, Sparrows, GNSS spoofing at ARL, Planet Falconia and emulsion.',
+    'Ben Ross, computer science at the University of Maryland. UMD Loop, Herald, SMCS Kart, BenGPT, Sparrows, GNSS spoofing at ARL, Planet Falconia and emulsion.',
   lines: [
     'Computer science, University of Maryland, class of 2029.',
     'Research apprentice, Army Research Laboratory, summer 2026.',
@@ -41,23 +41,6 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    id: 'herald',
-    title: 'Herald',
-    years: '2026 to now',
-    role: 'Author',
-    stack: 'Python, SQLite, Claude Code, Codex',
-    blurb:
-      'An open-source personal agent that runs on your own machine. It reads mail, calendar, messages, location and health into one ledger. Anything another person would see waits for a tap on your phone.',
-    stats: [
-      { value: '151k', label: 'facts in its ledger' },
-      { value: '13', label: 'sources' },
-      { value: 'MIT', label: 'license' },
-    ],
-    links: [{ label: 'Source', href: 'https://github.com/benmross/herald' }],
-    accent: '#f2a83b',
-    tint: '#15110a',
-  },
-  {
     id: 'loop',
     title: 'UMD Loop',
     titleLines: ['UMD', 'Loop'],
@@ -74,6 +57,23 @@ export const projects: Project[] = [
     links: [{ label: 'Arm controller source', href: 'https://github.com/benmross/armtrack' }],
     accent: '#a493ff',
     tint: '#0c0b14',
+  },
+  {
+    id: 'herald',
+    title: 'Herald',
+    years: '2026 to now',
+    role: 'Author',
+    stack: 'Python, SQLite, Claude Code, Codex',
+    blurb:
+      'An open-source personal agent that runs on your own machine. It reads mail, calendar, messages, location and health into one ledger. Anything another person would see waits for a tap on your phone.',
+    stats: [
+      { value: '151k', label: 'facts in its ledger' },
+      { value: '13', label: 'sources' },
+      { value: 'MIT', label: 'license' },
+    ],
+    links: [{ label: 'Source', href: 'https://github.com/benmross/herald' }],
+    accent: '#f2a83b',
+    tint: '#15110a',
   },
   {
     id: 'kart',
