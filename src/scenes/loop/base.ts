@@ -173,8 +173,8 @@ export function createBase(
         void main(){
           float d = distance(vW.xy, uCenter);
           if (d > uReveal) discard;
-          float edge = 1.0 - smoothstep(0.0, 0.35, uReveal - d);
-          vec3 c = mix(vC, uAccent, edge * 0.85);
+          float edge = 1.0 - smoothstep(0.0, min(0.3, uReveal * 0.08), uReveal - d);
+          vec3 c = mix(vC, uAccent, edge * 0.7);
           c = mix(c, uTint, smoothstep(7.0, 14.0, d));
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
