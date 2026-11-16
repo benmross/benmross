@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { ACT, seg, smooth, trackTime, trackerAt } from './timeline'
+import { ACT, SEAM, WALL, easeInOut, seg, smooth, trackTime, trackerAt } from './timeline'
+import { createBase } from './base'
 
 /**
  * The Loop section's two WebGL views, drawn from one baked Arm Pilot track:
@@ -234,25 +235,26 @@ export async function createStage(
 
   // ============================================================= arm world
   const arm = new THREE.Scene()
-  const armCam = new THREE.PerspectiveCamera(30, 1, 0.02, 40)
+  const armCam = new THREE.PerspectiveCamera(30, 1, 0.02, 60)
   armCam.up.set(0, 0, 1)
 
   // ground: a grid that fades out from the rover
+  let gridMat: THREE.ShaderMaterial | null = null
   {
     const g = keep(new THREE.PlaneGeometry(12, 12))
     const m = keep(
       new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        uniforms: { uColor: { value: FG }, uAccent: { value: accent } },
+        uniforms: { uColor: { value: FG }, uAccent: { value: accent }, uFade: { value: 1 } },
         vertexShader: `varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-        fragmentShader: `varying vec2 vP; uniform vec3 uColor;
+        fragmentShader: `varying vec2 vP; uniform vec3 uColor; uniform float uFade;
           float gridLine(vec2 p, float s){ vec2 g = abs(fract(p / s - 0.5) - 0.5) / fwidth(p / s); return 1.0 - min(min(g.x, g.y), 1.0); }
           void main(){
             float d = length(vP - vec2(0.0, 0.0));
             float fade = 1.0 - smoothstep(0.8, 4.2, d);
             float a = gridLine(vP, 0.25) * 0.10 + gridLine(vP, 1.0) * 0.10;
-            gl_FragColor = vec4(uColor, a * fade);
+            gl_FragColor = vec4(uColor, a * fade * uFade);
             #include <colorspace_fragment>
           }`,
       }),
@@ -260,6 +262,7 @@ export async function createStage(
     const plane = new THREE.Mesh(g, m)
     plane.position.z = G
     arm.add(plane)
+    gridMat = m
   }
 
   // how far the arm can reach, drawn on the ground; brightens when a target is out of range
@@ -417,6 +420,10 @@ export async function createStage(
     return new THREE.Vector3(from.x, from.y, z)
   }
   void relAt
+
+  // the ending: terrain, and the base station table with its screens
+  const base = createBase(arm, { G, spec, accent, tint, fg: FG, fill: fillMat, line: line(FG, 0.42), mobile: opts.mobile })
+  base.setVisible(false)
 
   // ============================================================= operator world (ARKit, y up)
   const op = new THREE.Scene()
@@ -596,7 +603,7 @@ export async function createStage(
     return [lerp(a[1], b[1], u), lerp(a[2], b[2], u), lerp(a[3], b[3], u)]
   }
 
-  function placeArm(p: number, s: Sample, vel: number[]) {
+  function placeArm(p: number, s: Sample, vel: number[], rockAt: THREE.Vector3) {
     yaw.rotation.z = s.joints[0]
     shoulder.rotation.y = -s.joints[1]
     elbow.rotation.y = -s.joints[2]
@@ -623,9 +630,14 @@ export async function createStage(
     pa.setXYZ(1, tg.x, tg.y, tg.z)
     pa.needsUpdate = true
     lag.computeLineDistances()
-    lagMat.opacity = show * Math.min(1, k.tip.distanceTo(tg) / 0.03) * 0.8
+    // the controller's overlays leave with the operator panel
+    const keepOverlays = 1 - seg(p, WALL.panel[0], WALL.panel[1])
+    targetMat.opacity *= keepOverlays
+    lagMat.opacity = show * Math.min(1, k.tip.distanceTo(tg) / 0.03) * 0.8 * keepOverlays
     lagMat.color.copy(s.reachable ? accent : RED)
-    reachMat.opacity = 0.14 + (s.reachable ? 0 : 0.6) * show
+    reachMat.opacity = (0.14 + (s.reachable ? 0 : 0.6) * show) * keepOverlays
+    ;(trail.material as THREE.LineBasicMaterial).opacity = 0.9 * keepOverlays
+    for (const m of ringMats) m.opacity *= 0.35 + 0.65 * keepOverlays
 
     // tip trail
     const tp = trailGeo.attributes.position as THREE.BufferAttribute
@@ -641,7 +653,7 @@ export async function createStage(
     tp.needsUpdate = true
     tc.needsUpdate = true
 
-    rock.position.copy(rockPos(s.t))
+    rock.position.copy(rockAt)
 
     // camera
     const [az, el, dist0] = camAt(p)
@@ -650,8 +662,33 @@ export async function createStage(
     const look = new THREE.Vector3(0.3, 0.12, 0.02)
     const A = (az * Math.PI) / 180
     const E = (el * Math.PI) / 180
-    armCam.position.set(look.x + dist * Math.cos(E) * Math.cos(A), look.y + dist * Math.cos(E) * Math.sin(A), look.z + dist * Math.sin(E))
-    armCam.lookAt(look)
+    const orbit = new THREE.Vector3(look.x + dist * Math.cos(E) * Math.cos(A), look.y + dist * Math.cos(E) * Math.sin(A), look.z + dist * Math.sin(E))
+    const sw = easeInOut(seg(p, WALL.swing[0], WALL.swing[1]))
+    if (sw <= 0) {
+      armCam.position.copy(orbit)
+      armCam.lookAt(look)
+      armCam.fov = 30
+    } else {
+      // swing round a pivot between the rover and the table, so the camera arcs rather than slides
+      const v = base.view(aspect)
+      const pivot = look.clone().lerp(v.look, 0.5)
+      const sph = (x: THREE.Vector3) => {
+        const d = x.clone().sub(pivot)
+        return { r: d.length(), az: Math.atan2(d.y, d.x), el: Math.asin(d.z / d.length()) }
+      }
+      const a0 = sph(orbit)
+      const a1 = sph(v.pos)
+      let daz = a1.az - a0.az
+      if (daz > Math.PI) daz -= 2 * Math.PI
+      if (daz < -Math.PI) daz += 2 * Math.PI
+      const r = lerp(a0.r, a1.r, sw) + Math.sin(sw * Math.PI) * 0.8
+      const az = a0.az + daz * sw
+      const el = lerp(a0.el, a1.el, sw) + Math.sin(sw * Math.PI) * 0.12
+      armCam.position.set(pivot.x + r * Math.cos(el) * Math.cos(az), pivot.y + r * Math.cos(el) * Math.sin(az), pivot.z + r * Math.sin(el))
+      armCam.lookAt(look.clone().lerp(v.look, smooth(sw)))
+      armCam.fov = lerp(30, v.fov, sw)
+    }
+    armCam.updateProjectionMatrix()
     armCam.updateMatrixWorld()
   }
 
@@ -833,12 +870,35 @@ export async function createStage(
 
   const draw = () => {
     const t = trackTime(cur)
-    const s = sample(track, t)
+    let s = sample(track, t)
     const s0 = sample(track, Math.max(0, t - 0.1))
     const vel = s.joints.map((v, j) => (v - s0.joints[j]) / 0.1)
-    placeArm(cur, s, vel)
+    let rockAt = rockPos(t)
+    // where the drive ends and the tracker replay begins, the arm moves across rather than jumping
+    const seam = cur > SEAM.at && cur < SEAM.at + SEAM.len ? smooth(seg(cur, SEAM.at, SEAM.at + SEAM.len)) : -1
+    if (seam >= 0) {
+      const e = sample(track, SEAM.from)
+      const L = (a: number[], b: number[]) => a.map((v, i) => lerp(v, b[i], seam))
+      s = {
+        ...s,
+        joints: L(e.joints, s.joints),
+        gripper: lerp(e.gripper, s.gripper, seam),
+        target: L(e.target, s.target) as [number, number, number],
+        p: L(e.p, s.p) as [number, number, number],
+        engaged: seam < 0.5 ? e.engaged : s.engaged,
+        limit: 0,
+        reachable: 1,
+      }
+      rockAt = rockPos(SEAM.from).lerp(rockAt, seam)
+    }
+    const inWall = cur > WALL.terrain[0] - 0.005
+    base.setVisible(inWall)
+    base.setTerrain(smooth(seg(cur, WALL.terrain[0], WALL.terrain[1])))
+    if (gridMat) gridMat.uniforms.uFade.value = 1 - seg(cur, WALL.terrain[0], WALL.terrain[0] + 0.03)
+    placeArm(cur, s, vel, rockAt)
+    if (cur > WALL.swing[0] - 0.01) base.update(cur, s.joints, s.gripper, armR, true)
     armR.render(arm, armCam)
-    if (cur < ACT.wall[0] + 0.06) {
+    if (cur < WALL.panel[1] + 0.01) {
       placeOperator(cur, s)
       opR.render(op, opCam)
     }
@@ -889,6 +949,7 @@ export async function createStage(
     dispose() {
       cancelAnimationFrame(raf)
       ro.disconnect()
+      base.dispose()
       for (const d of disposables) d.dispose()
       rings.length = 0
       armR.dispose()

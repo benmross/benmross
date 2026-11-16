@@ -195,7 +195,6 @@ export const loopScene = {
     { from: 9.5, text: 'Every joint is capped at 0.5 rad/s, so a fast hand leads and the arm catches up.' },
     { from: 13.2, text: 'Tilt and roll the phone and the wrist pitches and rolls with it.' },
     { from: 17.6, text: 'Past its reach the arm stops at the nearest pose it can make, and the phone buzzes.' },
-    { from: 22.2, text: 'Home sends it back to rest at its normal joint speeds.' },
   ],
   trackersTitle: 'Same arm, four ways to track the operator',
   /** In the order the scene shows them; status as in the armtrack README. */
@@ -206,7 +205,7 @@ export const loopScene = {
     { name: 'Marker wand', how: 'Printed ArUco cube, gyro in the grip', status: 'Verified in simulation; hardware being built' },
   ],
   wallTitle: 'The base station console',
-  wallNote: 'Five seats per mission, a readiness check, and one bitrate budget shared by every camera. Delivery mission shown, with simulated data.',
+  wallNote: 'Five seats per mission, a readiness check, and one bitrate budget shared by every camera. Delivery mission shown; the driver and drone screens show the rover\'s own view.',
   /** Delivery mission, left to right, as in the team console. */
   seats: ['Rover Technician', 'Arm Operator', 'Navigator', 'Drone', 'Driver'],
   readiness: ['Link', 'GNSS', 'Telemetry', 'Drive', 'Arm', 'Power', 'Cameras', 'CAN'],

@@ -4,7 +4,7 @@ import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
 import { img } from '../lib/media'
 import { loopScene as T } from '../content'
 import type { FrameInfo, Stage } from './loop/stage'
-import { ACT, ARM_SEAT, easeInOut, seg, trackerAt } from './loop/timeline'
+import { ACT, WALL, easeInOut, seg, trackerAt } from './loop/timeline'
 
 const ACCENT = '#a493ff'
 const TINT = '#0c0b14'
@@ -40,23 +40,13 @@ export function LoopScene() {
   return mode === 'stage' ? <StageScene onFail={() => setMode('still')} /> : <StillScene />
 }
 
-/** Screen layout, by scroll progress: the two views, then the console wall the arm view lands in. */
+/** Screen layout, by scroll progress: the two views, then the arm view alone, full screen. */
 function layout(p: number, W: number, H: number) {
   const narrow = W < 820 || W < H
   const op: Rect = narrow ? { x: 0, y: H * 0.06, w: W, h: H * 0.32 } : { x: 0, y: 0, w: W * 0.36, h: H }
   const arm0: Rect = narrow ? { x: 0, y: H * 0.38, w: W, h: H * 0.5 } : { x: W * 0.36, y: 0, w: W * 0.64, h: H }
-  // five seats side by side; on a phone only the first three, so they stay readable
-  const n = narrow ? 3 : 5
-  const gap = Math.max(6, W * 0.008)
-  const mh = Math.min(H * (narrow ? 0.56 : 0.66), (((W * 0.95 - (n - 1) * gap) / n) * 16) / 9)
-  const mw = (mh * 9) / 16
-  const x0 = (W - (n * mw + (n - 1) * gap)) / 2
-  const y0 = Math.max(narrow ? 150 : 150, (H - mh) / 2 + (narrow ? 40 : 40))
-  const monitors: Rect[] = [0, 1, 2, 3, 4].map((i) => ({ x: x0 + i * (mw + gap), y: y0, w: mw, h: mh }))
-  const m = monitors[ARM_SEAT]
-  const arm1: Rect = { x: m.x + mw * 0.025, y: m.y + mh * 0.135, w: mw * 0.95, h: mh * 0.42 }
-  const e = easeInOut(seg(p, 0.86, 0.95))
-  return { narrow, op, arm: lerpRect(arm0, arm1, e), monitors, mw, e }
+  const e = easeInOut(seg(p, WALL.panel[0], WALL.panel[1]))
+  return { narrow, op, arm: lerpRect(arm0, { x: 0, y: 0, w: W, h: H }, e), e }
 }
 
 function StageScene({ onFail }: { onFail: () => void }) {
@@ -75,11 +65,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const gauges = useRef<(HTMLDivElement | null)[]>([])
   const labels = useRef<(HTMLSpanElement | null)[]>([])
   const leaders = useRef<(SVGLineElement | null)[]>([])
-  const wall = useRef<HTMLDivElement>(null)
   const wallHead = useRef<HTMLDivElement>(null)
-  const monitors = useRef<(HTMLDivElement | null)[]>([])
-  const miniJoints = useRef<(HTMLElement | null)[]>([])
-  const bw = useRef<(HTMLElement | null)[]>([])
   const stage = useRef<Stage | null>(null)
   const progress = useSceneProgress(ref)
   const near = useNearViewport(ref, '120% 0px')
@@ -129,8 +115,11 @@ function StageScene({ onFail }: { onFail: () => void }) {
     const L = layout(p, W, H)
     place(opBox.current, L.op)
     place(armBox.current, L.arm)
-    const inWall = seg(p, ACT.wall[0], ACT.wall[0] + 0.03)
-    if (opBox.current) opBox.current.style.opacity = (1 - inWall).toFixed(3)
+    const inWall = seg(p, WALL.panel[0], WALL.panel[0] + 0.02)
+    if (opBox.current) {
+      opBox.current.style.opacity = (1 - seg(p, WALL.panel[0], WALL.panel[1] - 0.01)).toFixed(3)
+      opBox.current.style.visibility = p > WALL.panel[1] ? 'hidden' : 'visible'
+    }
     if (hud.current) hud.current.style.opacity = (1 - inWall).toFixed(3)
 
     // status chip
@@ -176,8 +165,6 @@ function StageScene({ onFail }: { onFail: () => void }) {
       g.dataset.capped = sp > 0.96 ? '1' : '0'
       const val = g.querySelector('b')
       if (val) val.textContent = `${deg >= 0 ? '+' : ''}${deg.toFixed(0)}°`
-      const mj = miniJoints.current[j]
-      if (mj) mj.style.setProperty('--u', u.toFixed(4))
     })
     const src = hud.current?.querySelector('.loop-src')
     if (src) src.textContent = source === 'recorded' ? T.recorded : T.scripted
@@ -209,58 +196,16 @@ function StageScene({ onFail }: { onFail: () => void }) {
       ln.style.opacity = (la * 0.7).toFixed(3)
     })
 
-    // the console wall
-    if (wall.current) wall.current.style.visibility = p > ACT.wall[0] ? 'visible' : 'hidden'
-    if (p > ACT.wall[0]) {
-      if (wall.current) wall.current.style.setProperty('--mw', `${L.mw.toFixed(1)}px`)
-      L.monitors.forEach((r, i) => {
-        const el = monitors.current[i]
-        if (!el) return
-        place(el, r)
-        const a = seg(p, 0.85 + Math.abs(i - ARM_SEAT) * 0.012, 0.875 + Math.abs(i - ARM_SEAT) * 0.012)
-        el.style.opacity = (i < (L.narrow ? 3 : 5) ? a : 0).toFixed(3)
-      })
-      if (wallHead.current) {
-        wallHead.current.style.opacity = seg(p, 0.9, 0.93).toFixed(3)
-        wallHead.current.style.transform = `translate3d(${L.monitors[0].x.toFixed(1)}px, ${(L.monitors[0].y - (L.narrow ? 70 : 84)).toFixed(1)}px, 0)`
-      }
-      // camera bitrates drift a little, deterministically with scroll
-      bw.current.forEach((b, i) => {
-        if (!b) return
-        const u = 0.55 + 0.35 * Math.abs(Math.sin(i * 1.7 + p * 40 + Math.sin(p * 13 + i)))
-        b.style.setProperty('--u', u.toFixed(3))
-      })
-    }
+    // the base station title
+    if (wallHead.current) wallHead.current.style.opacity = seg(p, WALL.title[0], WALL.title[1]).toFixed(3)
   }
 
   return (
     <div ref={ref} className="scene loop" style={{ height: '900vh' }}>
       <div className="scene-sticky loop-sticky">
-        <div ref={wall} className="loop-wall" aria-hidden>
-          <div ref={wallHead} className="loop-wall-head">
-            <h3>{T.wallTitle}</h3>
-            <p>{T.wallNote}</p>
-          </div>
-          {T.seats.map((seat, i) => (
-            <div key={seat} className="loop-mon" ref={(el) => void (monitors.current[i] = el)}>
-              <div className="mon-band">
-                <div>
-                  <small>
-                    {T.console.screen} {i + 1} · {T.console.mission}
-                  </small>
-                  <strong>{seat}</strong>
-                </div>
-                <span className="mon-cell">
-                  <small>{T.console.link}</small>−66
-                </span>
-                <span className="mon-cell">
-                  <small>{T.console.battery}</small>94
-                </span>
-                <span className="mon-stop">{T.console.stop}</span>
-              </div>
-              <Monitor seat={i} joints={miniJoints} bw={bw} />
-            </div>
-          ))}
+        <div ref={wallHead} className="loop-wall-head">
+          <h3>{T.wallTitle}</h3>
+          <p>{T.wallNote}</p>
         </div>
 
         <div ref={opBox} className="loop-op">
@@ -321,139 +266,6 @@ function StageScene({ onFail }: { onFail: () => void }) {
             ))}
             <p className="loop-src">{T.scripted}</p>
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Tabs({ names, on = 0 }: { names: readonly string[]; on?: number }) {
-  return (
-    <>
-      {names.map((n, i) => (
-        <span key={n} className={i === on ? 'on' : undefined}>
-          {n}
-        </span>
-      ))}
-    </>
-  )
-}
-
-/** The schematic contents of each console seat; text from content.ts. */
-function Monitor({
-  seat,
-  joints,
-  bw,
-}: {
-  seat: number
-  joints: React.MutableRefObject<(HTMLElement | null)[]>
-  bw: React.MutableRefObject<(HTMLElement | null)[]>
-}) {
-  if (seat === 0)
-    return (
-      <div className="mon-body">
-        <div className="mon-tabs">
-          <Tabs names={T.console.tabs[0]} />
-        </div>
-        <div className="mon-panel">
-          <small>{T.console.readiness}</small>
-          <div className="mon-ready">
-            {T.readiness.map((r) => (
-              <span key={r}>
-                {r}
-                <em>OK</em>
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="mon-panel grow">
-          <small>{T.console.bandwidth}</small>
-          {T.cameras.map((c, i) => (
-            <div key={c} className="mon-bw" ref={(el) => void (bw.current[i] = el)}>
-              <span>{c}</span>
-              <i />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  if (seat === 1)
-    return (
-      <div className="mon-body">
-        <div className="mon-tabs">
-          <Tabs names={T.console.tabs[1]} on={1} />
-        </div>
-        <div className="mon-panel mon-hole" />
-        <div className="mon-panel grow">
-          <small>{T.console.armJoints}</small>
-          {T.joints.map((j, i) => (
-            <div key={j} className="mon-joint" ref={(el) => void (joints.current[i] = el)}>
-              <span>{j}</span>
-              <i />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  if (seat === 2)
-    return (
-      <div className="mon-body">
-        <div className="mon-tabs">
-          <Tabs names={T.console.tabs[2]} />
-        </div>
-        <div className="mon-panel grow">
-          <svg viewBox="0 0 100 160" className="mon-map" preserveAspectRatio="xMidYMid slice">
-            {[20, 40, 60, 80].map((x) => (
-              <line key={'v' + x} x1={x} y1={0} x2={x} y2={160} />
-            ))}
-            {[20, 40, 60, 80, 100, 120, 140].map((y) => (
-              <line key={'h' + y} x1={0} y1={y} x2={100} y2={y} />
-            ))}
-            <path d="M22 132 C 30 110, 52 112, 58 92 S 70 58, 78 40" className="route" />
-            {[
-              [22, 132],
-              [58, 92],
-              [78, 40],
-            ].map(([x, y]) => (
-              <circle key={x} cx={x} cy={y} r={3.2} />
-            ))}
-            <path d="M40 112 l5 -9 l5 9 z" className="rover" />
-          </svg>
-        </div>
-      </div>
-    )
-  if (seat === 3)
-    return (
-      <div className="mon-body">
-        <div className="mon-tabs">
-          <Tabs names={T.console.tabs[3]} />
-        </div>
-        <div className="mon-panel grow mon-feed">
-          <small>{T.console.droneFeed}</small>
-        </div>
-        <div className="mon-panel">
-          <small>{T.console.battery}</small>
-          <div className="mon-bw static">
-            <span>71%</span>
-            <i />
-          </div>
-        </div>
-      </div>
-    )
-  return (
-    <div className="mon-body">
-      <div className="mon-tabs">
-        <Tabs names={T.console.tabs[4]} />
-      </div>
-      <div className="mon-panel grow mon-feed">
-        <small>{T.console.driveFeeds[0]}</small>
-      </div>
-      <div className="mon-split">
-        <div className="mon-panel mon-feed">
-          <small>{T.console.driveFeeds[1]}</small>
-        </div>
-        <div className="mon-panel mon-feed">
-          <small>{T.console.driveFeeds[2]}</small>
         </div>
       </div>
     </div>

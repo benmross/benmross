@@ -66,8 +66,7 @@ KEYS = [
     (21.9, (0.0, 0.08, -0.34), 15, 0, 0, 0, 1.0),       # thumb up
     (22.2, (0.0, 0.08, -0.34), 15, 0, 0, 0, 1.0),
 ]
-HOME_AT = 22.4
-END = 27.0
+END = 22.6  # no Home press: the session ends with the thumb up after the out-of-reach hold
 
 
 def scripted() -> list[dict]:
@@ -102,7 +101,6 @@ def scripted() -> list[dict]:
         out.append({"rx": t, "msg": {
             "t": t, "pos": (pos + tp[i] * tremor).tolist(), "rot": R.tolist(),
             "engaged": bool(live), "tracking": "normal", "grip_open": float(grip),
-            "home": 1 if t >= HOME_AT else 0,
         }})
     return out
 

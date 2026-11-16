@@ -35,16 +35,19 @@ npm run build
   WebP texture, meshopt).
 - The Loop scene (`src/scenes/Loop.tsx`, `src/scenes/loop/`) replays an Arm Pilot session against
   scroll: the operator's phone (or, in the tracker comparison, a stereo or mono hand or the marker
-  wand) on the left, the rover arm on the right, then the arm view lands in the Arm Operator seat of
-  a schematic Delivery-mission console. The arm is never animated by hand: `scripts/loop-track/bake.py`
+  wand) on the left, the rover arm on the right. At the end the operator panel goes, Mars-like ground
+  spreads out from under the rover, and the camera swings to a base station table of five monitors
+  running the Delivery-mission console (`src/scenes/loop/base.ts`): the screens are drawn on canvases,
+  Arm Operator from the live joint angles, and Driver and Drone are render targets from cameras on and
+  above the rover. The arm is never animated by hand: `scripts/loop-track/bake.py`
   feeds every phone packet through armtrack's own controller (clutch, IK, 0.5 rad/s joint caps) and
   writes `public/media/loop/track.json`. Record a real session with
   `armtrack phone --record session.jsonl` and bake it with
   `uv run --project ../stereo-hand python scripts/loop-track/bake.py session.jsonl [--trim A B]`;
   `--scripted` rebuilds the stand-in. Act boundaries and the track seconds each act plays are in
   `src/scenes/loop/timeline.ts`. `window.__loop(t)` holds the scene at progress `t`. Reduce Motion or
-  no WebGL shows a still from the armtrack demo. The console is drawn, not screenshots: the team
-  repositories are private.
+  no WebGL shows a still from the armtrack demo. The console screens are drawn, not screenshots: the
+  team repositories are private. The scripted session has no Home press, on Ben's request (16 Nov 2026).
 
 ## Search and link previews
 

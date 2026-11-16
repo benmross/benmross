@@ -6,18 +6,29 @@
 
 export const ACT = {
   intro: [0, 0.07],
-  drive: [0.07, 0.64],
-  trackers: [0.64, 0.84],
-  wall: [0.84, 1],
+  drive: [0.07, 0.6],
+  trackers: [0.6, 0.8],
+  wall: [0.8, 1],
 } as const
 
-/** Track seconds each act plays. The tracker comparison replays the pick and place once. */
+/** Inside the last act: the operator panel goes, the ground turns to terrain, the camera swings to the base station. */
+export const WALL = {
+  panel: [0.8, 0.835],
+  terrain: [0.825, 0.88],
+  swing: [0.865, 0.965],
+  title: [0.94, 0.97],
+} as const
+
+/** Track seconds each act plays. Where two acts do not meet in time, the stage blends the arm across the seam. */
 const SPANS: { p: readonly [number, number]; t: [number, number] }[] = [
   { p: ACT.intro, t: [0, 0] },
-  { p: ACT.drive, t: [0, 27] },
-  { p: ACT.trackers, t: [1.7, 16.4] },
-  { p: ACT.wall, t: [22.2, 27] },
+  { p: ACT.drive, t: [0, 22.4] },
+  { p: ACT.trackers, t: [1.7, 13.2] },
+  { p: ACT.wall, t: [13.2, 17.8] },
 ]
+
+/** Scroll progress over which the arm blends from where the drive ended into the tracker replay. */
+export const SEAM = { at: ACT.trackers[0], len: 0.03, from: 22.4 }
 
 export const seg = (v: number, a: number, b: number) => Math.max(0, Math.min(1, (v - a) / (b - a)))
 export const smooth = (x: number) => x * x * (3 - 2 * x)
@@ -38,5 +49,5 @@ export function trackerAt(p: number): number {
   return Math.min(TRACKER_COUNT - 1, u * TRACKER_COUNT)
 }
 
-/** The seat the arm view lands in at the end (Arm Operator, in content.ts loopScene.seats). */
+/** The seat whose screen draws the arm live (Arm Operator, in content.ts loopScene.seats). */
 export const ARM_SEAT = 1
