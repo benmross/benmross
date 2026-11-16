@@ -11,9 +11,11 @@ import { SparrowsScene } from './scenes/Sparrows'
 import { GnssScene } from './scenes/Gnss'
 import { FalconiaScene } from './scenes/Falconia'
 import { EmulsionScene } from './scenes/Emulsion'
+import { LoopScene } from './scenes/Loop'
 
 const scenes: Record<string, () => React.ReactNode> = {
   herald: () => <HeraldScene />,
+  loop: () => <LoopScene />,
   kart: () => <KartScene />,
   bengpt: () => <BenGPTScene />,
   sparrows: () => <SparrowsScene />,
