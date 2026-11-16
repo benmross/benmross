@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { ACT, SEAM, WALL, easeInOut, seg, smooth, trackTime, trackerAt } from './timeline'
 import { createBase } from './base'
+import { buildPhone } from './phone'
 
 /**
  * The Loop section's two WebGL views, drawn from one baked Arm Pilot track:
@@ -455,23 +456,8 @@ export async function createStage(
   // the phone: in its own ARKit camera frame (x bottom edge, y right side, z out of the screen)
   const phoneG = new THREE.Group()
   op.add(phoneG)
-  const phoneLine = line(FG, 0.85)
-  box(0.155, 0.075, 0.008, phoneG, phoneLine)
-  const screen = new THREE.Mesh(keep(new THREE.PlaneGeometry(0.145, 0.066)), keep(new THREE.MeshBasicMaterial({ color: tint.clone().lerp(FG, 0.1), transparent: true })))
-  screen.position.z = 0.0042
-  phoneG.add(screen)
-  const padMat = keep(new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.2 }))
-  const pad = new THREE.Mesh(keep(new THREE.CircleGeometry(0.013, 32)), padMat)
-  pad.position.set(0.045, 0.014, 0.0045)
-  phoneG.add(pad)
-  const padRing = circle(0.013, 'z', accentLine)
-  padRing.position.copy(pad.position)
-  phoneG.add(padRing)
-  const slider = new THREE.Line(keep(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.05, -0.02, 0.0045), new THREE.Vector3(0.05, -0.02, 0.0045)])), line(FG, 0.4))
-  phoneG.add(slider)
-  const knob = new THREE.Mesh(keep(new THREE.CircleGeometry(0.0055, 20)), keep(new THREE.MeshBasicMaterial({ color: FG })))
-  knob.position.set(0, -0.02, 0.005)
-  phoneG.add(knob)
+  const phone = buildPhone({ fill: fillMat, line, keep, fg: FG, accent, tint })
+  phoneG.add(phone.group)
 
   // operator trail: the last three seconds, accent while the thumb is down
   const OTRAIL = 90
@@ -726,10 +712,7 @@ export async function createStage(
     phoneG.quaternion.copy(tmpQ)
     phoneG.visible = wPhone > 0.01
     phoneG.scale.setScalar(1.5 + 0.3 * wPhone)
-    phoneLine.opacity = 0.85 * wPhone
-    padMat.opacity = (s.engaged ? 0.85 : 0.12) * wPhone
-    knob.position.x = -0.05 + 0.1 * s.gripCmd
-    ;(screen.material as THREE.MeshBasicMaterial).opacity = wPhone
+    phone.set(wPhone, !!s.engaged, s.gripCmd, frameDt)
 
     // operator trail, three seconds
     const op_ = oTrailGeo.attributes.position as THREE.BufferAttribute
@@ -875,6 +858,7 @@ export async function createStage(
   let raf = 0
   let last = 0
   let active = false
+  let frameDt = 1
   const frameFns: ((f: FrameInfo) => void)[] = []
 
   const draw = () => {
@@ -920,6 +904,7 @@ export async function createStage(
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016)
     last = now
     cur += (target_ - cur) * (1 - Math.exp(-dt * 8))
+    frameDt = dt
     draw()
   }
 
@@ -929,6 +914,7 @@ export async function createStage(
     },
     jump(p) {
       target_ = cur = p
+      frameDt = 1
       draw()
     },
     setActive(a) {
