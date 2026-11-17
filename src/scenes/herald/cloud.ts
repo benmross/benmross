@@ -18,7 +18,9 @@ uniform float uScan;
 uniform vec3 uWave;
 uniform float uEvid; uniform vec2 uEv[5]; uniform vec2 uAnswer; uniform float uPull;
 uniform vec4 uClock; uniform float uHand;
-uniform vec2 uFrom, uTo; uniform float uSend;
+uniform vec2 uFrom, uTo;
+#define HIST 48
+uniform float uHist[HIST]; uniform float uHistT, uHistDt;
 out float vB;
 
 vec2 rot(vec2 v, float a) { float c = cos(a), s = sin(a); return vec2(c * v.x - s * v.y, s * v.x + c * v.y); }
@@ -84,12 +86,22 @@ void main() {
       pos = mix(pos, bez(ev, c, uAnswer, k), uPull);
       hot = uPull;
     }
-    if (uSend > 0.0) {
-      vec2 c = mix(uFrom, uTo, 0.5) + vec2((aRnd.z - 0.5) * 90.0, -60.0 - aRnd.w * 80.0);
-      pos = mix(pos, bez(uFrom, c, uTo, k), uSend);
-      hot = max(hot, uSend);
+    // in the clock, a courier shows only on trips that left the hand while a job was sending, so the
+    // stream starts and stops at the hand and the last ones still finish their flight
+    float ck2 = smoothstep(2.6, 2.95, s);
+    if (ck2 > 0.0) {
+      float left = uTime - k / (0.32 + 0.3 * aRnd.y);
+      int j = left > uHistT ? 0 : min(int(floor((uHistT - left) / uHistDt)) + 1, HIST - 1);
+      float on = step(0.04 + 0.92 * fract(aRnd.w * 13.7 + aRnd.z * 5.1), uHist[j]);
+      float env = smoothstep(0.0, 0.05, k) * (1.0 - smoothstep(0.92, 1.0, k));
+      if (on > 0.0) {
+        vec2 c = mix(uFrom, uTo, 0.5) + vec2((aRnd.z - 0.5) * 90.0, -60.0 - aRnd.w * 80.0);
+        pos = bez(uFrom, c, uTo, k);
+        hot = 1.0;
+      }
+      b *= mix(1.0, on * env, ck2);
     }
-    b += hot * (1.8 + 1.4 * sin(k * 3.14159));
+    b += hot * (1.8 + 1.4 * sin(k * 3.14159)) * (ck2 > 0.0 ? smoothstep(0.0, 0.05, k) * (1.0 - smoothstep(0.92, 1.0, k)) : 1.0);
     size += hot * 1.8 * uScale;
   }
 
@@ -176,7 +188,7 @@ export function createCloud(canvas: HTMLCanvasElement, n: number): Cloud {
   const u = {
     res: U('uRes'), time: U('uTime'), stage: U('uStage'), dpr: U('uDpr'), scale: U('uScale'), mouse: U('uMouse'),
     cloud: U('uCloud'), scan: U('uScan'), wave: U('uWave'), evid: U('uEvid'), ev: U('uEv'), answer: U('uAnswer'),
-    pull: U('uPull'), clock: U('uClock'), hand: U('uHand'), from: U('uFrom'), to: U('uTo'), send: U('uSend'), fade: U('uFade'),
+    pull: U('uPull'), clock: U('uClock'), hand: U('uHand'), from: U('uFrom'), to: U('uTo'), hist: U('uHist'), histT: U('uHistT'), histDt: U('uHistDt'), fade: U('uFade'),
   }
   const vao = gl.createVertexArray()!
   gl.bindVertexArray(vao)
@@ -199,6 +211,12 @@ export function createCloud(canvas: HTMLCanvasElement, n: number): Cloud {
   let L: Layout | null = null
   let dpr = 1
   let born = -1
+  // how hard the jobs were sending over the last few seconds, newest first: hist[0] is now, hist[j]
+  // the value at histT - (j - 1) * HIST_DT. Couriers read the slot from when they left the hand.
+  const HIST = 48
+  const HIST_DT = 0.08
+  const hist = new Float32Array(HIST)
+  let histT = -1
   const resize = (lay: Layout, d: number) => {
     L = lay
     dpr = d
@@ -243,7 +261,20 @@ export function createCloud(canvas: HTMLCanvasElement, n: number): Cloud {
     gl.uniform1f(u.hand, s.stage > 2.5 ? s.hand : -10)
     gl.uniform2f(u.from, x.from[0], x.from[1])
     gl.uniform2f(u.to, x.to[0], x.to[1])
-    gl.uniform1f(u.send, s.send)
+    const send = s.stage > 2.9 ? s.send : 0
+    if (histT < 0 || x.time < histT - 1) {
+      hist.fill(send)
+      histT = x.time
+    }
+    while (x.time - histT >= HIST_DT) {
+      hist.copyWithin(2, 1)
+      hist[1] = hist[0]
+      histT += HIST_DT
+    }
+    hist[0] = send
+    gl.uniform1fv(u.hist, hist)
+    gl.uniform1f(u.histT, histT)
+    gl.uniform1f(u.histDt, HIST_DT)
     gl.drawArrays(gl.POINTS, 0, n)
   }
 

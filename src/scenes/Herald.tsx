@@ -256,18 +256,14 @@ function Stage({ onFail }: { onFail: () => void }) {
     show(note.current, seg(p, PH.toClus[1] - 0.03, PH.ask[0]))
 
     // couriers carry each job's result to its line in the chat
-    let from: [number, number] = [0, 0]
-    let to: [number, number] = [0, 0]
-    if (s.job >= 0) {
-      const a = (JOB_HOURS[s.job] / 24) * Math.PI * 2 + 0.05
-      const k = (r0 + r1) / 2
-      from = [cx + Math.sin(a) * k, cy - Math.cos(a) * k]
-      const target = s.job >= T.jobs.length - 1 ? digest.current : jobs.current[s.job]
-      const b = box.current?.getBoundingClientRect()
-      const t = target?.getBoundingClientRect()
-      if (b && t && t.height > 0) to = [t.left - b.left + Math.min(40, t.width / 2), t.top - b.top + t.height / 2]
-      else to = [r.x + 30, r.y + r.h / 2]
-    }
+    // they always leave from where the hand points now
+    const k = (r0 + r1) / 2
+    const from: [number, number] = [cx + Math.sin(s.hand) * k, cy - Math.cos(s.hand) * k]
+    let to: [number, number] = [r.x + 30, r.y + r.h / 2]
+    const target = s.job < 0 ? jobs.current[0] : s.job >= T.jobs.length - 1 ? digest.current : jobs.current[s.job]
+    const b = box.current?.getBoundingClientRect()
+    const t = target?.getBoundingClientRect()
+    if (b && t && t.height > 0) to = [t.left - b.left + Math.min(40, t.width / 2), t.top - b.top + t.height / 2]
     return { from, to }
   }
 

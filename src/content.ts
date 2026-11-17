@@ -326,7 +326,7 @@ export const heraldScene = {
   label:
     'A cloud of points of light, each a thing Herald has read. It lays itself out along a timeline by source, gathers into clusters to answer a question, then becomes a clock and runs its overnight jobs.',
   steps: ['Everything it reads', 'Remembers', 'Answers', 'Never sleeps'],
-  intro: 'Every email, event, message and step it has read is a point of light.',
+  intro: 'Every email, event, message and step it has read, in one place.',
   line: 'Laid out by source and time. Years of it, and more every hour.',
   past: 'Years ago',
   now: 'Today',

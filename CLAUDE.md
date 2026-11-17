@@ -41,7 +41,9 @@ npm run build
 - The Herald scene (`src/scenes/Herald.tsx`, `src/scenes/herald/`) is one cloud of points of light
   (raw WebGL2, `cloud.ts`) that keeps rearranging: a turning ball, a timeline by source, clusters by
   source where a sample question lights its evidence and couriers stream it into the answer, then a
-  24-hour clock whose hand runs the overnight jobs, each job's points flying into its line in the chat.
+  24-hour clock whose hand runs the overnight jobs, each job's points leaving from where the hand points and
+  flying into its line in the chat. Couriers show only on trips that left the hand while a job was sending
+  (`cloud.ts` keeps a few seconds of send history), so the stream starts and stops at the hand.
   Every point holds its place in all four layouts (`layout.ts`), and the vertex shader blends neighbours
   with a per-point delay and a curved, turbulent flight. Phases are in `timeline.ts` PH. The chat,
   labels and cards are DOM laid over it from the same layout. Nothing in it is real data, and on
