@@ -45,24 +45,27 @@ export const SCAN: [number, number] = [0.31, 0.4]
 export const SCAN_Z: [number, number] = [2.0, -2.0]
 
 /**
- * The rover's track: a closed survey loop on the flat stretch of the top-right of the
- * table (seen from above with the crescent at the top), between the crescent and the
- * slope up to the right-hand rim. Points are (x, z) on the table, driven in order and
- * back to the first; the rover stops for a moment once a lap.
+ * The rover's drive, set by scroll rather than the clock. Points are (x, z) on the table.
+ * It heads south-east down the tall sand peak's south-west flank with its left wheels up
+ * on the slope, turns a little left, and runs along the north-east rim of the big round
+ * hole with its right wheels dipping in, then stops on the rise beyond. The peak is at
+ * about (-0.05, -0.55) and the hole at (0.52, 0.02); both are ahead of the camera while it
+ * is low over the river, which is when this happens.
  */
 export const ROVER_PATH: [number, number][] = [
-  [0.2, -0.45],
-  [0.45, -0.4],
-  [0.6, -0.55],
-  [0.58, -0.85],
-  [0.45, -1.0],
-  [0.25, -0.95],
-  [0.15, -0.72],
+  [-0.42, -0.86],
+  [-0.27, -0.65],
+  [-0.15, -0.41],
+  [0.05, -0.29],
+  [0.3, -0.18],
+  [0.5, -0.12],
+  [0.68, -0.06],
+  [0.8, -0.02],
 ]
+/** Scroll progress at which the rover sets off and arrives, easing away and to a stop. */
+export const ROVER_DRIVE: [number, number] = [0.22, 0.42]
 /** Rover size: world units per rover body length (about 0.11 long at 0.13). */
 export const ROVER_SCALE = 0.13
-/** Cruise speed along the track in world units per second. */
-export const ROVER_SPEED = 0.07
 
 /** Vertical scale on the scan, so centimetres of sand read as mountains from drone height. */
 export const EXAGGERATION = 2.6

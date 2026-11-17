@@ -6,12 +6,12 @@
  * wireframe, and the full textured mesh. A sweep line crosses the table and replaces the
  * wireframe with the full mesh coloured by height like the altimetry render (blue low,
  * khaki plain, orange and red high); a second front then replaces that with the scan's
- * own texture. The rover drives a loop on the flat at the top right throughout.
+ * own texture. The rover drives past the tall peak and the big hole as the camera comes in.
  */
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
-import { BANK, CLEARANCE, EXAGGERATION, KEYS, ROVER_PATH, ROVER_SCALE, ROVER_SPEED, SCAN, SCAN_Z, SWEEP, type Vec3 } from './route'
+import { BANK, CLEARANCE, EXAGGERATION, KEYS, ROVER_DRIVE, ROVER_PATH, ROVER_SCALE, SCAN, SCAN_Z, SWEEP, type Vec3 } from './route'
 import { createRover } from './rover'
 
 const BASE = '/media/falconia/model/'
@@ -276,7 +276,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   let roverGround: ((x: number, z: number) => number) | null = null
 
   // --- the rover, lit on its own (the terrain shaders ignore lights) and fogged like the scan
-  const rover = createRover(ROVER_PATH, ROVER_SCALE, ROVER_SPEED)
+  const rover = createRover(ROVER_PATH, ROVER_SCALE)
   rover.group.visible = false
   scene.add(rover.group)
   scene.add(new THREE.HemisphereLight(0xfff2dc, 0x4a3d2c, 1.7))
@@ -637,7 +637,9 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     shared.uScan.value = SCAN_Z[0] + (SCAN_Z[1] - SCAN_Z[0]) * (terrainReady ? smooth(seg(cur, SCAN[0], SCAN[1])) : 0)
     shared.uWire.value = 1 - seg(cur, SWEEP[1], SWEEP[1] + 0.04)
     if (roverGround) {
-      rover.update(dt, roverGround)
+      // eased so it pulls away and comes to a stop; scroll drives it, not the clock
+      const u = seg(cur, ROVER_DRIVE[0], ROVER_DRIVE[1])
+      rover.update(u - Math.sin(2 * Math.PI * u) / (2 * Math.PI), dt, roverGround)
       // it arrives with the surface it drives on
       rover.group.visible = rover.where().z < shared.uSweep.value
     }

@@ -3,16 +3,16 @@
  * four knobbly tyres on pale rims, a dark chassis under a layer of grey LEGO, the Pi and
  * its blue HAT on top, a camera block at the front and a loose white ribbon cable.
  *
- * Modelled at one unit per body length with +z forward, then scaled into the scene. It
- * drives a closed loop, stopping briefly once a lap, and sits on the scan through its
+ * Modelled at one unit per body length with +z forward, then scaled into the scene. Its
+ * place on the track is given from outside (scroll), and it sits on the scan through its
  * four wheel contacts; its skid-steer wheels turn against each other in the bends.
  */
 import * as THREE from 'three'
 
 export type Rover = {
   group: THREE.Group
-  /** Advance by dt seconds; `height(x, z)` is the world height of the surface there. */
-  update(dt: number, height: (x: number, z: number) => number): void
+  /** Place it for drive progress f (0..1) after dt seconds; `height(x, z)` is the world height of the surface there. */
+  update(f: number, dt: number, height: (x: number, z: number) => number): void
   /** World position of the rover's centre, for checks. */
   where(): THREE.Vector3
   dispose(): void
@@ -23,7 +23,7 @@ const WHEEL_W = 0.17
 const TRACK = 0.4 // half the distance between left and right wheel centres
 const BASE = 0.3 // half the distance between front and rear axles
 
-export function createRover(track: [number, number][], scale: number, speed: number): Rover {
+export function createRover(track: [number, number][], scale: number): Rover {
   const group = new THREE.Group()
   const body = new THREE.Group() // pitch and roll live here, yaw on the group
   group.add(body)
@@ -210,31 +210,19 @@ export function createRover(track: [number, number][], scale: number, speed: num
     body.add(sh)
   }
 
-  // --- the track and the drive cycle: one lap, eased away from and into a short stop
+  // --- the track
   const curve = new THREE.CatmullRomCurve3(
     track.map(([x, z]) => new THREE.Vector3(x, 0, z)),
-    true,
+    false,
     'centripetal',
   )
   const length = curve.getLength()
-  const lap = length / speed
-  const STOP = 1.4
-  const cycle = lap + STOP
   const heading = (f: number) => {
     const t = curve.getTangentAt(f)
     return Math.atan2(t.x, t.z)
   }
   const startYaw = heading(0)
-  /** Fraction of the lap and heading at cycle time c. */
-  const pose = (c: number) => {
-    const u = Math.min(1, c / lap)
-    // pulls away and stops gently; the middle of the lap runs at about twice the average
-    const f = u - Math.sin(2 * Math.PI * u) / (2 * Math.PI)
-    const ff = f >= 1 ? 0 : f
-    return { f: ff, yaw: heading(ff) }
-  }
 
-  let clock = 0
   let prevF = 0
   let prevYaw = startYaw
   let ready = false
@@ -244,10 +232,9 @@ export function createRover(track: [number, number][], scale: number, speed: num
 
   return {
     group,
-    update(dt, height) {
-      clock = (clock + dt) % cycle
-      const { f, yaw: rawYaw } = pose(clock)
-      const yaw = unwrap(rawYaw, prevYaw)
+    update(fIn, dt, height) {
+      const f = Math.max(0, Math.min(1, fIn))
+      const yaw = unwrap(heading(f), prevYaw)
       curve.getPointAt(f, P)
       const fx = Math.sin(yaw)
       const fz = Math.cos(yaw)
@@ -272,10 +259,8 @@ export function createRover(track: [number, number][], scale: number, speed: num
       group.rotation.set(0, yaw, 0)
       body.rotation.set(smoothed.pitch, 0, smoothed.roll, 'XZY')
       // wheels: forward distance turns both sides alike; turning on the spot turns them against each other
-      // it always drives nose first; the lap wraps from 1 back to 0
-      let df = f - prevF
-      if (df < -0.5) df += 1
-      const forward = Math.max(0, df) * length
+      // scrolling back runs it backwards, wheels and all
+      const forward = (f - prevF) * length
       const dyaw = yaw - prevYaw
       for (const wh of wheels) {
         // a left turn (positive yaw) drives the right side forward and the left side back

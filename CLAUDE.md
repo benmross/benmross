@@ -28,8 +28,9 @@ npm run build
   section) over the Scaniverse scan of the terrain table: wireframe first, a sweep to the
   scan coloured by height like the altimetry render (held for the second half of the dive),
   then a second front that runs ahead of the levelled-off camera leaving the textured scan.
-  A model of the Pi rover (`src/scenes/falconia/rover.ts`, built from the photo) drives a
-  loop on the flat at the top right, sitting on the scan through its wheel contacts. The only
+  A model of the Pi rover (`src/scenes/falconia/rover.ts`, built from the photo) drives with
+  scroll (ROVER_DRIVE), left wheels up the tall peak's flank, then right wheels into the big
+  round hole, sitting on the scan through its wheel contacts. The only
   photo is the symposium finale (Ben, 16 Nov 2026). Route, sweeps, rover track and
   vertical exaggeration are in `src/scenes/falconia/route.ts`. Speed, height, attitude and zoom are baked once and smoothed; attitude comes from
   the track (nose along travel at low level, bank from turn rate), not animated over time. Reduce Motion or no WebGL
