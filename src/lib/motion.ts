@@ -47,7 +47,13 @@ export function useNearViewport(ref: RefObject<HTMLElement | null>, margin = '20
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: margin })
+    // An element whose edge only touches the viewport counts as intersecting with zero area; it is
+    // not visible, and treating it as visible ran the Loop scene's frames while the reader was on the
+    // hero. The tiny second threshold makes the observer report the step from touching to inside.
+    const io = new IntersectionObserver(
+      ([e]) => setNear(e.isIntersecting && (e.intersectionRect.width > 0 || e.intersectionRect.height > 0)),
+      { rootMargin: margin, threshold: [0, 1e-6] },
+    )
     io.observe(el)
     return () => io.disconnect()
   }, [ref, margin])

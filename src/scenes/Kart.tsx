@@ -45,6 +45,9 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const keep = useNearViewport(ref, '300% 0px')
   const [gen, setGen] = useState(0)
   const visible = useNearViewport(ref, '0px')
+  // read when a build finishes: it may finish while the section is still off screen
+  const visibleNow = useRef(false)
+  visibleNow.current = visible
 
   useEffect(() => {
     if (!near || stage.current) return
@@ -60,7 +63,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
         stage.current = s
         s.onFrame(update)
         s.jump(progress.get())
-        s.setActive(true)
+        s.setActive(visibleNow.current)
         ref.current?.classList.add('on')
       })
       .catch((e) => {

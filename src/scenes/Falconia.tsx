@@ -58,6 +58,9 @@ function FlightScene({ onFail }: { onFail: () => void }) {
   const keep = useNearViewport(ref, '300% 0px')
   const [gen, setGen] = useState(0)
   const visible = useNearViewport(ref, '0px')
+  // read when a build finishes: it may finish while the section is still off screen
+  const visibleNow = useRef(false)
+  visibleNow.current = visible
   const [step, setStep] = useState(0)
   const stepRef = useRef(0)
 
@@ -78,7 +81,7 @@ function FlightScene({ onFail }: { onFail: () => void }) {
         flight.current = f
         f.set(progress.get(), entry.get())
         f.onFrame((t) => layoutFrame(f, t))
-        f.setActive(true)
+        f.setActive(visibleNow.current)
         canvasRef.current?.classList.add('on')
       })
       .catch((e) => {

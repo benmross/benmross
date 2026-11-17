@@ -4,7 +4,7 @@ import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
 import { afterLoad, webgl2, whenIdle } from '../lib/gpu'
 import { img } from '../lib/media'
 import { loopScene as T } from '../content'
-import type { FrameInfo, Stage } from './loop/stage'
+import type { FrameInfo, PanelSizes, Stage } from './loop/stage'
 import { ACT, WALL, easeInOut, seg, trackerAt } from './loop/timeline'
 
 const DEAD = new Error('scene left before it loaded')
@@ -67,6 +67,30 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const keep = useNearViewport(ref, '300% 0px')
   const [gen, setGen] = useState(0)
   const visible = useNearViewport(ref, '0px')
+  // read when a build finishes: it may finish while the section is still off screen
+  const visibleNow = useRef(false)
+  visibleNow.current = visible
+
+  // The sticky box's size, kept by a ResizeObserver so the frame loop never reads layout.
+  const boxSize = useRef<[number, number]>([0, 0])
+  useEffect(() => {
+    const box = ref.current?.querySelector('.scene-sticky') as HTMLElement | null
+    if (!box) return
+    boxSize.current = [box.clientWidth, box.clientHeight]
+    const ro = new ResizeObserver(([e]) => {
+      const b = e.borderBoxSize?.[0]
+      boxSize.current = b ? [b.inlineSize, b.blockSize] : [box.clientWidth, box.clientHeight]
+    })
+    ro.observe(box)
+    return () => ro.disconnect()
+  }, [])
+  // Joint labels never change their text, so each is measured once.
+  const widths = useRef(new WeakMap<HTMLElement, number>())
+  const widthOf = (el: HTMLElement) => {
+    let w = widths.current.get(el)
+    if (!w) widths.current.set(el, (w = el.offsetWidth))
+    return w
+  }
   const lastNote = useRef(-1)
 
   useEffect(() => {
@@ -85,7 +109,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
         stage.current = s
         s.onFrame(update)
         s.jump(progress.get())
-        s.setActive(true)
+        s.setActive(visibleNow.current)
         ref.current?.classList.add('on')
       })
       .catch((e) => {
@@ -121,11 +145,9 @@ function StageScene({ onFail }: { onFail: () => void }) {
     return () => void delete w.__loop
   }, [])
 
-  function update({ p, s, vel, spec, source }: FrameInfo) {
-    const box = ref.current?.querySelector('.scene-sticky') as HTMLElement | null
-    if (!box) return
-    const W = box.clientWidth
-    const H = box.clientHeight
+  function update({ p, s, vel, spec, source }: FrameInfo): PanelSizes | void {
+    const [W, H] = boxSize.current
+    if (!W || !H) return
     const L = layout(p, W, H)
     place(opBox.current, L.op)
     place(armBox.current, L.arm)
@@ -202,7 +224,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
       const lx = x + (left ? -1 : 1) * (60 + j * 6)
       const ly = y - 34 - (j === 4 ? 20 : 0)
       el.style.opacity = la.toFixed(3)
-      el.style.transform = `translate3d(${(left ? lx - el.offsetWidth - 4 : lx + 4).toFixed(1)}px, ${(ly - 9).toFixed(1)}px, 0)`
+      el.style.transform = `translate3d(${(left ? lx - widthOf(el) - 4 : lx + 4).toFixed(1)}px, ${(ly - 9).toFixed(1)}px, 0)`
       ln.setAttribute('x1', x.toFixed(1))
       ln.setAttribute('y1', y.toFixed(1))
       ln.setAttribute('x2', lx.toFixed(1))
@@ -212,6 +234,8 @@ function StageScene({ onFail }: { onFail: () => void }) {
 
     // the base station title
     if (wallHead.current) wallHead.current.style.opacity = seg(p, WALL.title[0], WALL.title[1]).toFixed(3)
+    // the operator panel's 1px border (right when wide, bottom when narrow) comes out of its canvas
+    return { arm: [L.arm.w, L.arm.h], op: L.narrow ? [L.op.w, L.op.h - 1] : [L.op.w - 1, L.op.h] }
   }
 
   return (

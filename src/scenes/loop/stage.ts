@@ -38,13 +38,16 @@ export type Sample = {
   speed: number
 }
 
+/** CSS-pixel sizes of the arm and operator panels: [w, h]. */
+export type PanelSizes = { arm: [number, number]; op: [number, number] }
 export type FrameInfo = { p: number; s: Sample; vel: number[]; spec: Spec; source: string }
 
 export type Stage = {
   set(p: number): void
   jump(p: number): void
   setActive(active: boolean): void
-  onFrame(fn: (f: FrameInfo) => void): void
+  /** `fn` may return the panel sizes it laid out this frame, which saves reading them back from the page. */
+  onFrame(fn: (f: FrameInfo) => PanelSizes | void): void
   /** A point in arm-world metres, in arm-canvas pixels. */
   project(v: THREE.Vector3): { x: number; y: number } | null
   /** Joint axis positions in arm-world metres, for labels. */
@@ -509,17 +512,17 @@ export async function createStage(
   let ah = 1
   let ow = 1
   let oh = 1
-  const sizeArm = () => {
-    aw = Math.max(1, armCanvas.clientWidth)
-    ah = Math.max(1, armCanvas.clientHeight)
+  const sizeArm = (w = armCanvas.clientWidth, h = armCanvas.clientHeight) => {
+    aw = Math.max(1, w)
+    ah = Math.max(1, h)
     armR.setPixelRatio(pixelRatio(aw, ah, cap, scale))
     armR.setSize(aw, ah, false)
     armCam.aspect = aw / ah
     armCam.updateProjectionMatrix()
   }
-  const sizeOp = () => {
-    ow = Math.max(1, opCanvas.clientWidth)
-    oh = Math.max(1, opCanvas.clientHeight)
+  const sizeOp = (w = opCanvas.clientWidth, h = opCanvas.clientHeight) => {
+    ow = Math.max(1, w)
+    oh = Math.max(1, h)
     opR.setPixelRatio(pixelRatio(ow, oh, cap, scale))
     opR.setSize(ow, oh, false)
     opCam.aspect = ow / oh
@@ -535,6 +538,13 @@ export async function createStage(
     sizeArm()
     sizeOp()
   })
+  // From the sizes the page just laid out, rounded as the browser rounds clientWidth. Reading
+  // clientWidth here instead would force a layout of the whole page on every frame.
+  const fitTo = ({ arm, op }: PanelSizes) => {
+    const [a0, a1, o0, o1] = [arm[0], arm[1], op[0], op[1]].map(Math.round)
+    if (a0 !== aw || a1 !== ah) sizeArm(a0, a1)
+    if (o0 !== ow || o1 !== oh) sizeOp(o0, o1)
+  }
   const fitSizes = () => {
     if (armCanvas.clientWidth !== aw || armCanvas.clientHeight !== ah) sizeArm()
     if (opCanvas.clientWidth !== ow || opCanvas.clientHeight !== oh) sizeOp()
@@ -842,7 +852,7 @@ export async function createStage(
   let last = 0
   let active = false
   let frameDt = 1
-  const frameFns: ((f: FrameInfo) => void)[] = []
+  const frameFns: ((f: FrameInfo) => PanelSizes | void)[] = []
 
   const draw = () => {
     const t = trackTime(cur)
@@ -868,8 +878,10 @@ export async function createStage(
       rockAt = rockPos(SEAM.from).lerp(rockAt, seam)
     }
     // lay out the page for this frame first, then size the canvases to it, then draw
-    for (const f of frameFns) f({ p: cur, s, vel, spec, source: track.source })
-    fitSizes()
+    let sizes: PanelSizes | void = undefined
+    for (const f of frameFns) sizes = f({ p: cur, s, vel, spec, source: track.source }) || sizes
+    if (sizes) fitTo(sizes)
+    else fitSizes()
     const inWall = cur > WALL.terrain[0] - 0.005
     base.setVisible(inWall)
     base.setTerrain(smooth(seg(cur, WALL.terrain[0], WALL.terrain[1])))
