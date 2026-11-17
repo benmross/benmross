@@ -1,4 +1,4 @@
-"""Level and crop the Scaniverse Falconia V3 scan, write an OBJ for glTF conversion and a height map preview."""
+"""Level and crop the Scaniverse Falconia V3 scan, fill its holes, write an OBJ for glTF conversion and a height map preview."""
 import numpy as np
 from PIL import Image
 
@@ -80,6 +80,122 @@ cx, cz = (Pu[:, 0].min() + Pu[:, 0].max()) / 2, (Pu[:, 2].min() + Pu[:, 2].max()
 P[:, 0] -= cx; P[:, 2] -= cz
 Pu = P[used]
 print('kept faces', len(F2), 'extent x', Pu[:, 0].min().round(3), Pu[:, 0].max().round(3), 'z', Pu[:, 2].min().round(3), Pu[:, 2].max().round(3), 'h', Pu[:, 1].min().round(3), Pu[:, 1].max().round(3))
+
+# fill the holes inside the table: every boundary loop except the outer edge. The scan
+# leaves gaps where the phone saw nothing, and the long-edge filter above opens more.
+def loops_of(faces):
+    from collections import defaultdict
+    cnt = defaultdict(int)
+    for tri in faces[:, :, 0]:
+        for k in range(3):
+            a, b = int(tri[k]), int(tri[(k + 1) % 3])
+            cnt[(min(a, b), max(a, b))] += 1
+    # directed boundary edges, with the texture coordinate each end has in its face
+    nxt = defaultdict(list)
+    vt_of = {}
+    for tri in faces:
+        for k in range(3):
+            a, b = int(tri[k][0]), int(tri[(k + 1) % 3][0])
+            if cnt[(min(a, b), max(a, b))] == 1:
+                nxt[b].append(a)  # reversed, so the fill faces wind like their neighbours
+                vt_of.setdefault(a, int(tri[k][1]))
+                vt_of.setdefault(b, int(tri[(k + 1) % 3][1]))
+    loops, seen = [], set()
+    for start in list(nxt):
+        for first in list(nxt[start]):
+            if (start, first) in seen:
+                continue
+            loop, cur, prev = [start], first, start
+            seen.add((start, first))
+            while cur != start and len(loop) < 20000:
+                loop.append(cur)
+                opts = [n for n in nxt[cur] if (cur, n) not in seen]
+                if not opts:
+                    break
+                prev, cur = cur, opts[0]
+                seen.add((prev, cur))
+            if cur == start and len(loop) >= 3:
+                loops.append(loop)
+    return loops, vt_of
+
+def area2(pts):
+    x, z = pts[:, 0], pts[:, 1]
+    return 0.5 * np.sum(x * np.roll(z, -1) - np.roll(x, -1) * z)
+
+def ear_clip(pts):
+    """Triangles (as index triples into pts) for a simple polygon in 2D, or None."""
+    idx = list(range(len(pts)))
+    if area2(pts) < 0:
+        idx.reverse()
+    out = []
+    guard = 0
+    while len(idx) > 3 and guard < 10 * len(pts) ** 2:
+        guard += 1
+        n = len(idx)
+        for i in range(n):
+            a, b, c = idx[i - 1], idx[i], idx[(i + 1) % n]
+            pa, pb, pc = pts[a], pts[b], pts[c]
+            cr = (pb[0] - pa[0]) * (pc[1] - pa[1]) - (pb[1] - pa[1]) * (pc[0] - pa[0])
+            if cr <= 1e-14:
+                continue
+            ok = True
+            for j in idx:
+                if j in (a, b, c):
+                    continue
+                p = pts[j]
+                d1 = (pb[0] - pa[0]) * (p[1] - pa[1]) - (pb[1] - pa[1]) * (p[0] - pa[0])
+                d2 = (pc[0] - pb[0]) * (p[1] - pb[1]) - (pc[1] - pb[1]) * (p[0] - pb[0])
+                d3 = (pa[0] - pc[0]) * (p[1] - pc[1]) - (pa[1] - pc[1]) * (p[0] - pc[0])
+                if d1 >= 0 and d2 >= 0 and d3 >= 0:
+                    ok = False
+                    break
+            if ok:
+                out.append((a, b, c))
+                del idx[i]
+                break
+        else:
+            return None
+    if len(idx) == 3:
+        out.append(tuple(idx))
+    return out
+
+loops, vt_of = loops_of(F2)
+outer = max(loops, key=lambda l: abs(area2(P[l][:, [0, 2]])))
+Tl = [list(t) for t in T]
+Pl = [list(p) for p in P]
+new = []
+filled = 0
+for loop in loops:
+    if loop is outer:
+        continue
+    pts = P[loop][:, [0, 2]]
+    vts = np.array([T[vt_of[v]] for v in loop])
+    # one texture island if neighbouring corners are close in texture space; otherwise the
+    # patch takes the texture at a single corner rather than smearing across islands
+    step = np.linalg.norm(vts - np.roll(vts, -1, 0), axis=1).max()
+    one = step < 0.03
+    vt_patch = vt_of[loop[0]]
+    tris = ear_clip(pts)
+    if tris is None:
+        # fan from the middle
+        c = P[loop].mean(0)
+        Pl.append(list(c))
+        ci = len(Pl) - 1
+        Tl.append(list(vts.mean(0)) if one else list(T[vt_patch]))
+        cti = len(Tl) - 1
+        for k in range(len(loop)):
+            a, b = loop[k], loop[(k + 1) % len(loop)]
+            new.append([[a, vt_of[a] if one else vt_patch], [b, vt_of[b] if one else vt_patch], [ci, cti]])
+    else:
+        for (i, j, k) in tris:
+            tri = [loop[i], loop[j], loop[k]]
+            new.append([[v, vt_of[v] if one else vt_patch] for v in tri])
+    filled += 1
+if new:
+    F2 = np.concatenate([F2, np.array(new)], 0)
+P = np.array(Pl)
+T = np.array(Tl)
+print('holes filled', filled, 'of', len(loops) - 1, 'new faces', len(new))
 
 with open(OUT, 'w') as f:
     f.write('mtllib terrain.mtl\nusemtl main\n')
