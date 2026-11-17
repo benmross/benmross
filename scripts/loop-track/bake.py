@@ -10,7 +10,7 @@ the live view. The page only plays the result back against scroll.
     # the scripted stand-in used until a real session is recorded
     uv run --project ../stereo-hand python scripts/loop-track/bake.py --scripted
 
-Writes public/media/loop/track.json.
+Writes src/assets/models/loop-track.json.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import numpy as np
 from armtrack.arm.kinematics import ARM, JOINTS
 from armtrack.tracking.phone import PhoneArm
 
-OUT = Path(__file__).resolve().parents[2] / "public/media/loop/track.json"
+OUT = Path(__file__).resolve().parents[2] / "src/assets/models/loop-track.json"
 RATE = 60
 KEEP = 2  # write every second step: 30 frames per second of session
 

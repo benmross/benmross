@@ -1,7 +1,9 @@
 import * as THREE from 'three'
+// content-hashed by the build, so a re-extracted board never comes from a stale cache
+import BOARD_URL from '../../assets/models/kart-board.json?url'
 
 /**
- * The SMCSKart mainboard at its real size, built from public/media/kart/board.json, which
+ * The SMCSKart mainboard at its real size, built from src/assets/models/kart-board.json, which
  * scripts/kart-board/extract.py reads out of the board's KiCad file
  * (github.com/PHS-SMCS/SMCSKart-Mainboard). The camera flies over it a few millimetres up,
  * so the copper is real geometry, raised into ridges, and the parts are modelled to size.
@@ -31,7 +33,7 @@ export const COPPER = 0.14
 const THICK = 1.6
 
 export function loadBoard(): Promise<BoardData> {
-  return fetch('/media/kart/board.json').then((r) => {
+  return fetch(BOARD_URL).then((r) => {
     if (!r.ok) throw new Error(`board.json ${r.status}`)
     return r.json()
   })

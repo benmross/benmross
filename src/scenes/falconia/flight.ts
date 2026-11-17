@@ -15,7 +15,10 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { BANK, CLEARANCE, EXAGGERATION, KEYS, ROVER_DRIVE, ROVER_PATH, ROVER_SCALE, SCAN, SCAN_Z, SWEEP, type Vec3 } from './route'
 import { createRover } from './rover'
 
-const BASE = '/media/falconia/model/'
+// Imported as URLs so the build gives them content-hashed names: a rebuilt model gets a new URL,
+// and no browser keeps showing a cached old one.
+import TERRAIN_URL from '../../assets/models/falconia-terrain.glb?url'
+import WIRE_URL from '../../assets/models/falconia-wire.glb?url'
 
 export type Flight = {
   /** Scroll progress through the section (0..1) and how far the section has come into view (0..1). */
@@ -174,7 +177,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   // --- wireframe: simplified mesh, depth-only fill so back lines are hidden
   const loader = new GLTFLoader()
   loader.setMeshoptDecoder(MeshoptDecoder)
-  const wireGltf = await loader.loadAsync(BASE + 'wire.glb')
+  const wireGltf = await loader.loadAsync(WIRE_URL)
   let wireGeo: THREE.BufferGeometry | null = null
   wireGltf.scene.updateMatrixWorld(true)
   wireGltf.scene.traverse((o) => {
@@ -336,7 +339,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     // photogrammetry leaves some faces wound the wrong way
     side: THREE.DoubleSide,
   })
-  loader.loadAsync(BASE + 'terrain.glb').then((g) => {
+  loader.loadAsync(TERRAIN_URL).then((g) => {
     g.scene.updateMatrixWorld(true)
     g.scene.traverse((o) => {
       const m = o as THREE.Mesh

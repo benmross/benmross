@@ -35,7 +35,7 @@ npm run build
   vertical exaggeration are in `src/scenes/falconia/route.ts`. Speed, height, attitude and zoom are baked once and smoothed; attitude comes from
   the track (nose along travel at low level, bank from turn rate), not animated over time. Reduce Motion or no WebGL
   shows the symposium photo. `window.__falconia(t, true)` holds the camera at
-  progress `t` for screenshots; `window.__falconiaPick(x, y)` gives the point on the scan under a screen position. The models in `public/media/falconia/model/` come from
+  progress `t` for screenshots; `window.__falconiaPick(x, y)` gives the point on the scan under a screen position. The models in `src/assets/models/` (falconia-terrain.glb, falconia-wire.glb) come from
   "Falconia V3.zip" in Drive via `scripts/falconia-model/build.sh` (level, crop, simplify,
   WebP texture, meshopt).
 - The Herald scene (`src/scenes/Herald.tsx`, `src/scenes/herald/`) is one cloud of points of light
@@ -58,7 +58,7 @@ npm run build
   Arm Operator from the live joint angles, and Driver and Drone are render targets from cameras on and
   above the rover. The arm is never animated by hand: `scripts/loop-track/bake.py`
   feeds every phone packet through armtrack's own controller (clutch, IK, 0.5 rad/s joint caps) and
-  writes `public/media/loop/track.json`. Record a real session with
+  writes `src/assets/models/loop-track.json`. Record a real session with
   `armtrack phone --record session.jsonl` and bake it with
   `uv run --project ../stereo-hand python scripts/loop-track/bake.py session.jsonl [--trim A B]`;
   `--scripted` rebuilds the stand-in. Act boundaries and the track seconds each act plays are in
@@ -73,7 +73,7 @@ npm run build
   baked path (`stage.ts`): keys in `timeline.ts` KEYS, timed by how far each stretch feels (distance
   over distance to what the camera looks at), speed and zoom blurred like the Falconia flight. The board
   comes from github.com/PHS-SMCS/SMCSKart-Mainboard (public): `python3 -I scripts/kart-board/extract.py
-  <SMCSKart-Mainboard.kicad_pcb> public/media/kart/board.json`, built at real size by `board.ts`.
+  <SMCSKart-Mainboard.kicad_pcb> src/assets/models/kart-board.json`, built at real size by `board.ts`.
   `window.__kart(t)` holds the scene at progress `t`.
 
 ## Performance rules for scenes

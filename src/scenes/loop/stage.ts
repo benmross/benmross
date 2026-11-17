@@ -3,6 +3,8 @@ import { governor, pixelRatio } from '../../lib/gpu'
 import { ACT, SEAM, WALL, easeInOut, seg, smooth, trackTime, trackerAt } from './timeline'
 import { createBase } from './base'
 import { BONES, buildPhone } from './phone'
+// content-hashed by the build, so a re-baked session never comes from a stale cache
+import TRACK_URL from '../../assets/models/loop-track.json?url'
 
 /**
  * The Loop section's two WebGL views, drawn from one baked Arm Pilot track:
@@ -136,7 +138,7 @@ export async function createStage(
   opCanvas: HTMLCanvasElement,
   opts: { accent: string; tint: string; mobile: boolean },
 ): Promise<Stage> {
-  const track: Track = await (await fetch('/media/loop/track.json')).json()
+  const track: Track = await (await fetch(TRACK_URL)).json()
   const spec = track.spec
   const G = spec.ground_z
   const cap = opts.mobile ? 1.5 : 1.75

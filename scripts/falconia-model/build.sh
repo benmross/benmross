@@ -18,6 +18,6 @@ $G meshopt d.glb terrain.glb --level high >/dev/null
 $G simplify a.glb w1.glb --ratio 0.09 --error 0.004 >/dev/null
 $G meshopt w1.glb wire.glb --level high >/dev/null
 cp "$SITE/scripts/falconia-model/strip.mjs" . && node strip.mjs wire.glb wire-geo.glb >/dev/null
-cp terrain.glb "$SITE/public/media/falconia/model/terrain.glb"
-cp wire-geo.glb "$SITE/public/media/falconia/model/wire.glb"
-ls -la "$SITE/public/media/falconia/model"
+cp terrain.glb "$SITE/src/assets/models/falconia-terrain.glb"
+cp wire-geo.glb "$SITE/src/assets/models/falconia-wire.glb"
+ls -la "$SITE/src/assets/models"

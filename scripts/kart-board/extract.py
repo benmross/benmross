@@ -1,6 +1,6 @@
 """Extract the SMCSKart mainboard's top side from its KiCad file for the kart scene.
 
-usage: python3 -I scripts/kart-board/extract.py path/to/SMCSKart-Mainboard.kicad_pcb public/media/kart/board.json
+usage: python3 -I scripts/kart-board/extract.py path/to/SMCSKart-Mainboard.kicad_pcb src/assets/models/kart-board.json
 
 Source: github.com/PHS-SMCS/SMCSKart-Mainboard (public). Units are millimetres in KiCad's
 frame (x right, y down). Only what the camera can see from the front is kept: F.Cu tracks,
