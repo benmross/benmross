@@ -32,8 +32,37 @@ export const KEYS: Key[] = [
   { t: 1.0, pos: [0.0, 5.8, 0.55], look: [0.0, 0.0, -0.15], fov: 36 },
 ]
 
-/** Where the scan replaces the wireframe: the sweep crosses the table between these progress values. */
-export const SWEEP: [number, number] = [0.17, 0.34]
+/**
+ * The surface changes twice. First a sweep crosses the table from the crescent end and
+ * turns the wireframe into the altimetry colouring, finishing halfway down the dive so the
+ * second half of the descent is over the heightmap. Then, once the camera has levelled off,
+ * a second front starts beneath it and runs ahead along the table, leaving the textured scan
+ * behind it.
+ */
+export const SWEEP: [number, number] = [0.12, 0.215]
+/** Progress over which the scan replaces the altimetry, and the z the front runs between. */
+export const SCAN: [number, number] = [0.31, 0.4]
+export const SCAN_Z: [number, number] = [2.0, -2.0]
+
+/**
+ * The rover's track: a closed survey loop on the flat stretch of the top-right of the
+ * table (seen from above with the crescent at the top), between the crescent and the
+ * slope up to the right-hand rim. Points are (x, z) on the table, driven in order and
+ * back to the first; the rover stops for a moment once a lap.
+ */
+export const ROVER_PATH: [number, number][] = [
+  [0.2, -0.45],
+  [0.45, -0.4],
+  [0.6, -0.55],
+  [0.58, -0.85],
+  [0.45, -1.0],
+  [0.25, -0.95],
+  [0.15, -0.72],
+]
+/** Rover size: world units per rover body length (about 0.11 long at 0.13). */
+export const ROVER_SCALE = 0.13
+/** Cruise speed along the track in world units per second. */
+export const ROVER_SPEED = 0.07
 
 /** Vertical scale on the scan, so centimetres of sand read as mountains from drone height. */
 export const EXAGGERATION = 2.6

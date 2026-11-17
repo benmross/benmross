@@ -3,13 +3,16 @@
  * Loaded on demand by the Falconia scene, so three.js stays out of the main bundle.
  *
  * Two models from the same scan: a light, simplified mesh drawn as a hidden-line
- * wireframe, and the full textured mesh. A sweep line crosses the table and replaces
- * one with the other.
+ * wireframe, and the full textured mesh. A sweep line crosses the table and replaces the
+ * wireframe with the full mesh coloured by height like the altimetry render (blue low,
+ * khaki plain, orange and red high); a second front then replaces that with the scan's
+ * own texture. The rover drives a loop on the flat at the top right throughout.
  */
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
-import { BANK, CLEARANCE, EXAGGERATION, KEYS, SWEEP, type Vec3 } from './route'
+import { BANK, CLEARANCE, EXAGGERATION, KEYS, ROVER_PATH, ROVER_SCALE, ROVER_SPEED, SCAN, SCAN_Z, SWEEP, type Vec3 } from './route'
+import { createRover } from './rover'
 
 const BASE = '/media/falconia/model/'
 
@@ -26,6 +29,8 @@ export type Flight = {
   bounds(): { x: number; y: number; w: number; h: number } | null
   /** Camera state at progress t, for checking the track. */
   sample(t: number): { p: number[]; q: number[]; fov: number }
+  /** The point on the scan under a screen position in CSS pixels, for placing things by eye. */
+  pick(x: number, y: number): number[] | null
   setActive(active: boolean): void
   dispose(): void
 }
@@ -77,6 +82,64 @@ const FOG = /* glsl */ `
   float fogAmount() { return smoothstep(uFogRange.x, uFogRange.y, distance(vWorld, uCam)); }
 `
 
+/**
+ * World height of a mesh's top surface on a fine grid around a track of (x, z) points,
+ * by rasterising its triangles: cheap enough to ask four times a frame.
+ */
+function heightGrid(g: THREE.BufferGeometry, track: [number, number][], margin: number) {
+  const x0 = Math.min(...track.map((p) => p[0])) - margin
+  const x1 = Math.max(...track.map((p) => p[0])) + margin
+  const z0 = Math.min(...track.map((p) => p[1])) - margin
+  const z1 = Math.max(...track.map((p) => p[1])) + margin
+  const cell = 0.006
+  const nx = Math.ceil((x1 - x0) / cell) + 1
+  const nz = Math.ceil((z1 - z0) / cell) + 1
+  const hgt = new Float32Array(nx * nz).fill(-Infinity)
+  const p = g.getAttribute('position') as THREE.BufferAttribute
+  const idx = g.getIndex()
+  const tris = idx ? idx.count / 3 : p.count / 3
+  const v = (k: number) => (idx ? idx.getX(k) : k)
+  for (let t = 0; t < tris; t++) {
+    const a = v(t * 3)
+    const b = v(t * 3 + 1)
+    const c = v(t * 3 + 2)
+    const ax = p.getX(a), az = p.getZ(a), bx = p.getX(b), bz = p.getZ(b), cx = p.getX(c), cz = p.getZ(c)
+    const minx = Math.min(ax, bx, cx), maxx = Math.max(ax, bx, cx), minz = Math.min(az, bz, cz), maxz = Math.max(az, bz, cz)
+    if (maxx < x0 || minx > x1 || maxz < z0 || minz > z1) continue
+    const det = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz)
+    if (Math.abs(det) < 1e-12) continue
+    const ay = p.getY(a), by = p.getY(b), cy = p.getY(c)
+    const i0 = Math.max(0, Math.floor((minx - x0) / cell)), i1 = Math.min(nx - 1, Math.ceil((maxx - x0) / cell))
+    const j0 = Math.max(0, Math.floor((minz - z0) / cell)), j1 = Math.min(nz - 1, Math.ceil((maxz - z0) / cell))
+    for (let j = j0; j <= j1; j++)
+      for (let i = i0; i <= i1; i++) {
+        const x = x0 + i * cell
+        const z = z0 + j * cell
+        const l1 = ((bz - cz) * (x - cx) + (cx - bx) * (z - cz)) / det
+        const l2 = ((cz - az) * (x - cx) + (ax - cx) * (z - cz)) / det
+        const l3 = 1 - l1 - l2
+        if (l1 < -1e-4 || l2 < -1e-4 || l3 < -1e-4) continue
+        const k = j * nx + i
+        hgt[k] = Math.max(hgt[k], (l1 * ay + l2 * by + l3 * cy) * EXAGGERATION)
+      }
+  }
+  // holes in the scan take the nearest height along the row
+  for (let j = 0; j < nz; j++) {
+    let last = 0
+    for (let i = 0; i < nx; i++) if (isFinite(hgt[j * nx + i])) last = hgt[j * nx + i]; else hgt[j * nx + i] = last
+  }
+  return (x: number, z: number) => {
+    const fx = Math.max(0, Math.min(nx - 1.001, (x - x0) / cell))
+    const fz = Math.max(0, Math.min(nz - 1.001, (z - z0) / cell))
+    const i = Math.floor(fx)
+    const j = Math.floor(fz)
+    const u = fx - i
+    const w = fz - j
+    const h00 = hgt[j * nx + i], h10 = hgt[j * nx + i + 1], h01 = hgt[(j + 1) * nx + i], h11 = hgt[(j + 1) * nx + i + 1]
+    return (h00 * (1 - u) + h10 * u) * (1 - w) + (h01 * (1 - u) + h11 * u) * w
+  }
+}
+
 export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: string; tint: string; mobile: boolean }): Promise<Flight> {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
   renderer.setClearColor(0x000000, 0)
@@ -93,6 +156,9 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
 
   const shared = {
     uSweep: { value: -3 },
+    uScan: { value: 3 },
+    /** Altimetry colour scale in metres of scan height: plain level, depth to full blue, rise to full red. */
+    uAlt: { value: new THREE.Vector3(0, 0.02, 0.04) },
     uDraw: { value: 0 },
     uFog: { value: tint },
     uCam: { value: new THREE.Vector3() },
@@ -112,6 +178,20 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   })
   if (!wireGeo) throw new Error('wire.glb has no mesh')
   const wg = wireGeo as THREE.BufferGeometry
+  {
+    // the plain is the most common height; the colour scale runs from it to the deep
+    // and high tails, like the heightmap render's diverging scale
+    const py = wg.getAttribute('position') as THREE.BufferAttribute
+    const ys = Array.from({ length: py.count }, (_, i) => py.getY(i)).sort((a, b) => a - b)
+    const q = (f: number) => ys[Math.min(ys.length - 1, Math.floor(f * ys.length))]
+    const lo = q(0.005)
+    const hi = q(0.995)
+    const bins = new Array(200).fill(0)
+    for (const y of ys) bins[Math.min(199, Math.floor(((y - lo) / (hi - lo)) * 200))]++
+    const mode = bins.indexOf(Math.max(...bins))
+    const plain = lo + ((mode + 0.5) / 200) * (hi - lo)
+    shared.uAlt.value.set(plain, Math.max(0.004, plain - lo), Math.max(0.004, hi - plain))
+  }
 
   const fillMat = new THREE.ShaderMaterial({
     uniforms: shared,
@@ -192,19 +272,58 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
 
   // --- the textured scan, loaded after the wireframe so something is on screen quickly
   let terrainReady = false
+  let terrainMesh: THREE.Mesh | null = null
+  let roverGround: ((x: number, z: number) => number) | null = null
+
+  // --- the rover, lit on its own (the terrain shaders ignore lights) and fogged like the scan
+  const rover = createRover(ROVER_PATH, ROVER_SCALE, ROVER_SPEED)
+  rover.group.visible = false
+  scene.add(rover.group)
+  scene.add(new THREE.HemisphereLight(0xfff2dc, 0x4a3d2c, 1.7))
+  const sun = new THREE.DirectionalLight(0xffffff, 2.4)
+  sun.position.set(-0.45, 0.8, 0.35)
+  scene.add(sun)
+  scene.fog = new THREE.Fog(tint, 3, 12)
   const terrainMat = new THREE.ShaderMaterial({
     uniforms: { ...shared, map: { value: null as THREE.Texture | null } },
     vertexShader: '#define USE_UV_ATTR\n' + COMMON_VERT,
     fragmentShader: /* glsl */ `
       varying vec3 vLocal; varying vec3 vWorld; varying vec2 vUv;
-      uniform float uSweep; uniform vec3 uAccent; uniform sampler2D map;
+      uniform float uSweep; uniform float uScan; uniform vec3 uAccent; uniform vec3 uAlt; uniform sampler2D map;
       ${FOG}
+      // the altimetry render's diverging scale, sampled from it
+      vec3 altimetry(float h) {
+        float d = h - uAlt.x;
+        if (d < 0.0) {
+          float s = clamp(-d / uAlt.y, 0.0, 1.0);
+          vec3 c = mix(vec3(0.86, 0.84, 0.6), vec3(0.45, 0.76, 0.9), smoothstep(0.04, 0.3, s));
+          c = mix(c, vec3(0.13, 0.46, 0.8), smoothstep(0.3, 0.65, s));
+          return mix(c, vec3(0.06, 0.2, 0.55), smoothstep(0.65, 1.0, s));
+        }
+        float s = clamp(d / uAlt.z, 0.0, 1.0);
+        vec3 c = mix(vec3(0.86, 0.84, 0.6), vec3(0.9, 0.66, 0.36), smoothstep(0.05, 0.3, s));
+        c = mix(c, vec3(0.84, 0.42, 0.16), smoothstep(0.3, 0.65, s));
+        return mix(c, vec3(0.6, 0.14, 0.07), smoothstep(0.65, 1.0, s));
+      }
       void main() {
         float e = vLocal.z - uSweep;
         if (e > 0.0) discard;
-        vec3 c = texture2D(map, vUv).rgb;
+        // the scan's texture behind the second front, which runs toward -z
+        float f = vLocal.z - uScan;
+        vec3 c;
+        if (f > 0.0) {
+          c = texture2D(map, vUv).rgb;
+        } else {
+          vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+          if (n.y < 0.0) n = -n;
+          float lit = 0.68 + 0.42 * max(0.0, dot(n, normalize(vec3(-0.45, 0.8, 0.35))));
+          // the scale is written in sRGB; the shader works in linear light
+          c = pow(altimetry(vLocal.y), vec3(2.2)) * lit;
+        }
         float band = smoothstep(-0.18, 0.0, e);
         c = mix(c, uAccent * 1.4, band * band * 0.85);
+        float band2 = 1.0 - smoothstep(0.0, 0.12, abs(f));
+        c = mix(c, uAccent * 1.4, band2 * band2 * 0.7);
         c = mix(c, uFog, fogAmount());
         gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>
@@ -229,6 +348,8 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
       const mesh = new THREE.Mesh(bake(m), terrainMat)
       mesh.renderOrder = 0
       group.add(mesh)
+      terrainMesh = mesh
+      roverGround = heightGrid(mesh.geometry, ROVER_PATH, 0.12)
       terrainReady = true
     })
   })
@@ -498,6 +619,9 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     // fog follows how far the camera can see: long in the air, short on the deck
     const near = 1 - at(low, t)
     shared.uFogRange.value.set(1.2 + 3.5 * near, 3.4 + 9 * near)
+    const fog = scene.fog as THREE.Fog
+    fog.near = shared.uFogRange.value.x
+    fog.far = shared.uFogRange.value.y
   }
 
   const frame = (now: number) => {
@@ -510,7 +634,13 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     shared.uDraw.value = smooth(Math.min(1, curEntry * 1.15)) * 2.6
     const sweep = terrainReady ? smooth(seg(cur, SWEEP[0], SWEEP[1])) : 0
     shared.uSweep.value = -2.0 + sweep * 4.2
+    shared.uScan.value = SCAN_Z[0] + (SCAN_Z[1] - SCAN_Z[0]) * (terrainReady ? smooth(seg(cur, SCAN[0], SCAN[1])) : 0)
     shared.uWire.value = 1 - seg(cur, SWEEP[1], SWEEP[1] + 0.04)
+    if (roverGround) {
+      rover.update(dt, roverGround)
+      // it arrives with the surface it drives on
+      rover.group.visible = rover.where().z < shared.uSweep.value
+    }
     place(cur)
     renderer.render(scene, camera)
     for (const f of frameFns) f(cur)
@@ -557,6 +687,13 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
       const q = camera.quaternion
       return { p: [P.x, P.y, P.z], q: [q.x, q.y, q.z, q.w], fov: camera.fov }
     },
+    pick(x, y) {
+      if (!terrainMesh) return null
+      const rc = new THREE.Raycaster()
+      rc.setFromCamera(new THREE.Vector2((x / w) * 2 - 1, 1 - (y / h) * 2), camera)
+      const hit = rc.intersectObject(terrainMesh)[0]
+      return hit ? [hit.point.x, hit.point.y, hit.point.z] : null
+    },
     setActive(a) {
       if (a === active) return
       active = a
@@ -576,6 +713,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
       })
       terrainMat.uniforms.map.value?.dispose()
       for (const m of [fillMat, lineMat, terrainMat]) m.dispose()
+      rover.dispose()
       renderer.dispose()
     },
   }
