@@ -63,6 +63,7 @@ function Stage({ onFail }: { onFail: () => void }) {
   const L = useRef<Layout | null>(null)
   const mouse = useRef<[number, number]>([-1e4, -1e4])
   const hold = useRef<number | null>(null)
+  const clockHold = useRef<number | null>(null)
   const progress = useSceneProgress(ref)
   const near = useNearViewport(ref, '120% 0px')
   const visible = useNearViewport(ref, '0px')
@@ -119,7 +120,7 @@ function Stage({ onFail }: { onFail: () => void }) {
           if (!running.current || !L.current) return
           const s = stateAt(hold.current ?? progress.get())
           const fx = frame(s, L.current)
-          c.render(s, { time: t / 1000, mouse: mouse.current, ...fx })
+          c.render(s, { time: clockHold.current ?? t / 1000, mouse: mouse.current, ...fx })
         }
         raf = requestAnimationFrame(loop)
         ref.current?.classList.add('on')
@@ -147,11 +148,13 @@ function Stage({ onFail }: { onFail: () => void }) {
     [],
   )
 
-  // screenshots and debugging: window.__herald(0.5) holds the scene at that progress, null releases it
+  // screenshots and video: window.__herald(0.5, 12) holds the scene at progress 0.5 and, optionally,
+  // its clock at 12 s; null releases it
   useEffect(() => {
-    const w = window as unknown as { __herald?: (t: number | null) => void }
-    w.__herald = (t) => {
+    const w = window as unknown as { __herald?: (t: number | null, time?: number) => void }
+    w.__herald = (t, time) => {
       hold.current = t
+      clockHold.current = time ?? null
       running.current = true
     }
     return () => void delete w.__herald
