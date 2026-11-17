@@ -25,12 +25,16 @@ npm run build
   Regeneration needs ffmpeg, ModernGL, Pillow and Mesa/EGL. It is not part of the normal site build.
 - Where each image came from is kept privately, outside this repository.
 - The Falconia scene is a scroll-driven WebGL flight (three.js, loaded only near the
-  section) over the Scaniverse scan of the terrain table: wireframe first, then a sweep
-  to the textured scan, with the photos pinned to places on the route. Route, timing and
+  section) over the Scaniverse scan of the terrain table: wireframe first, a sweep to the
+  scan coloured by height like the altimetry render (held for the second half of the dive),
+  then a second front that runs ahead of the levelled-off camera leaving the textured scan.
+  A model of the Pi rover (`src/scenes/falconia/rover.ts`, built from the photo) drives a
+  loop on the flat at the top right, sitting on the scan through its wheel contacts. The only
+  photo is the symposium finale (Ben, 16 Nov 2026). Route, sweeps, rover track and
   vertical exaggeration are in `src/scenes/falconia/route.ts`. Speed, height, attitude and zoom are baked once and smoothed; attitude comes from
   the track (nose along travel at low level, bank from turn rate), not animated over time. Reduce Motion or no WebGL
-  falls back to the old stacked photos. `window.__falconia(t, true)` holds the camera at
-  progress `t` for screenshots. The models in `public/media/falconia/model/` come from
+  shows the symposium photo. `window.__falconia(t, true)` holds the camera at
+  progress `t` for screenshots; `window.__falconiaPick(x, y)` gives the point on the scan under a screen position. The models in `public/media/falconia/model/` come from
   "Falconia V3.zip" in Drive via `scripts/falconia-model/build.sh` (level, crop, simplify,
   WebP texture, meshopt).
 - The Loop scene (`src/scenes/Loop.tsx`, `src/scenes/loop/`) replays an Arm Pilot session against
