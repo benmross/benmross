@@ -93,6 +93,7 @@ function Stage({ onFail }: { onFail: () => void }) {
   const keep = useNearViewport(ref, '300% 0px')
   const [gen, setGen] = useState(0)
   const teardown = useRef<(() => void) | null>(null)
+  const courierTo = useRef<{ key: string; frames: number; to: [number, number] | null }>({ key: '', frames: 0, to: null })
   useEffect(() => {
     if (!near || cloud.current) return
     let dead = false
@@ -275,9 +276,18 @@ function Stage({ onFail }: { onFail: () => void }) {
     const from: [number, number] = [cx + Math.sin(s.hand) * k, cy - Math.cos(s.hand) * k]
     let to: [number, number] = [r.x + 30, r.y + r.h / 2]
     const target = s.job < 0 ? jobs.current[0] : s.job >= T.jobs.length - 1 ? digest.current : jobs.current[s.job]
-    const b = box.current?.getBoundingClientRect()
-    const t = target?.getBoundingClientRect()
-    if (b && t && t.height > 0) to = [t.left - b.left + Math.min(40, t.width / 2), t.top - b.top + t.height / 2]
+    // Measuring the line forces a layout, so it is measured only while couriers can fly (the clock),
+    // and once per target line or layout size: lines only fade in, so their place is final at once.
+    const key = `${s.job}|${l.W}x${l.H}`
+    const ct = courierTo.current
+    if (ct.key !== key) Object.assign(ct, { key, frames: 1 })
+    if (s.stage > 2.5 && ct.frames > 0) {
+      ct.frames--
+      const b = box.current?.getBoundingClientRect()
+      const t = target?.getBoundingClientRect()
+      ct.to = b && t && t.height > 0 ? [t.left - b.left + Math.min(40, t.width / 2), t.top - b.top + t.height / 2] : null
+    }
+    if (ct.to) to = ct.to
     return { from, to }
   }
 

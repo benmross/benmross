@@ -151,6 +151,9 @@ export async function createStage(
   const mk = (canvas: HTMLCanvasElement) => {
     const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
     r.setClearColor(0x000000, 0)
+    // checking every program's log on first use makes the browser wait for that shader to finish
+    // compiling, which undoes compileAsync; development builds keep the check
+    r.debug.checkShaderErrors = !import.meta.env.PROD
     r.outputColorSpace = THREE.SRGBColorSpace
     return r
   }

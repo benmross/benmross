@@ -40,6 +40,22 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const busVals = useRef<(HTMLElement | null)[]>([])
   const note = useRef<HTMLParagraphElement>(null)
   const shown = useRef(-2)
+  // Sizes the frame loop needs, kept outside it so it never forces a layout: the sticky box from a
+  // ResizeObserver, and each label's width measured once per tour stop (its text changes only then).
+  const boxSize = useRef<[number, number]>([0, 0])
+  const tagW = useRef<number[]>([])
+  useEffect(() => {
+    const box = ref.current?.querySelector('.scene-sticky') as HTMLElement | null
+    if (!box) return
+    boxSize.current = [box.clientWidth, box.clientHeight]
+    const ro = new ResizeObserver(([e]) => {
+      const b = e.borderBoxSize?.[0]
+      boxSize.current = b ? [b.inlineSize, b.blockSize] : [box.clientWidth, box.clientHeight]
+      tagW.current = []
+    })
+    ro.observe(box)
+    return () => ro.disconnect()
+  }, [])
   const progress = useSceneProgress(ref)
   const near = useNearViewport(ref, '120% 0px')
   const keep = useNearViewport(ref, '300% 0px')
@@ -100,10 +116,9 @@ function StageScene({ onFail }: { onFail: () => void }) {
   }, [])
 
   function update({ p, state: s, stop, level }: FrameInfo) {
-    const box = ref.current?.querySelector('.scene-sticky') as HTMLElement | null
-    if (!box) return
-    const W = box.clientWidth
-    const narrow = W < 820 || W < box.clientHeight
+    const [W, BH] = boxSize.current
+    if (!W) return
+    const narrow = W < 820 || W < BH
 
     // the card for this stop
     if (stop !== shown.current) {
@@ -124,6 +139,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
       }
       const cur = stop >= 0 ? T.stops[stop].tags : []
       tags.current.forEach((el, i) => el && (el.textContent = cur[i]?.label ?? ''))
+      tagW.current = []
     }
 
     // part labels
@@ -144,7 +160,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
       const ly = q.y + (up ? -1 : 1) * (narrow ? 44 : 62) - i * 8
       const left = i === 1
       el.style.opacity = '1'
-      el.style.transform = `translate3d(${(left ? lx - el.offsetWidth - 6 : lx + 6).toFixed(1)}px, ${(ly - 10).toFixed(1)}px, 0)`
+      el.style.transform = `translate3d(${(left ? lx - (tagW.current[i] ??= el.offsetWidth) - 6 : lx + 6).toFixed(1)}px, ${(ly - 10).toFixed(1)}px, 0)`
       ln.setAttribute('x1', q.x.toFixed(1))
       ln.setAttribute('y1', q.y.toFixed(1))
       ln.setAttribute('x2', lx.toFixed(1))

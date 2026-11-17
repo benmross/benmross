@@ -144,6 +144,9 @@ function heightGrid(g: THREE.BufferGeometry, track: [number, number][], margin: 
 export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: string; tint: string; mobile: boolean }): Promise<Flight> {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
   renderer.setClearColor(0x000000, 0)
+  // checking every program's log on first use makes the browser wait for that shader to finish
+  // compiling, which undoes compileAsync; development builds keep the check
+  renderer.debug.checkShaderErrors = !import.meta.env.PROD
   renderer.outputColorSpace = THREE.SRGBColorSpace
 
   const scene = new THREE.Scene()

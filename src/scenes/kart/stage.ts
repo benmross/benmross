@@ -104,6 +104,9 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   const keep = <T extends { dispose(): void }>(x: T) => (disposables.push(x), x)
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' })
+  // checking every program's log on first use makes the browser wait for that shader to finish
+  // compiling, which undoes compileAsync; development builds keep the check
+  renderer.debug.checkShaderErrors = !import.meta.env.PROD
   renderer.setPixelRatio(dpr)
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -398,9 +401,13 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
 
   let W = 0
   let H = 0
+  // The ResizeObserver records the canvas size and the next frame applies it, so a resize never
+  // clears the canvas between drawing and painting, and frames never read layout.
+  let boxW = canvas.clientWidth
+  let boxH = canvas.clientHeight
   function fit() {
-    const w = canvas.clientWidth
-    const h = canvas.clientHeight
+    const w = boxW
+    const h = boxH
     if (!w || !h || (w === W && h === H)) return
     W = w
     H = h
@@ -409,6 +416,17 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     composer.setPixelRatio(dpr)
     renderer.setSize(w, h, false)
     composer.setSize(w, h)
+    // Multisampling a half-float buffer is what made large canvases slow on integrated GPUs
+    // (2560x1440 at 2x: about 50 ms a frame with 4x MSAA, 7 ms without). At that pixel density
+    // edges are already fine, and the bloom softens them anyway.
+    // judged at full resolution, so the governor lowering resolution never turns multisampling back on
+    const px = (w * h * dpr * dpr) / (scale * scale)
+    const samples = px <= 1.5e6 ? (opts.mobile ? 2 : 4) : px <= 2.5e6 ? 2 : 0
+    for (const rt of [composer.renderTarget1, composer.renderTarget2]) {
+      if (rt.samples === samples) continue
+      rt.samples = samples
+      rt.dispose()
+    }
   }
   // Struggling devices lose resolution first, then the shadow map, then the bloom glow.
   const gov = governor((k) => {
@@ -425,7 +443,12 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     }
     if (k <= 0.55) bloom.enabled = false
   })
-  const ro = new ResizeObserver(fit)
+  const ro = new ResizeObserver(([e]) => {
+    const b = e.contentBoxSize?.[0]
+    boxW = Math.round(b ? b.inlineSize : e.contentRect.width)
+    boxH = Math.round(b ? b.blockSize : e.contentRect.height)
+    if (!active) fit()
+  })
   ro.observe(canvas)
 
   // ------------------------------------------------------------- camera
