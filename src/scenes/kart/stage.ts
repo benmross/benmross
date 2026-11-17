@@ -410,10 +410,20 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     renderer.setSize(w, h, false)
     composer.setSize(w, h)
   }
+  // Struggling devices lose resolution first, then the shadow map, then the bloom glow.
   const gov = governor((k) => {
     scale = k
     W = H = 0
     fit()
+    if (k <= 0.75 && renderer.shadowMap.enabled) {
+      renderer.shadowMap.enabled = false
+      key.castShadow = false
+      scene.traverse((o) => {
+        const mat = (o as THREE.Mesh).material
+        for (const m of Array.isArray(mat) ? mat : mat ? [mat] : []) m.needsUpdate = true
+      })
+    }
+    if (k <= 0.55) bloom.enabled = false
   })
   const ro = new ResizeObserver(fit)
   ro.observe(canvas)

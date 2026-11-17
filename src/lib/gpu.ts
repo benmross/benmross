@@ -82,3 +82,14 @@ export function afterLoad(): Promise<void> {
   })
   return loaded
 }
+
+/** Runs `fn` in a quiet moment between frames; returns a cancel function. */
+export function whenIdle(fn: () => void): () => void {
+  const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void }
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(fn, { timeout: 3000 })
+    return () => w.cancelIdleCallback?.(id)
+  }
+  const id = setTimeout(fn, 300)
+  return () => clearTimeout(id)
+}

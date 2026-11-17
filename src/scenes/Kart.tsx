@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { m, useMotionValueEvent, useTransform } from 'motion/react'
 import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
-import { afterLoad, webgl2 } from '../lib/gpu'
+import { afterLoad, webgl2, whenIdle } from '../lib/gpu'
 import { img } from '../lib/media'
 import { kartScene as T } from '../content'
 import { ANCHOR } from './kart/frame'
@@ -76,10 +76,13 @@ function StageScene({ onFail }: { onFail: () => void }) {
   // Far away, release the scene and its GPU context; it is rebuilt on a fresh canvas when it comes close again.
   useEffect(() => {
     if (keep || !stage.current) return
-    stage.current.dispose()
-    stage.current = null
-    ref.current?.classList.remove('on')
-    setGen((g) => g + 1)
+    // disposing a scene can take a few hundred milliseconds, so it waits for a gap between frames
+    return whenIdle(() => {
+      stage.current?.dispose()
+      stage.current = null
+      ref.current?.classList.remove('on')
+      setGen((g) => g + 1)
+    })
   }, [keep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => stage.current?.dispose(), [])

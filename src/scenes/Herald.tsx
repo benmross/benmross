@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { heraldScene as T } from '../content'
 import { reducedMotion, seg, useNearViewport, useSceneProgress } from '../lib/motion'
-import { afterLoad, governor, pixelRatio, webgl2 } from '../lib/gpu'
+import { afterLoad, governor, pixelRatio, webgl2, whenIdle } from '../lib/gpu'
 import type { Cloud } from './herald/cloud'
 import { layout, type Layout, type Rect } from './herald/layout'
 import { JOB_HOURS, PH, stateAt, type State } from './herald/timeline'
@@ -150,8 +150,11 @@ function Stage({ onFail }: { onFail: () => void }) {
 
   useEffect(() => {
     if (keep || !teardown.current) return
-    teardown.current()
-    setGen((g) => g + 1)
+    // disposing can take a few hundred milliseconds, so it waits for a gap between frames
+    return whenIdle(() => {
+      teardown.current?.()
+      setGen((g) => g + 1)
+    })
   }, [keep])
 
   const running = useRef(false)
