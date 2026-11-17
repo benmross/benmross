@@ -93,7 +93,6 @@ function Stage({ onFail }: { onFail: () => void }) {
   const hours = useRef<(HTMLSpanElement | null)[]>([])
   const time = useRef<HTMLDivElement>(null)
   const timeText = useRef<HTMLSpanElement>(null)
-  const note = useRef<HTMLParagraphElement>(null)
 
   useEffect(() => {
     if (!near || cloud.current) return
@@ -253,7 +252,6 @@ function Stage({ onFail }: { onFail: () => void }) {
     hand.current?.setAttribute('y2', String(cy - Math.cos(s.hand) * R))
     handDot.current?.setAttribute('cx', String(cx + Math.sin(s.hand) * R))
     handDot.current?.setAttribute('cy', String(cy - Math.cos(s.hand) * R))
-    show(note.current, seg(p, PH.toClus[1] - 0.03, PH.ask[0]))
 
     // couriers carry each job's result to its line in the chat
     // they always leave from where the hand points now
@@ -374,9 +372,6 @@ function Stage({ onFail }: { onFail: () => void }) {
           </div>
         </div>
 
-        <p ref={note} className="hc-note">
-          {T.note}
-        </p>
         <div className="scene-caption" aria-hidden>
           {T.steps.map((s, i) => (
             <span key={s} className={i === step ? 'on' : ''}>

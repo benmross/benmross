@@ -360,5 +360,4 @@ export const heraldScene = {
   digest:
     "Good morning. Project due tonight, library room at 2:30 PM, hackathon finals at 5:15 PM. Overnight I fixed your exam room and flagged an internship that closes tomorrow. Want me to prepare the application?",
   digestButtons: ['Prepare it', 'Skip'],
-  note: 'Illustration. The messages, names and jobs are made up.',
 }

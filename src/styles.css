@@ -1475,8 +1475,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .hc-chat,
 .hc-hour,
 .hc-time,
-.hc-dial,
-.hc-note {
+.hc-dial {
   position: absolute;
   left: 0;
   top: 0;
@@ -1730,14 +1729,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .hc-job span {
   color: var(--muted);
 }
-.hc-note {
-  left: auto;
-  right: var(--pad);
-  top: auto;
-  bottom: 28px;
-  font-size: 12px;
-  color: rgba(236, 235, 228, 0.38);
-}
 .hc-still img {
   display: block;
   width: 100%;
@@ -1752,8 +1743,5 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
   }
   .hc-chat {
     border-radius: 20px;
-  }
-  .hc-note {
-    display: none;
   }
 }
