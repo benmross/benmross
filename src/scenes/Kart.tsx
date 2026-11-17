@@ -3,7 +3,7 @@ import { m, useMotionValueEvent, useTransform } from 'motion/react'
 import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
 import { img } from '../lib/media'
 import { kartScene as T } from '../content'
-import { ANCHOR } from './kart/model'
+import { ANCHOR } from './kart/frame'
 import type { FrameInfo, Stage } from './kart/stage'
 import { ACT, seg } from './kart/timeline'
 

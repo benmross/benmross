@@ -324,7 +324,7 @@ function Stage({ onFail }: { onFail: () => void }) {
 
         <div ref={chat} className="hc-chat">
           <div className="hc-chat-top">
-            <img src="/media/herald/orb.png" alt="" width="34" height="34" />
+            <img src="/media/herald/orb-102.webp" alt="" width="34" height="34" loading="lazy" decoding="async" />
             <div>
               <b>{T.name}</b>
               <span ref={status}>{T.online}</span>

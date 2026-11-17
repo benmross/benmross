@@ -6,6 +6,8 @@ import { emulsionPreview } from '../content'
 function EmulsionField({ preset }: { preset: 'satin' }) {
   const video = useRef<HTMLVideoElement>(null)
   const visible = useNearViewport(video, '0px')
+  // A poster attribute downloads at once even with preload="none", so it waits until the section is close.
+  const near = useNearViewport(video, '150% 0px')
   const base = `/media/emulsion/${preset}`
   useEffect(() => {
     const node = video.current
@@ -43,7 +45,7 @@ function EmulsionField({ preset }: { preset: 'satin' }) {
     <video
       ref={video}
       className="emulsion-background"
-      poster={`${base}-poster.webp`}
+      poster={near ? `${base}-poster.webp` : undefined}
       preload="none"
       muted
       playsInline
