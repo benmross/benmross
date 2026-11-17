@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { governor, pixelRatio } from '../../lib/gpu'
 import { ACT, SEAM, WALL, easeInOut, seg, smooth, trackTime, trackerAt } from './timeline'
 import { createBase } from './base'
 import { BONES, buildPhone } from './phone'
@@ -135,7 +136,8 @@ export async function createStage(
   const track: Track = await (await fetch('/media/loop/track.json')).json()
   const spec = track.spec
   const G = spec.ground_z
-  const dpr = Math.min(window.devicePixelRatio || 1, opts.mobile ? 1.5 : 1.75)
+  const cap = opts.mobile ? 1.5 : 1.75
+  let scale = 1
 
   const accent = new THREE.Color(opts.accent)
   const tint = new THREE.Color(opts.tint)
@@ -147,7 +149,6 @@ export async function createStage(
     const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
     r.setClearColor(0x000000, 0)
     r.outputColorSpace = THREE.SRGBColorSpace
-    r.setPixelRatio(dpr)
     return r
   }
   const armR = mk(armCanvas)
@@ -511,6 +512,7 @@ export async function createStage(
   const sizeArm = () => {
     aw = Math.max(1, armCanvas.clientWidth)
     ah = Math.max(1, armCanvas.clientHeight)
+    armR.setPixelRatio(pixelRatio(aw, ah, cap, scale))
     armR.setSize(aw, ah, false)
     armCam.aspect = aw / ah
     armCam.updateProjectionMatrix()
@@ -518,6 +520,7 @@ export async function createStage(
   const sizeOp = () => {
     ow = Math.max(1, opCanvas.clientWidth)
     oh = Math.max(1, opCanvas.clientHeight)
+    opR.setPixelRatio(pixelRatio(ow, oh, cap, scale))
     opR.setSize(ow, oh, false)
     opCam.aspect = ow / oh
     opCam.updateProjectionMatrix()
@@ -527,6 +530,11 @@ export async function createStage(
   // Sizes are checked at the start of every frame, after the page has laid out the panels for this
   // frame and before drawing. Resizing from a ResizeObserver instead would clear the canvas after it
   // was drawn, and the arm view would blink out while it widens to full screen.
+  const gov = governor((k) => {
+    scale = k
+    sizeArm()
+    sizeOp()
+  })
   const fitSizes = () => {
     if (armCanvas.clientWidth !== aw || armCanvas.clientHeight !== ah) sizeArm()
     if (opCanvas.clientWidth !== ow || opCanvas.clientHeight !== oh) sizeOp()
@@ -877,11 +885,15 @@ export async function createStage(
   const frame = (now: number) => {
     raf = requestAnimationFrame(frame)
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016)
+    gov.frame(now - last)
     last = now
     cur += (target_ - cur) * (1 - Math.exp(-dt * 8))
     frameDt = dt
     draw()
   }
+
+  // compile every shader in parallel before the first frame, instead of stalling inside it
+  await Promise.all([armR.compileAsync(arm, armCam), opR.compileAsync(op, opCam)])
 
   return {
     set(p) {
@@ -926,6 +938,8 @@ export async function createStage(
       rings.length = 0
       armR.dispose()
       opR.dispose()
+      armR.forceContextLoss()
+      opR.forceContextLoss()
     },
   }
 }

@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMotionValueEvent } from 'motion/react'
 import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
+import { afterLoad, webgl2 } from '../lib/gpu'
 import { img } from '../lib/media'
 import { loopScene as T } from '../content'
 import type { FrameInfo, Stage } from './loop/stage'
 import { ACT, WALL, easeInOut, seg, trackerAt } from './loop/timeline'
+
+const DEAD = new Error('scene left before it loaded')
 
 const ACCENT = '#a493ff'
 const TINT = '#0c0b14'
@@ -23,19 +26,11 @@ const place = (el: HTMLElement | null, r: Rect) => {
   el.style.height = `${r.h.toFixed(1)}px`
 }
 
-function webgl() {
-  try {
-    return !!document.createElement('canvas').getContext('webgl2')
-  } catch {
-    return false
-  }
-}
-
 /** The arm controller and the console: a scroll-driven replay of an Arm Pilot session. */
 export function LoopScene() {
   const [mode, setMode] = useState<'stage' | 'still'>('stage')
   useEffect(() => {
-    if (reducedMotion() || !webgl()) setMode('still')
+    if (reducedMotion() || !webgl2()) setMode('still')
   }, [])
   return mode === 'stage' ? <StageScene onFail={() => setMode('still')} /> : <StillScene />
 }
@@ -69,13 +64,19 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const stage = useRef<Stage | null>(null)
   const progress = useSceneProgress(ref)
   const near = useNearViewport(ref, '120% 0px')
+  const keep = useNearViewport(ref, '300% 0px')
+  const [gen, setGen] = useState(0)
   const visible = useNearViewport(ref, '0px')
   const lastNote = useRef(-1)
 
   useEffect(() => {
     if (!near || stage.current) return
     let dead = false
-    import('./loop/stage')
+    afterLoad()
+      .then(() => {
+        if (dead) throw DEAD
+        return import('./loop/stage')
+      })
       .then(({ createStage }) =>
         createStage(armCanvas.current!, opCanvas.current!, { accent: ACCENT, tint: TINT, mobile: window.matchMedia('(max-width: 820px)').matches }),
       )
@@ -88,13 +89,23 @@ function StageScene({ onFail }: { onFail: () => void }) {
         ref.current?.classList.add('on')
       })
       .catch((e) => {
+        if (e === DEAD) return
         console.error(e)
         if (!dead) onFail()
       })
     return () => {
       dead = true
     }
-  }, [near]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [near, gen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Far away, release the scene and its GPU context; it is rebuilt on a fresh canvas when it comes close again.
+  useEffect(() => {
+    if (keep || !stage.current) return
+    stage.current.dispose()
+    stage.current = null
+    ref.current?.classList.remove('on')
+    setGen((g) => g + 1)
+  }, [keep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => stage.current?.dispose(), [])
   useEffect(() => stage.current?.setActive(visible), [visible])
@@ -209,7 +220,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
         </div>
 
         <div ref={opBox} className="loop-op">
-          <canvas ref={opCanvas} className="loop-canvas" aria-hidden />
+          <canvas key={gen} ref={opCanvas} className="loop-canvas" aria-hidden />
           <div className="loop-tag">
             <span className="loop-panel">{T.operator}</span>
             <span className="loop-chip">
@@ -219,7 +230,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
           </div>
         </div>
         <div ref={armBox} className="loop-arm">
-          <canvas ref={armCanvas} className="loop-canvas" aria-hidden />
+          <canvas key={gen} ref={armCanvas} className="loop-canvas" aria-hidden />
         </div>
 
         <svg className="loop-leaders" aria-hidden>

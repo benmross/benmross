@@ -1,23 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { heraldScene as T } from '../content'
 import { reducedMotion, seg, useNearViewport, useSceneProgress } from '../lib/motion'
+import { afterLoad, governor, pixelRatio, webgl2 } from '../lib/gpu'
 import type { Cloud } from './herald/cloud'
 import { layout, type Layout, type Rect } from './herald/layout'
 import { JOB_HOURS, PH, stateAt, type State } from './herald/timeline'
-
-function webgl() {
-  try {
-    return !!document.createElement('canvas').getContext('webgl2')
-  } catch {
-    return false
-  }
-}
 
 /** One cloud of light that becomes a timeline, then clusters that answer a question, then a clock. */
 export function HeraldScene() {
   const [mode, setMode] = useState<'stage' | 'still'>('stage')
   useEffect(() => {
-    if (reducedMotion() || !webgl()) setMode('still')
+    if (reducedMotion() || !webgl2()) setMode('still')
   }, [])
   return mode === 'stage' ? <Stage onFail={() => setMode('still')} /> : <Still />
 }
@@ -94,35 +87,57 @@ function Stage({ onFail }: { onFail: () => void }) {
   const time = useRef<HTMLDivElement>(null)
   const timeText = useRef<HTMLSpanElement>(null)
 
+  // Build the cloud once the section is close and the page has settled; tear it down, context and
+  // all, once it is far away, so scrolling the whole page never holds every scene's GPU memory.
+  // A canvas whose context was released cannot get another, so each build gets a fresh one (gen).
+  const keep = useNearViewport(ref, '300% 0px')
+  const [gen, setGen] = useState(0)
+  const teardown = useRef<(() => void) | null>(null)
   useEffect(() => {
     if (!near || cloud.current) return
     let dead = false
-    let raf = 0
-    let ro: ResizeObserver | null = null
-    import('./herald/cloud')
-      .then(({ createCloud }) => {
-        if (dead) return
+    afterLoad()
+      .then(() => (dead ? null : import('./herald/cloud')))
+      .then((mod) => {
+        if (!mod || dead) return
         const mobile = window.matchMedia('(max-width: 820px)').matches
-        const c = createCloud(canvas.current!, mobile ? 12000 : 26000)
+        const c = mod.createCloud(canvas.current!, mobile ? 12000 : 26000)
         cloud.current = c
+        let raf = 0
+        let last = 0
+        let scale = 1
         const size = () => {
           const b = box.current!
           L.current = layout(b.clientWidth, b.clientHeight)
-          c.resize(L.current, Math.min(window.devicePixelRatio || 1, 2))
+          c.resize(L.current, pixelRatio(L.current.W, L.current.H, 2, scale))
           placeStatic(L.current)
         }
+        const gov = governor((k) => {
+          scale = k
+          size()
+        })
         size()
-        ro = new ResizeObserver(size)
+        const ro = new ResizeObserver(size)
         ro.observe(box.current!)
         const loop = (t: number) => {
           raf = requestAnimationFrame(loop)
-          if (!running.current || !L.current) return
+          if (!running.current || !L.current) return (last = 0)
+          if (last) gov.frame(t - last)
+          last = t
           const s = stateAt(hold.current ?? progress.get())
           const fx = frame(s, L.current)
           c.render(s, { time: clockHold.current ?? t / 1000, mouse: mouse.current, ...fx })
         }
         raf = requestAnimationFrame(loop)
         ref.current?.classList.add('on')
+        teardown.current = () => {
+          cancelAnimationFrame(raf)
+          ro.disconnect()
+          c.dispose()
+          cloud.current = null
+          teardown.current = null
+          ref.current?.classList.remove('on')
+        }
       })
       .catch((e) => {
         console.error(e)
@@ -130,22 +145,20 @@ function Stage({ onFail }: { onFail: () => void }) {
       })
     return () => {
       dead = true
-      cancelAnimationFrame(raf)
-      ro?.disconnect()
     }
-  }, [near]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [near, gen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (keep || !teardown.current) return
+    teardown.current()
+    setGen((g) => g + 1)
+  }, [keep])
 
   const running = useRef(false)
   useEffect(() => {
     running.current = visible
   }, [visible])
-  useEffect(
-    () => () => {
-      cloud.current?.dispose()
-      cloud.current = null
-    },
-    [],
-  )
+  useEffect(() => () => teardown.current?.(), [])
 
   // screenshots and video: window.__herald(0.5, 12) holds the scene at progress 0.5 and, optionally,
   // its clock at 12 s; null releases it
@@ -276,7 +289,7 @@ function Stage({ onFail }: { onFail: () => void }) {
         }}
         onPointerLeave={() => (mouse.current = [-1e4, -1e4])}
       >
-        <canvas ref={canvas} className="hc-canvas" role="img" aria-label={T.label} />
+        <canvas key={gen} ref={canvas} className="hc-canvas" role="img" aria-label={T.label} />
 
         <p ref={intro} className="hc-intro">
           {T.intro}

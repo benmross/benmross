@@ -1,6 +1,7 @@
 import Lenis from 'lenis'
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { useScroll, type MotionValue } from 'motion/react'
+import { pixelRatio } from './gpu'
 
 export const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -73,10 +74,10 @@ export function useCanvasLoop(
     let w = 0
     let h = 0
     const size = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
       const r = canvas.getBoundingClientRect()
       w = r.width
       h = r.height
+      const dpr = pixelRatio(w, h, 2)
       canvas.width = Math.round(w * dpr)
       canvas.height = Math.round(h * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)

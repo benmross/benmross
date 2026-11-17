@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { governor, pixelRatio } from '../../lib/gpu'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
@@ -94,7 +95,9 @@ const SMOKE_FRAG = /* glsl */ `
 `
 
 export async function createStage(canvas: HTMLCanvasElement, opts: { accent: string; tint: string; mobile: boolean }): Promise<Stage> {
-  const dpr = Math.min(window.devicePixelRatio || 1, opts.mobile ? 1.5 : 1.75)
+  const cap = opts.mobile ? 1.5 : 1.75
+  let dpr = Math.min(window.devicePixelRatio || 1, cap)
+  let scale = 1
   const tint = new THREE.Color(opts.tint)
   const accent = new THREE.Color(opts.accent)
   const disposables: { dispose(): void }[] = []
@@ -401,9 +404,17 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
     if (!w || !h || (w === W && h === H)) return
     W = w
     H = h
+    dpr = pixelRatio(w, h, cap, scale)
+    renderer.setPixelRatio(dpr)
+    composer.setPixelRatio(dpr)
     renderer.setSize(w, h, false)
     composer.setSize(w, h)
   }
+  const gov = governor((k) => {
+    scale = k
+    W = H = 0
+    fit()
+  })
   const ro = new ResizeObserver(fit)
   ro.observe(canvas)
 
@@ -778,6 +789,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   const frame = (now: number) => {
     raf = requestAnimationFrame(frame)
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016)
+    gov.frame(now - lastT)
     lastT = now
     wall += dt
     cur += (target_ - cur) * (1 - Math.exp(-dt * 8))
@@ -785,6 +797,9 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
   }
 
   const vP = new THREE.Vector3()
+  // compile every shader in parallel before the first frame, instead of stalling inside it
+  await renderer.compileAsync(scene, cam)
+
   return {
     set(p) {
       target_ = p
@@ -820,6 +835,7 @@ export async function createStage(canvas: HTMLCanvasElement, opts: { accent: str
       bloom.dispose()
       composer.dispose()
       renderer.dispose()
+      renderer.forceContextLoss()
     },
   }
 }

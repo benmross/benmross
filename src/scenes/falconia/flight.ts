@@ -9,6 +9,7 @@
  * own texture. The rover drives past the tall peak and the big hole as the camera comes in.
  */
 import * as THREE from 'three'
+import { governor, pixelRatio } from '../../lib/gpu'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js'
 import { BANK, CLEARANCE, EXAGGERATION, KEYS, ROVER_DRIVE, ROVER_PATH, ROVER_SCALE, SCAN, SCAN_Z, SWEEP, type Vec3 } from './route'
@@ -589,15 +590,22 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   let last = 0
   const frameFns: ((t: number) => void)[] = []
 
+  let settle = 60
   const size = () => {
     // layout size, not the bounding rect: the finale scales the canvas with a CSS transform
     w = Math.max(1, canvas.clientWidth)
     h = Math.max(1, canvas.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.mobile ? 1.5 : 1.75))
+    renderer.setPixelRatio(pixelRatio(w, h, opts.mobile ? 1.5 : 1.75, scale))
     renderer.setSize(w, h, false)
     camera.aspect = w / h
     camera.updateProjectionMatrix()
+    settle = 60
   }
+  let scale = 1
+  const gov = governor((k) => {
+    scale = k
+    size()
+  })
   size()
   const ro = new ResizeObserver(size)
   ro.observe(canvas)
@@ -624,9 +632,17 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
     fog.far = shared.uFogRange.value.y
   }
 
+  // Nothing here moves on its own: once the camera has caught up with the scroll and the terrain
+  // is in, frames stop being drawn until something changes (a few extra let the rover settle).
+  let wasReady = false
   const frame = (now: number) => {
     raf = requestAnimationFrame(frame)
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016)
+    const still = Math.abs(target - cur) < 1e-5 && Math.abs(entry - curEntry) < 1e-5 && terrainReady === wasReady
+    wasReady = terrainReady
+    if (still && settle <= 0) return void (last = now)
+    settle = still ? settle - 1 : 60
+    if (!still) gov.frame(now - last)
     last = now
     const k = 1 - Math.exp(-dt * 7)
     cur += (target - cur) * k
@@ -649,6 +665,9 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
   }
 
   const proj = new THREE.Vector3()
+  // compile every shader in parallel before the first frame, instead of stalling inside it
+  await renderer.compileAsync(scene, camera)
+
   return {
     set(p, e) {
       target = p
@@ -717,6 +736,7 @@ export async function createFlight(canvas: HTMLCanvasElement, opts: { accent: st
       for (const m of [fillMat, lineMat, terrainMat]) m.dispose()
       rover.dispose()
       renderer.dispose()
+      renderer.forceContextLoss()
     },
   }
 }

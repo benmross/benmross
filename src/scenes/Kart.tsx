@@ -1,30 +1,25 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { m, useMotionValueEvent, useTransform } from 'motion/react'
 import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
+import { afterLoad, webgl2 } from '../lib/gpu'
 import { img } from '../lib/media'
 import { kartScene as T } from '../content'
 import { ANCHOR } from './kart/frame'
 import type { FrameInfo, Stage } from './kart/stage'
 import { ACT, seg } from './kart/timeline'
 
+const DEAD = new Error('scene left before it loaded')
+
 const ACCENT = '#ff4a3d'
 const TINT = '#150808'
 const KIND = { cmd: '#f4efe6', tel: '#39d8c0', pwr: '#ff5a3c' } as const
 const MAX_TAGS = Math.max(...T.stops.map((s) => s.tags.length))
 
-function webgl() {
-  try {
-    return !!document.createElement('canvas').getContext('webgl2')
-  } catch {
-    return false
-  }
-}
-
 /** The kart in 3D: drifting through a turn, then slowed almost to a stop while the camera goes round it. */
 export function KartScene() {
   const [mode, setMode] = useState<'stage' | 'still'>('stage')
   useEffect(() => {
-    if (reducedMotion() || !webgl()) setMode('still')
+    if (reducedMotion() || !webgl2()) setMode('still')
   }, [])
   return mode === 'stage' ? <StageScene onFail={() => setMode('still')} /> : <StillScene />
 }
@@ -47,12 +42,18 @@ function StageScene({ onFail }: { onFail: () => void }) {
   const shown = useRef(-2)
   const progress = useSceneProgress(ref)
   const near = useNearViewport(ref, '120% 0px')
+  const keep = useNearViewport(ref, '300% 0px')
+  const [gen, setGen] = useState(0)
   const visible = useNearViewport(ref, '0px')
 
   useEffect(() => {
     if (!near || stage.current) return
     let dead = false
-    import('./kart/stage')
+    afterLoad()
+      .then(() => {
+        if (dead) throw DEAD
+        return import('./kart/stage')
+      })
       .then(({ createStage }) => createStage(canvas.current!, { accent: ACCENT, tint: TINT, mobile: window.matchMedia('(max-width: 820px)').matches }))
       .then((s) => {
         if (dead) return s.dispose()
@@ -63,13 +64,23 @@ function StageScene({ onFail }: { onFail: () => void }) {
         ref.current?.classList.add('on')
       })
       .catch((e) => {
+        if (e === DEAD) return
         console.error(e)
         if (!dead) onFail()
       })
     return () => {
       dead = true
     }
-  }, [near]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [near, gen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Far away, release the scene and its GPU context; it is rebuilt on a fresh canvas when it comes close again.
+  useEffect(() => {
+    if (keep || !stage.current) return
+    stage.current.dispose()
+    stage.current = null
+    ref.current?.classList.remove('on')
+    setGen((g) => g + 1)
+  }, [keep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => stage.current?.dispose(), [])
   useEffect(() => stage.current?.setActive(visible), [visible])
@@ -162,7 +173,7 @@ function StageScene({ onFail }: { onFail: () => void }) {
   return (
     <div ref={ref} className="scene kart3d" style={{ height: '1500vh' }}>
       <div className="scene-sticky kart3d-sticky">
-        <canvas ref={canvas} className="kart3d-canvas" aria-hidden />
+        <canvas key={gen} ref={canvas} className="kart3d-canvas" aria-hidden />
 
 
         <svg className="kart3d-leaders" aria-hidden>

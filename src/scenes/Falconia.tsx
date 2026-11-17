@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMotionValueEvent, useScroll } from 'motion/react'
 import { reducedMotion, useNearViewport, useSceneProgress } from '../lib/motion'
+import { afterLoad, webgl2 } from '../lib/gpu'
 import { img } from '../lib/media'
 import type { Flight } from './falconia/flight'
 
@@ -31,23 +32,16 @@ const FIN = { show: [0.82, 0.86], grow: [0.86, 0.97], fade: [0.95, 0.995] } as c
 const seg = (v: number, a: number, b: number) => Math.max(0, Math.min(1, (v - a) / (b - a)))
 const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
 
+const DEAD = new Error('scene left before it loaded')
+
 const ACCENT = '#d9be98'
 const TINT = '#11100c'
-
-function webgl() {
-  try {
-    const c = document.createElement('canvas')
-    return !!c.getContext('webgl2')
-  } catch {
-    return false
-  }
-}
 
 /** A drone flight over the scan of the terrain table, ending on the symposium photo. */
 export function FalconiaScene() {
   const [mode, setMode] = useState<'flight' | 'layers'>('flight')
   useEffect(() => {
-    if (reducedMotion() || !webgl()) setMode('layers')
+    if (reducedMotion() || !webgl2()) setMode('layers')
   }, [])
   return mode === 'flight' ? <FlightScene onFail={() => setMode('layers')} /> : <LayersScene />
 }
@@ -61,6 +55,8 @@ function FlightScene({ onFail }: { onFail: () => void }) {
   const progress = useSceneProgress(ref)
   const { scrollYProgress: entry } = useScroll({ target: ref, offset: ['start end', 'start start'] })
   const near = useNearViewport(ref, '120% 0px')
+  const keep = useNearViewport(ref, '300% 0px')
+  const [gen, setGen] = useState(0)
   const visible = useNearViewport(ref, '0px')
   const [step, setStep] = useState(0)
   const stepRef = useRef(0)
@@ -69,7 +65,11 @@ function FlightScene({ onFail }: { onFail: () => void }) {
   useEffect(() => {
     if (!near || flight.current) return
     let dead = false
-    import('./falconia/flight')
+    afterLoad()
+      .then(() => {
+        if (dead) throw DEAD
+        return import('./falconia/flight')
+      })
       .then(({ createFlight }) =>
         createFlight(canvasRef.current!, { accent: ACCENT, tint: TINT, mobile: window.matchMedia('(max-width: 820px)').matches }),
       )
@@ -82,13 +82,23 @@ function FlightScene({ onFail }: { onFail: () => void }) {
         canvasRef.current?.classList.add('on')
       })
       .catch((e) => {
+        if (e === DEAD) return
         console.error(e)
         if (!dead) onFail()
       })
     return () => {
       dead = true
     }
-  }, [near]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [near, gen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Far away, release the scene and its GPU context; it is rebuilt on a fresh canvas when it comes close again.
+  useEffect(() => {
+    if (keep || !flight.current) return
+    flight.current.dispose()
+    flight.current = null
+    ref.current?.classList.remove('on')
+    setGen((g) => g + 1)
+  }, [keep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => flight.current?.dispose(), [])
   useEffect(() => flight.current?.setActive(visible), [visible])
@@ -183,7 +193,7 @@ function FlightScene({ onFail }: { onFail: () => void }) {
           <img {...img(M + FINALE.src, '(max-width: 820px) 100vw, 84vw')} alt={FINALE.alt} loading="lazy" decoding="async" />
         </div>
         <div ref={modelRef} className="fal3-model">
-          <canvas ref={canvasRef} className="fal3-canvas" aria-hidden />
+          <canvas key={gen} ref={canvasRef} className="fal3-canvas" aria-hidden />
         </div>
         <div className="scene-caption" aria-hidden>
           {PHASES.map((p, i) => (

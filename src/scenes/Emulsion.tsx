@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { useNearViewport } from '../lib/motion'
 import { emulsionPreview } from '../content'
 
+/** Data Saver or a 2G/3G connection: keep the poster rather than stream a 3 MB loop. Chromium only reports this. */
+function frugal() {
+  const c = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+  return !!c && (c.saveData === true || /(^|-)2g|3g/.test(c.effectiveType ?? ''))
+}
+
 /** The Emulsion preview's shader loop is baked offline. */
 function EmulsionField({ preset }: { preset: 'satin' }) {
   const video = useRef<HTMLVideoElement>(null)
@@ -22,7 +28,7 @@ function EmulsionField({ preset }: { preset: 'satin' }) {
         }
         return
       }
-      if (!visible || document.hidden) {
+      if (!visible || document.hidden || frugal()) {
         node.pause()
         return
       }
