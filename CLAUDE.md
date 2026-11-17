@@ -76,6 +76,19 @@ npm run build
   <SMCSKart-Mainboard.kicad_pcb> public/media/kart/board.json`, built at real size by `board.ts`.
   `window.__kart(t)` holds the scene at progress `t`.
 
+## Performance rules for scenes
+
+- `src/lib/gpu.ts` holds the shared limits: `webgl2()` probes once and releases its context,
+  `afterLoad()` delays scene builds until after load and an idle moment, `pixelRatio()` caps
+  device pixels at about 4.2 million per canvas, `governor()` lowers resolution when the median
+  frame passes ~28 ms, and `whenIdle()` schedules teardown between frames.
+- Every WebGL scene builds when near (`120%` margin), starts its loop only if visible, and
+  disposes with `forceContextLoss()` three screens away, rebuilding on a fresh canvas (`gen` key).
+- Frame loops never read layout (`clientWidth`, `offsetWidth`, `getBoundingClientRect`) after
+  writing styles: sizes come from ResizeObservers or from the layout the frame computed.
+- Kart picks MSAA by canvas pixel count; production builds skip three.js shader log checks.
+- The Loop ground is built in `src/scenes/loop/ground.worker.ts`.
+
 ## Search and link previews
 
 - `npm run build` prerenders the page into `dist/index.html` (`src/entry-server.tsx`,
