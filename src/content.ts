@@ -66,14 +66,9 @@ export const projects: Project[] = [
     stack: 'Python, SQLite, Claude Code, Codex',
     blurb:
       'An open-source personal agent that runs on your own machine. It reads mail, calendar, messages, location and health into one ledger. Anything another person would see waits for a tap on your phone.',
-    stats: [
-      { value: '151k', label: 'facts in its ledger' },
-      { value: '13', label: 'sources' },
-      { value: 'MIT', label: 'license' },
-    ],
     links: [{ label: 'Source', href: 'https://github.com/benmross/herald' }],
-    accent: '#f2a83b',
-    tint: '#15110a',
+    accent: '#5b8cff',
+    tint: '#080a12',
   },
   {
     id: 'kart',
@@ -324,4 +319,46 @@ export const loopScene = {
   },
   fallbackAlt: 'Arm Pilot driving the simulated Loop arm: the rover model with its arm reaching out, and Ben holding the phone in the corner',
   fallbackCaption: 'Arm Pilot driving the simulated arm',
+}
+
+/** Words in the Herald scene. Every message, name and job in it is made up. */
+export const heraldScene = {
+  label:
+    'A cloud of points of light, each a thing Herald has read. It lays itself out along a timeline by source, gathers into clusters to answer a question, then becomes a clock and runs its overnight jobs.',
+  steps: ['Everything it reads', 'Remembers', 'Answers', 'Never sleeps'],
+  intro: 'Every email, event, message and step it has read is a point of light.',
+  line: 'Laid out by source and time. Years of it, and more every hour.',
+  past: 'Years ago',
+  now: 'Today',
+  groups: ['Messages', 'Mail', 'Calendar', 'Canvas', 'Opportunities', 'GitHub', 'Location', 'Health'],
+  name: 'Herald',
+  online: 'online',
+  reading: 'reading',
+  question: "Anything due this week I haven't started?",
+  answer:
+    "Two. The GIS lab data is due Friday and Canvas shows no submission, but your lab partner sent the shapefile last night. Quiz 9 moved to Thursday. You're free from 2:30 to 4:30 PM in the library. Want me to block that time for the lab?",
+  chips: ['Canvas', 'Mail', 'Calendar', 'Messages', 'Location'],
+  evidence: [
+    { src: 'Canvas', text: 'GIS lab data, due Friday, no submission' },
+    { src: 'Mail', text: 'Professor: Quiz 9 moves to Thursday' },
+    { src: 'Calendar', text: 'Free 2:30 to 4:30 PM' },
+    { src: 'Group chat', text: 'Lab partner: "sent you the shapefile"' },
+    { src: 'Location', text: 'On campus since this morning' },
+  ],
+  buttons: ['Block it', 'No'],
+  clockLabels: ['12 AM', '6 AM', '12 PM', '6 PM'],
+  tagline: 'A second you that never sleeps.',
+  jobs: [
+    { src: 'Canvas', text: 'New announcement read and filed' },
+    { src: 'Campus events', text: 'Talks you would want, added to your calendar' },
+    { src: 'Calendar', text: 'Exam room changed, event fixed' },
+    { src: 'Ledger', text: "The day's mail, messages and steps, indexed" },
+    { src: 'Opportunities', text: 'An internship you saved closes tomorrow' },
+    { src: 'Mail', text: 'Overnight mail read in full, attachments opened' },
+    { src: 'Digest', text: 'Morning summary sent' },
+  ],
+  digest:
+    "Good morning. Project due tonight, library room at 2:30 PM, hackathon finals at 5:15 PM. Overnight I fixed your exam room and flagged an internship that closes tomorrow. Want me to prepare the application?",
+  digestButtons: ['Prepare it', 'Skip'],
+  note: 'Illustration. The messages, names and jobs are made up.',
 }

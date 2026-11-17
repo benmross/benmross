@@ -12,7 +12,7 @@ npm run build
 ```
 
 - `src/content.ts` holds every word on the site. Edit text there, not in components.
-- `src/scenes/` holds one visual per project. The canvas scenes (Herald, BenGPT, GNSS)
+- `src/scenes/` holds one visual per project. The canvas scenes (BenGPT, GNSS)
   are drawn from code; the others use real screenshots and renders in `public/media/`.
 - `src/shaders/` are emulsion's own shaders, copied unchanged from
   [benmross/emulsion](https://github.com/benmross/emulsion). They are used offline
@@ -38,6 +38,16 @@ npm run build
   progress `t` for screenshots; `window.__falconiaPick(x, y)` gives the point on the scan under a screen position. The models in `public/media/falconia/model/` come from
   "Falconia V3.zip" in Drive via `scripts/falconia-model/build.sh` (level, crop, simplify,
   WebP texture, meshopt).
+- The Herald scene (`src/scenes/Herald.tsx`, `src/scenes/herald/`) is one cloud of points of light
+  (raw WebGL2, `cloud.ts`) that keeps rearranging: a turning ball, a timeline by source, clusters by
+  source where a sample question lights its evidence and couriers stream it into the answer, then a
+  24-hour clock whose hand runs the overnight jobs, each job's points flying into its line in the chat.
+  Every point holds its place in all four layouts (`layout.ts`), and the vertex shader blends neighbours
+  with a per-point delay and a curved, turbulent flight. Phases are in `timeline.ts` PH. The chat,
+  labels and cards are DOM laid over it from the same layout. Nothing in it is real data, and on
+  Ben's request (17 Nov 2026) it shows no numbers: volume comes from density. Colours and type follow
+  the Herald brand (#5b8cff, emulsion grain, the orb). `window.__herald(t)` holds progress `t`, null
+  releases it. Reduce Motion or no WebGL shows `public/media/herald/still.webp`.
 - The Loop scene (`src/scenes/Loop.tsx`, `src/scenes/loop/`) replays an Arm Pilot session against
   scroll: the operator's phone (or, in the tracker comparison, a stereo or mono hand or the marker
   wand) on the left, the rover arm on the right. At the end the operator panel goes, Mars-like ground

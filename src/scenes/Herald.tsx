@@ -1,246 +1,391 @@
-import { CanvasScene, type Draw } from '../components/CanvasScene'
-import { alpha, curve, font, rrect, stream, type Pt } from '../lib/draw'
-import { easeOut, seg } from '../lib/motion'
+import { useEffect, useRef, useState } from 'react'
+import { heraldScene as T } from '../content'
+import { reducedMotion, seg, useNearViewport, useSceneProgress } from '../lib/motion'
+import type { Cloud } from './herald/cloud'
+import { layout, type Layout, type Rect } from './herald/layout'
+import { JOB_HOURS, PH, stateAt, type State } from './herald/timeline'
 
-const AMBER = '#f2a83b'
-const GREEN = '#72d08e'
-const RED = '#ff6159'
-const FG = '#ecebe4'
-const MUTED = '#8d8b84'
-
-const SOURCES = ['Mail', 'Calendar', 'Messages', 'Location', 'Health', 'GitHub', 'Tasks', 'Contacts']
-const TIERS = [
-  { name: 'Green', what: 'read, draft', color: GREEN },
-  { name: 'Amber', what: 'label, schedule, logged', color: AMBER },
-  { name: 'Red', what: 'send, post, pay', color: RED },
-]
-const FACTS = 151531
-const LEDGER_LINES = ['state/now.md', 'state/commitments.md', 'journal/2026-09-22.md', 'facts.db']
-
-const draw: Draw = (ctx, w, h, t, p) => {
-  const wide = w > h * 1.05
-  const s = wide ? Math.min(w / 1280, h / 760) : Math.min(w / 420, h / 820)
-  const k = Math.max(0.72, s)
-
-  const collect = seg(p, 0.02, 0.3)
-  const remember = seg(p, 0.28, 0.5)
-  const decide = seg(p, 0.5, 0.72)
-  const ask = seg(p, 0.72, 0.9)
-  const tapped = seg(p, 0.9, 0.96)
-
-  // ---- layout
-  const src: Pt[] = []
-  let ledger: { x: number; y: number; w: number; h: number }
-  const tiers: Pt[] = []
-  let phone: { x: number; y: number; w: number; h: number }
-  const pillW = 118 * k
-  const pillH = 30 * k
-  if (wide) {
-    const x = w * 0.1
-    SOURCES.forEach((_, i) => src.push({ x, y: h * 0.2 + (i * h * 0.6) / (SOURCES.length - 1) }))
-    ledger = { x: w * 0.37 - 115 * k, y: h / 2 - 140 * k, w: 230 * k, h: 280 * k }
-    TIERS.forEach((_, i) => tiers.push({ x: w * 0.56, y: h * 0.33 + i * h * 0.17 }))
-    const ph = Math.min(h * 0.64, 460 * k)
-    phone = { x: w * 0.885 - ph * 0.26, y: h / 2 - ph / 2, w: ph * 0.52, h: ph }
-  } else {
-    SOURCES.forEach((_, i) =>
-      src.push({ x: w * (0.14 + (i % 4) * 0.24), y: h * 0.12 + Math.floor(i / 4) * 44 * k }),
-    )
-    ledger = { x: w / 2 - 110 * k, y: h * 0.27, w: 220 * k, h: 150 * k }
-    TIERS.forEach((_, i) => tiers.push({ x: w * (0.19 + i * 0.31), y: h * 0.54 }))
-    phone = { x: w * 0.08, y: h * 0.69, w: w * 0.84, h: h * 0.2 }
-  }
-  const lc = { x: ledger.x + ledger.w / 2, y: ledger.y + ledger.h / 2 }
-  const lIn = wide ? { x: ledger.x, y: lc.y } : { x: lc.x, y: ledger.y }
-  const lOut = wide ? { x: ledger.x + ledger.w, y: lc.y } : { x: lc.x, y: ledger.y + ledger.h }
-
-  // ---- wires
-  ctx.lineWidth = 1
-  src.forEach((a, i) => {
-    const on = seg(collect, i * 0.06, i * 0.06 + 0.4)
-    const from = wide ? { x: a.x + pillW / 2, y: a.y } : { x: a.x, y: a.y + pillH / 2 }
-    ctx.strokeStyle = alpha(FG, 0.1 * on)
-    curve(ctx, from, lIn, !wide)
-    ctx.stroke()
-    const flow = on * (1 - remember * 0.7)
-    stream(ctx, from, lIn, t, AMBER, flow, { n: 3, speed: 0.35 + (i % 3) * 0.08, offset: i * 0.17, vertical: !wide, r: 2 * k })
-  })
-  tiers.forEach((b, i) => {
-    const on = seg(decide, i * 0.18, i * 0.18 + 0.45)
-    const to = wide ? { x: b.x - 4, y: b.y } : { x: b.x, y: b.y - 22 * k }
-    ctx.strokeStyle = alpha(TIERS[i].color, 0.22 * on)
-    curve(ctx, lOut, to, !wide)
-    ctx.stroke()
-    stream(ctx, lOut, to, t, TIERS[i].color, on * (1 - ask * 0.6), { n: 3, speed: 0.4, offset: i * 0.3, vertical: !wide, r: 2.2 * k })
-  })
-  // red tier to the phone
-  {
-    const r = tiers[2]
-    const a = wide ? { x: r.x + 176 * k, y: r.y } : { x: r.x, y: r.y + 24 * k }
-    const b = wide ? { x: phone.x, y: phone.y + phone.h * 0.45 } : { x: phone.x + phone.w / 2, y: phone.y }
-    ctx.strokeStyle = alpha(RED, 0.3 * ask)
-    curve(ctx, a, b, !wide)
-    ctx.stroke()
-    stream(ctx, a, b, t, RED, ask * (1 - tapped), { n: 2, speed: 0.5, vertical: !wide, r: 2.4 * k })
-  }
-
-  // ---- sources
-  src.forEach((a, i) => {
-    const on = easeOut(seg(collect, i * 0.06, i * 0.06 + 0.3))
-    const x = wide ? a.x - pillW / 2 : a.x - (pillW * 0.8) / 2
-    const pw = wide ? pillW : pillW * 0.8
-    ctx.globalAlpha = on
-    rrect(ctx, x, a.y - pillH / 2 + (1 - on) * 10, pw, pillH, pillH / 2)
-    ctx.strokeStyle = alpha(FG, 0.22)
-    ctx.stroke()
-    font(ctx, 12.5 * k, 500)
-    ctx.fillStyle = FG
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(SOURCES[i], x + pw / 2, a.y + (1 - on) * 10)
-    ctx.globalAlpha = 1
-  })
-
-  // ---- ledger
-  {
-    const on = easeOut(seg(collect, 0, 0.35))
-    ctx.globalAlpha = on
-    rrect(ctx, ledger.x, ledger.y, ledger.w, ledger.h, 14 * k)
-    ctx.fillStyle = alpha(AMBER, 0.05 + remember * 0.05)
-    ctx.fill()
-    ctx.strokeStyle = alpha(AMBER, 0.45)
-    ctx.stroke()
-    ctx.textAlign = 'left'
-    ctx.textBaseline = 'alphabetic'
-    font(ctx, 12 * k, 500)
-    ctx.fillStyle = MUTED
-    ctx.fillText('ledger', ledger.x + 18 * k, ledger.y + 28 * k)
-    const n = Math.round(FACTS * easeOut(collect))
-    font(ctx, (wide ? 34 : 28) * k, 750)
-    ctx.fillStyle = FG
-    ctx.fillText(n.toLocaleString('en-US'), ledger.x + 18 * k, ledger.y + (wide ? 68 : 60) * k)
-    font(ctx, 12 * k, 500)
-    ctx.fillStyle = MUTED
-    ctx.fillText('facts', ledger.x + 18 * k, ledger.y + (wide ? 88 : 78) * k)
-    // conclusions written down once, then maintained
-    const lines = wide ? LEDGER_LINES : LEDGER_LINES.slice(0, 2)
-    lines.forEach((l, i) => {
-      const a = easeOut(seg(remember, 0.1 + i * 0.18, 0.4 + i * 0.18))
-      const y = ledger.y + (wide ? 128 : 102) * k + i * 24 * k
-      ctx.globalAlpha = on * a
-      ctx.fillStyle = AMBER
-      ctx.fillRect(ledger.x + 18 * k, y - 8 * k, 6 * k, 6 * k)
-      font(ctx, 12.5 * k, 500)
-      ctx.fillStyle = FG
-      ctx.fillText(l, ledger.x + 32 * k + (1 - a) * 8, y)
-    })
-    // a cycle sweeping the ledger
-    if (remember > 0 && remember < 1) {
-      const ang = t * 2.4
-      ctx.globalAlpha = Math.sin(remember * Math.PI) * 0.8
-      ctx.strokeStyle = AMBER
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.arc(ledger.x + ledger.w - 26 * k, ledger.y + 26 * k, 9 * k, ang, ang + 4.2)
-      ctx.stroke()
-      ctx.lineWidth = 1
-    }
-    ctx.globalAlpha = 1
-  }
-
-  // ---- tiers
-  tiers.forEach((b, i) => {
-    const on = easeOut(seg(decide, i * 0.18, i * 0.18 + 0.4))
-    const tw = wide ? 176 * k : w * 0.28
-    const th = wide ? 48 * k : 46 * k
-    const x = wide ? b.x : b.x - tw / 2
-    const y = b.y - th / 2
-    ctx.globalAlpha = on
-    rrect(ctx, x, y, tw, th, 10 * k)
-    ctx.fillStyle = alpha(TIERS[i].color, 0.1)
-    ctx.fill()
-    ctx.strokeStyle = alpha(TIERS[i].color, 0.6)
-    ctx.stroke()
-    ctx.textAlign = wide ? 'left' : 'center'
-    ctx.textBaseline = 'alphabetic'
-    font(ctx, 14 * k, 700)
-    ctx.fillStyle = TIERS[i].color
-    const tx = wide ? x + 14 * k : b.x
-    ctx.fillText(TIERS[i].name, tx, y + 20 * k)
-    font(ctx, (wide ? 11.5 : 10) * k, 500)
-    ctx.fillStyle = MUTED
-    ctx.fillText(wide ? TIERS[i].what : TIERS[i].what.split(',')[0], tx, y + 36 * k)
-    ctx.globalAlpha = 1
-  })
-
-  // ---- phone
-  {
-    const on = easeOut(ask)
-    ctx.globalAlpha = on
-    if (wide) {
-      rrect(ctx, phone.x, phone.y, phone.w, phone.h, 26 * k)
-      ctx.strokeStyle = alpha(FG, 0.28)
-      ctx.lineWidth = 1.5
-      ctx.stroke()
-      ctx.lineWidth = 1
-      rrect(ctx, phone.x + phone.w / 2 - 22 * k, phone.y + 10 * k, 44 * k, 12 * k, 6 * k)
-      ctx.fillStyle = alpha(FG, 0.18)
-      ctx.fill()
-    }
-    const cx = wide ? phone.x + 12 * k : phone.x
-    const cw = wide ? phone.w - 24 * k : phone.w
-    const cy = wide ? phone.y + phone.h * 0.3 + (1 - on) * 20 : phone.y + (1 - on) * 20
-    const ch = 132 * k
-    rrect(ctx, cx, cy, cw, ch, 14 * k)
-    ctx.fillStyle = 'rgba(40, 38, 34, 0.92)'
-    ctx.fill()
-    ctx.textAlign = 'left'
-    font(ctx, 11 * k, 600)
-    ctx.fillStyle = AMBER
-    ctx.fillText('HERALD', cx + 12 * k, cy + 22 * k)
-    font(ctx, 13 * k, 650)
-    ctx.fillStyle = FG
-    ctx.fillText('Send this email?', cx + 12 * k, cy + 44 * k)
-    font(ctx, 11.5 * k, 450)
-    ctx.fillStyle = MUTED
-    ctx.fillText('To your advisor, re: Thursday', cx + 12 * k, cy + 62 * k)
-    // buttons
-    const bw = (cw - 36 * k) / 2
-    const by = cy + ch - 44 * k
-    ;[
-      { l: tapped > 0.5 ? 'Sent' : 'Approve', c: GREEN, x: cx + 12 * k, hit: tapped },
-      { l: 'Decline', c: FG, x: cx + 24 * k + bw, hit: 0 },
-    ].forEach((b) => {
-      rrect(ctx, b.x, by, bw, 30 * k, 8 * k)
-      ctx.fillStyle = alpha(b.c, 0.12 + b.hit * 0.5)
-      ctx.fill()
-      ctx.textAlign = 'center'
-      font(ctx, 12 * k, 650)
-      ctx.fillStyle = b.hit > 0.5 ? '#0c0c0d' : b.c
-      ctx.fillText(b.l, b.x + bw / 2, by + 19.5 * k)
-    })
-    // the tap
-    if (tapped > 0 && tapped < 1) {
-      ctx.strokeStyle = alpha(FG, 1 - tapped)
-      ctx.beginPath()
-      ctx.arc(cx + 12 * k + bw / 2, by + 15 * k, 8 + tapped * 30, 0, Math.PI * 2)
-      ctx.stroke()
-    }
-    ctx.globalAlpha = 1
+function webgl() {
+  try {
+    return !!document.createElement('canvas').getContext('webgl2')
+  } catch {
+    return false
   }
 }
 
+/** One cloud of light that becomes a timeline, then clusters that answer a question, then a clock. */
 export function HeraldScene() {
+  const [mode, setMode] = useState<'stage' | 'still'>('stage')
+  useEffect(() => {
+    if (reducedMotion() || !webgl()) setMode('still')
+  }, [])
+  return mode === 'stage' ? <Stage onFail={() => setMode('still')} /> : <Still />
+}
+
+function Still() {
   return (
-    <CanvasScene
-      label="Diagram: data sources flow into Herald's ledger, actions are sorted into green, amber and red, and red actions wait for a tap on the phone."
-      draw={draw}
-      steps={[
-        { at: 0, label: 'Collect' },
-        { at: 0.28, label: 'Remember' },
-        { at: 0.5, label: 'Decide' },
-        { at: 0.72, label: 'Ask' },
-      ]}
-    />
+    <div className="scene hc-still">
+      <img src="/media/herald/still.webp" alt={T.label} loading="lazy" />
+    </div>
+  )
+}
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+const lerpRect = (a: Rect, b: Rect, t: number): Rect => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), w: lerp(a.w, b.w, t), h: lerp(a.h, b.h, t) })
+const show = (el: HTMLElement | SVGElement | null | undefined, o: number) => {
+  if (!el) return
+  const v = o.toFixed(3)
+  if (el.style.opacity !== v) el.style.opacity = v
+  el.style.visibility = o < 0.002 ? 'hidden' : 'visible'
+}
+const at = (el: HTMLElement | null | undefined, x: number, y: number) => {
+  if (el) el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`
+}
+const clock12 = (h: number) => {
+  const hh = Math.floor(h) % 24
+  const mm = Math.floor((h - Math.floor(h)) * 60)
+  return `${hh % 12 === 0 ? 12 : hh % 12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'}`
+}
+/** Shows or removes an element from the flow, so hidden chat lines take no room. */
+const flow = (el: HTMLElement | null | undefined, on: boolean) => {
+  if (!el) return
+  const d = on ? '' : 'none'
+  if (el.style.display !== d) el.style.display = d
+  show(el, on ? 1 : 0)
+}
+const typed = (s: string, u: number) => s.slice(0, Math.round(s.length * u))
+
+function Stage({ onFail }: { onFail: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const box = useRef<HTMLDivElement>(null)
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const cloud = useRef<Cloud | null>(null)
+  const L = useRef<Layout | null>(null)
+  const mouse = useRef<[number, number]>([-1e4, -1e4])
+  const hold = useRef<number | null>(null)
+  const progress = useSceneProgress(ref)
+  const near = useNearViewport(ref, '120% 0px')
+  const visible = useNearViewport(ref, '0px')
+  const [step, setStep] = useState(0)
+
+  const intro = useRef<HTMLParagraphElement>(null)
+  const lineHead = useRef<HTMLParagraphElement>(null)
+  const lanes = useRef<(HTMLSpanElement | null)[]>([])
+  const axis = useRef<HTMLDivElement>(null)
+  const groups = useRef<(HTMLSpanElement | null)[]>([])
+  const ev = useRef<(HTMLDivElement | null)[]>([])
+  const chat = useRef<HTMLDivElement>(null)
+  const status = useRef<HTMLSpanElement>(null)
+  const qa = useRef<HTMLDivElement>(null)
+  const q = useRef<HTMLDivElement>(null)
+  const thinking = useRef<HTMLDivElement>(null)
+  const ans = useRef<HTMLDivElement>(null)
+  const ansText = useRef<HTMLSpanElement>(null)
+  const ansMore = useRef<HTMLDivElement>(null)
+  const night = useRef<HTMLDivElement>(null)
+  const jobs = useRef<(HTMLDivElement | null)[]>([])
+  const digest = useRef<HTMLDivElement>(null)
+  const dial = useRef<SVGSVGElement>(null)
+  const hand = useRef<SVGLineElement>(null)
+  const handDot = useRef<SVGCircleElement>(null)
+  const sleep = useRef<SVGPathElement>(null)
+  const hours = useRef<(HTMLSpanElement | null)[]>([])
+  const time = useRef<HTMLDivElement>(null)
+  const timeText = useRef<HTMLSpanElement>(null)
+  const note = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    if (!near || cloud.current) return
+    let dead = false
+    let raf = 0
+    let ro: ResizeObserver | null = null
+    import('./herald/cloud')
+      .then(({ createCloud }) => {
+        if (dead) return
+        const mobile = window.matchMedia('(max-width: 820px)').matches
+        const c = createCloud(canvas.current!, mobile ? 12000 : 26000)
+        cloud.current = c
+        const size = () => {
+          const b = box.current!
+          L.current = layout(b.clientWidth, b.clientHeight)
+          c.resize(L.current, Math.min(window.devicePixelRatio || 1, 2))
+          placeStatic(L.current)
+        }
+        size()
+        ro = new ResizeObserver(size)
+        ro.observe(box.current!)
+        const loop = (t: number) => {
+          raf = requestAnimationFrame(loop)
+          if (!running.current || !L.current) return
+          const s = stateAt(hold.current ?? progress.get())
+          const fx = frame(s, L.current)
+          c.render(s, { time: t / 1000, mouse: mouse.current, ...fx })
+        }
+        raf = requestAnimationFrame(loop)
+        ref.current?.classList.add('on')
+      })
+      .catch((e) => {
+        console.error(e)
+        if (!dead) onFail()
+      })
+    return () => {
+      dead = true
+      cancelAnimationFrame(raf)
+      ro?.disconnect()
+    }
+  }, [near]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const running = useRef(false)
+  useEffect(() => {
+    running.current = visible
+  }, [visible])
+  useEffect(
+    () => () => {
+      cloud.current?.dispose()
+      cloud.current = null
+    },
+    [],
+  )
+
+  // screenshots and debugging: window.__herald(0.5) holds the scene at that progress, null releases it
+  useEffect(() => {
+    const w = window as unknown as { __herald?: (t: number | null) => void }
+    w.__herald = (t) => {
+      hold.current = t
+      running.current = true
+    }
+    return () => void delete w.__herald
+  }, [])
+
+  /** Things that move only when the layout changes. */
+  function placeStatic(l: Layout) {
+    l.line.lanes.forEach((y, i) => at(lanes.current[i], l.line.x0 - 18, y))
+    if (axis.current) {
+      axis.current.style.left = `${l.line.x0}px`
+      axis.current.style.width = `${l.line.x1 - l.line.x0}px`
+      axis.current.style.top = `${l.line.y1 + 18}px`
+    }
+    const hx = l.narrow ? 20 : l.line.x0
+    at(lineHead.current, hx, l.line.y0 - (l.narrow ? 70 : 56))
+    if (lineHead.current) lineHead.current.style.width = `${Math.min(l.W - hx - 20, 620)}px`
+    l.clus.centers.forEach((c, i) => at(groups.current[i], c.x, c.y - c.s * 1.02 - 10))
+    l.clus.ev.forEach((e, i) => {
+      const el = ev.current[i]
+      if (!el) return
+      const right = e.x > l.W * 0.8
+      el.classList.toggle('left', right)
+      at(el, e.x + (right ? -14 : 14), e.y + 12)
+    })
+    at(intro.current, l.cloud.cx, l.cloud.cy + l.cloud.r * 1.12)
+    const { cx, cy, r1 } = l.clock
+    if (dial.current) {
+      dial.current.setAttribute('viewBox', `0 0 ${l.W} ${l.H}`)
+      const a0 = 0.02
+      const a1 = (7 / 24) * Math.PI * 2
+      const R = r1 + 22
+      const p = (a: number) => `${(cx + Math.sin(a) * R).toFixed(1)} ${(cy - Math.cos(a) * R).toFixed(1)}`
+      sleep.current?.setAttribute('d', `M ${p(a0)} A ${R} ${R} 0 0 1 ${p(a1)}`)
+    }
+    hours.current.forEach((el, i) => {
+      const a = (i / 4) * Math.PI * 2
+      const k = r1 + (l.narrow ? 24 : 50)
+      at(el, cx + Math.sin(a) * k, cy - Math.cos(a) * k)
+    })
+    at(time.current, cx, cy)
+  }
+
+  /** Per frame: the overlay, and where the couriers fly from and to. */
+  function frame(s: State, l: Layout) {
+    const p = s.p
+    setStep(p < PH.toLine[1] ? 0 : p < PH.toClus[1] ? 1 : p < PH.toClock[0] ? 2 : 3)
+
+    show(intro.current, 1 - seg(p, 0.05, 0.09))
+    const lineOn = seg(p, 0.13, 0.17) * (1 - seg(p, PH.toClus[0], PH.toClus[0] + 0.03))
+    show(lineHead.current, lineOn)
+    lanes.current.forEach((el) => show(el, lineOn))
+    show(axis.current, lineOn)
+
+    const clusOn = seg(p, PH.toClus[1] - 0.04, PH.toClus[1]) * (1 - seg(p, PH.toClock[0], PH.toClock[0] + 0.03))
+    groups.current.forEach((el) => show(el, clusOn * (1 - 0.6 * s.evid)))
+    ev.current.forEach((el, i) => show(el, clusOn * seg(s.evid, i * 0.12, i * 0.12 + 0.5)))
+
+    // the chat: beside the clusters, then beside the clock
+    const move = seg(p, PH.toClock[0], PH.toClock[1])
+    const r = lerpRect(l.clus.chat, l.clock.chat, move * move * (3 - 2 * move))
+    const c = chat.current
+    if (c) {
+      at(c, r.x, r.y)
+      c.style.width = `${r.w.toFixed(1)}px`
+      c.style.height = `${r.h.toFixed(1)}px`
+    }
+    show(c, seg(p, PH.toClus[1] - 0.03, PH.ask[0]))
+    show(qa.current, 1 - seg(p, PH.toClock[0], PH.toClock[0] + 0.03))
+    if (q.current) q.current.textContent = typed(T.question, s.typedQ) || '​'
+    flow(q.current, s.typedQ > 0)
+    flow(thinking.current, s.thinking)
+    if (ansText.current) ansText.current.textContent = typed(T.answer, s.typedA)
+    flow(ans.current, s.typedA > 0)
+    show(ansMore.current, seg(s.typedA, 0.95, 1))
+    if (ansMore.current) ansMore.current.style.display = s.typedA > 0.95 ? 'block' : 'none'
+    const statusText = s.thinking || (s.typedA > 0 && s.typedA < 1) || (s.send > 0.05 && s.stage > 2.9) ? `${T.reading}…` : T.online
+    if (status.current && status.current.textContent !== statusText) status.current.textContent = statusText
+
+    // the night
+    const ck = seg(p, PH.toClock[1] - 0.03, PH.toClock[1])
+    show(night.current, ck)
+    jobs.current.forEach((el, i) => flow(el, s.job >= i && i < T.jobs.length - 1))
+    flow(digest.current, s.job >= T.jobs.length - 1)
+    show(dial.current, ck)
+    hours.current.forEach((el) => show(el, ck))
+    show(time.current, ck)
+    if (timeText.current) {
+      const tt = clock12(s.hour)
+      if (timeText.current.textContent !== tt) timeText.current.textContent = tt
+    }
+    const { cx, cy, r0, r1 } = l.clock
+    const R = r1 + 14
+    hand.current?.setAttribute('x1', String(cx + Math.sin(s.hand) * (r0 * 0.75)))
+    hand.current?.setAttribute('y1', String(cy - Math.cos(s.hand) * (r0 * 0.75)))
+    hand.current?.setAttribute('x2', String(cx + Math.sin(s.hand) * R))
+    hand.current?.setAttribute('y2', String(cy - Math.cos(s.hand) * R))
+    handDot.current?.setAttribute('cx', String(cx + Math.sin(s.hand) * R))
+    handDot.current?.setAttribute('cy', String(cy - Math.cos(s.hand) * R))
+    show(note.current, seg(p, PH.toClus[1] - 0.03, PH.ask[0]))
+
+    // couriers carry each job's result to its line in the chat
+    let from: [number, number] = [0, 0]
+    let to: [number, number] = [0, 0]
+    if (s.job >= 0) {
+      const a = (JOB_HOURS[s.job] / 24) * Math.PI * 2 + 0.05
+      const k = (r0 + r1) / 2
+      from = [cx + Math.sin(a) * k, cy - Math.cos(a) * k]
+      const target = s.job >= T.jobs.length - 1 ? digest.current : jobs.current[s.job]
+      const b = box.current?.getBoundingClientRect()
+      const t = target?.getBoundingClientRect()
+      if (b && t && t.height > 0) to = [t.left - b.left + Math.min(40, t.width / 2), t.top - b.top + t.height / 2]
+      else to = [r.x + 30, r.y + r.h / 2]
+    }
+    return { from, to }
+  }
+
+  return (
+    <div ref={ref} className="scene hc" style={{ height: '1000vh' }}>
+      <div
+        ref={box}
+        className="scene-sticky"
+        onPointerMove={(e) => {
+          const b = e.currentTarget.getBoundingClientRect()
+          mouse.current = [e.clientX - b.left, e.clientY - b.top]
+        }}
+        onPointerLeave={() => (mouse.current = [-1e4, -1e4])}
+      >
+        <canvas ref={canvas} className="hc-canvas" role="img" aria-label={T.label} />
+
+        <p ref={intro} className="hc-intro">
+          {T.intro}
+        </p>
+
+        <p ref={lineHead} className="hc-head">
+          {T.line}
+        </p>
+        {T.groups.map((g, i) => (
+          <span key={g} ref={(el) => void (lanes.current[i] = el)} className="hc-lane">
+            {g}
+          </span>
+        ))}
+        <div ref={axis} className="hc-axis">
+          <span>{T.past}</span>
+          <span>{T.now}</span>
+        </div>
+
+        {T.groups.map((g, i) => (
+          <span key={g} ref={(el) => void (groups.current[i] = el)} className="hc-group">
+            {g}
+          </span>
+        ))}
+        {T.evidence.map((e, i) => (
+          <div key={e.src} ref={(el) => void (ev.current[i] = el)} className="hc-ev">
+            <b>{e.src}</b>
+            <span>{e.text}</span>
+          </div>
+        ))}
+
+        <svg ref={dial} className="hc-dial" aria-hidden>
+          <path ref={sleep} className="hc-sleep" />
+          <line ref={hand} className="hc-hand" />
+          <circle ref={handDot} r="4" className="hc-handdot" />
+        </svg>
+        {T.clockLabels.map((h, i) => (
+          <span key={h} ref={(el) => void (hours.current[i] = el)} className="hc-hour">
+            {h}
+          </span>
+        ))}
+        <div ref={time} className="hc-time">
+          <span ref={timeText} />
+          <small>{T.tagline}</small>
+        </div>
+
+        <div ref={chat} className="hc-chat">
+          <div className="hc-chat-top">
+            <img src="/media/herald/orb.png" alt="" width="34" height="34" />
+            <div>
+              <b>{T.name}</b>
+              <span ref={status}>{T.online}</span>
+            </div>
+          </div>
+          <div className="hc-msgs">
+            <div ref={qa} className="hc-thread">
+              <div ref={q} className="hc-msg me" />
+              <div ref={thinking} className="hc-msg hc-dots">
+                <i />
+                <i />
+                <i />
+              </div>
+              <div ref={ans} className="hc-msg">
+                <span ref={ansText} />
+                <div ref={ansMore}>
+                  <div className="hc-chips">
+                    {T.chips.map((c) => (
+                      <span key={c}>{c}</span>
+                    ))}
+                  </div>
+                  <div className="hc-btns">
+                    <span className="on">{T.buttons[0]}</span>
+                    <span>{T.buttons[1]}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div ref={night} className="hc-thread hc-night">
+              {T.jobs.slice(0, -1).map((j, i) => (
+                <div key={j.text} ref={(el) => void (jobs.current[i] = el)} className="hc-job">
+                  <time>{clock12(JOB_HOURS[i])}</time>
+                  <b>{j.src}</b>
+                  <span>{j.text}</span>
+                </div>
+              ))}
+              <div ref={digest} className="hc-msg">
+                {T.digest}
+                <div className="hc-btns">
+                  <span className="on">{T.digestButtons[0]}</span>
+                  <span>{T.digestButtons[1]}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p ref={note} className="hc-note">
+          {T.note}
+        </p>
+        <div className="scene-caption" aria-hidden>
+          {T.steps.map((s, i) => (
+            <span key={s} className={i === step ? 'on' : ''}>
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
